@@ -1,7 +1,11 @@
-/** @type {import('postcss-load-config').Config} */
+/** @type {import("postcss-load-config").Config} */
 const config = {
   plugins: {
-    tailwindcss: {},
+    "@tailwindcss/postcss": {
+      future: {
+        hoverOnlyWhenSupported: false, // This ensures hover works on mobile too
+      },
+    },
   },
 };
 
