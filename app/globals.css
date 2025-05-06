@@ -1,27 +1,26 @@
 @import "tailwindcss";
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+html {
+    scroll-behavior: smooth;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+@theme {
+    --shadow-top: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+/* One of the few edge cases where we need to apply these styles: conditional hover coloring (dark/light mode) on a navbar link */
+@layer components {
+    .navbar-link {
+        @apply font-extralight transition-colors duration-500;
+    }
+
+    html.light .navbar-link:hover {
+        @apply text-gray-300;
+    }
+
+    html.dark .navbar-link:hover {
+        @apply text-gray-600;
+    }
 }
 
 @layer utilities {

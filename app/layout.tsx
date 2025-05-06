@@ -1,8 +1,85 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import Header from "@/components/Header";
+import React from "react";
+import Footer from "@/components/Footer";
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { ThemeProvider } from "next-themes";
 
-const inter = Inter({ subsets: ["latin"] });
+const helveticaNeue = localFont({
+  src: [
+    {
+      path: "../public/fonts/HelveticaNeueUltraLight.woff2",
+      weight: "100",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueUltraLightItalic.woff2",
+      weight: "100",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueLight.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeue.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueRoman.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueMedium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueMediumItalic.woff2",
+      weight: "500",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueBold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueBoldItalic.woff2",
+      weight: "700",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueHeavy.woff2",
+      weight: "800",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueHeavyItalic.woff2",
+      weight: "800",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueBlack.woff2",
+      weight: "900",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeueBlackItalic.woff2",
+      weight: "900",
+      style: "italic",
+    },
+  ],
+  variable: "--font-helvetica-neue",
+});
+
+config.autoAddCss = false;
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,8 +92,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={helveticaNeue.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="flex flex-col overflow-x-clip min-h-screen bg-primary-light dark:bg-primary-dark text-text-light dark:text-text-dark transition-colors duration-300">
+            <Header />
+            <main className="flex flex-grow flex-col">{children}</main>
+            <Footer />
+          </div>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
