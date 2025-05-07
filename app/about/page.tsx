@@ -15,14 +15,14 @@ export default function About() {
       <section className="mb-16">
         <h2 className="mb-4 text-2xl font-light">Introduction</h2>
         <p className="mb-4 font-light">
-          I'm a software engineer with {professional} years of professional
+          I&#39;m a software engineer with {professional} years of professional
           experience and {internship} years of internship experience, passionate
           about building beautiful and functional web applications. With
           expertise in modern web technologies, I create seamless user
           experiences and robust solutions.
         </p>
         <p className="font-light">
-          When I'm not coding, you can find me exploring new technologies,
+          When I&#39;m not coding, you can find me exploring new technologies,
           contributing to open-source projects, or sharing my knowledge through
           technical writing.
         </p>
@@ -71,7 +71,8 @@ export default function About() {
             Bachelor of Arts in Computer Science and Mathematics
           </h3>
           <p className="font-light">
-            Williams College • {formatDate(new Date("2017-09"))} - {formatDate(new Date("2022-06"))}
+            Williams College • {formatDate(new Date("2017-09"))} -{" "}
+            {formatDate(new Date("2022-06"))}
           </p>
         </div>
       </section>
@@ -80,7 +81,7 @@ export default function About() {
       <section>
         <h2 className="mb-4 text-2xl font-light">Interests</h2>
         <p className="font-light">
-          Beyond coding, I'm interested in [Your Interests]. I believe in
+          Beyond coding, I&#39;m interested in [Your Interests]. I believe in
           continuous learning and staying up-to-date with the latest
           technologies and best practices in software development.
         </p>
