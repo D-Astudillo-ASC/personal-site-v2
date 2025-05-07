@@ -24,6 +24,7 @@ export default function ThemeToggle() {
                 opacity-0
                 animate-fade-in
                 transition-opacity duration-700 ease-out
+                hover:scale-110
                 `}
       aria-label="Toggle theme"
     >
