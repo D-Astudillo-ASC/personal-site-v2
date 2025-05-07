@@ -58,7 +58,7 @@ export default function Home() {
         <div className="container mx-auto max-w-3xl">
           <h2 className="mb-8 text-3xl font-extralight">About Me</h2>
           <p className="mb-4">
-            I'm a software engineer passionate about building beautiful and
+            I&#39;m a software engineer passionate about building beautiful and
             functional web applications. With expertise in modern web
             technologies, I create seamless user experiences and robust
             solutions.
