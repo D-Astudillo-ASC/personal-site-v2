@@ -1,26 +1,13 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
     scroll-behavior: smooth;
 }
 
 @theme {
     --shadow-top: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* One of the few edge cases where we need to apply these styles: conditional hover coloring (dark/light mode) on a navbar link */
-@layer components {
-    .navbar-link {
-        @apply font-extralight transition-colors duration-500;
-    }
-
-    html.light .navbar-link:hover {
-        @apply text-gray-300;
-    }
-
-    html.dark .navbar-link:hover {
-        @apply text-gray-600;
-    }
 }
 
 @layer utilities {
