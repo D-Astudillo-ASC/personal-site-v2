@@ -16,17 +16,13 @@ const config: Config = {
         "spin-slow": "spin 6s linear infinite",
       },
       colors: {
-        primary: {
-          light: "#f8f9fa",
-          dark: "#121212",
-        },
-        text: {
-          light: "#1a1a1a",
-          dark: "#ffffff",
-        },
+        border: "var(--border-color)",
+        text: "var(--text-color)",
+        background: "var(--background-color)",
       },
       fontFamily: {
-        sans: ["var(--font-helvetica-neue)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)"],
+        helvetica: ["var(--font-helvetica)"],
       },
     },
   },
