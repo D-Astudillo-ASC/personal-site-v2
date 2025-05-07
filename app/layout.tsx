@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { ThemeProvider } from "next-themes";
+import { FontProvider } from "./providers/FontProvider";
+import FontWrapper from "@/components/font/FontWrapper";
 
 const helveticaNeue = localFont({
   src: [
@@ -76,7 +78,10 @@ const helveticaNeue = localFont({
       style: "italic",
     },
   ],
-  variable: "--font-helvetica-neue",
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "sans-serif"],
+  adjustFontFallback: "Arial",
 });
 
 config.autoAddCss = false;
@@ -95,11 +100,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={helveticaNeue.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex flex-col overflow-x-clip min-h-screen bg-primary-light dark:bg-primary-dark text-text-light dark:text-text-dark transition-colors duration-300">
-            <Header />
-            <main className="flex flex-grow flex-col">{children}</main>
-            <Footer />
-          </div>
+          <FontProvider>
+            <FontWrapper>
+              <div className="flex flex-col overflow-x-clip min-h-screen bg-background text-text transition-colors duration-300 [--border-color:theme(colors.black)] [--text-color:theme(colors.black)] [--background-color:theme(colors.white)] dark:[--border-color:theme(colors.white)] dark:[--text-color:theme(colors.white)] dark:[--background-color:theme(colors.black)]">
+                <Header />
+                <main className="flex flex-grow flex-col">{children}</main>
+                <Footer />
+              </div>
+            </FontWrapper>
+          </FontProvider>
         </ThemeProvider>
       </body>
     </html>
