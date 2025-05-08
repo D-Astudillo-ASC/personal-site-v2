@@ -2,9 +2,9 @@
 
 import { Project } from "@/types/project";
 import Image from "next/image";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faExternalLink } from "@fortawesome/free-solid-svg-icons";
+import IconClick from "../IconClick";
 
 interface ProjectCardProps {
   project: Project;
@@ -12,7 +12,7 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-transparent backdrop-blur-sm">
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border/50 bg-background p-6 transition-all duration-300 hover:border-text">
       <div className="relative h-48 w-full overflow-hidden">
         <Image
           src={project.imageUrl}
@@ -30,7 +30,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-text"
+              className="rounded-full bg-text/5 px-3 py-1 text-xs font-medium text-text/70 ring-1 ring-text/10 transition-all duration-300 hover:bg-text/10 hover:text-text hover:ring-text/20"
             >
               {tech}
             </span>
@@ -38,24 +38,20 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
         <div className="flex gap-4">
           {project.githubUrl && (
-            <a
+            <IconClick
+              icon={faGithub}
               href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-text/80 hover:text-text"
-            >
-              <FontAwesomeIcon icon={faGithub} className="h-5 w-5" />
-            </a>
+              label={`View ${project.title} on GitHub`}
+              className="h-5 w-5"
+            />
           )}
           {project.liveUrl && (
-            <a
+            <IconClick
+              icon={faExternalLink}
               href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-text/80 hover:text-text"
-            >
-              <FontAwesomeIcon icon={faExternalLink} className="h-5 w-5" />
-            </a>
+              label={`Visit ${project.title} live site`}
+              className="h-5 w-5"
+            />
           )}
         </div>
       </div>

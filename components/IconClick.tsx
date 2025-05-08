@@ -1,26 +1,26 @@
-import { JSX, ReactNode } from "react";
+"use client";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import Link from "next/link";
 
 interface IconClickProps {
-  icon: ReactNode;
-  link: string;
+  icon: IconDefinition;
+  href: string;
+  label: string;
   className?: string;
 }
 
-const IconClick = ({
-  icon,
-  link,
-  className = "",
-}: IconClickProps): JSX.Element => {
+export default function IconClick({ icon, href, label, className = "" }: IconClickProps) {
   return (
-    <a
-      className={className}
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      href={href}
+      target={href.startsWith('http') ? '_blank' : undefined}
+      rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+      className={`text-text/70 hover:text-text transition-colors duration-300 ${className}`}
+      aria-label={label}
     >
-      {icon}
-    </a>
+      <FontAwesomeIcon icon={icon} className="w-4 h-4" />
+    </Link>
   );
-};
-
-export default IconClick;
+}
