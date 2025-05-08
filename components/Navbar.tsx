@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/theme/ThemeToggle";
 import FontToggle from "@/components/font/FontToggle";
 import { createPortal } from "react-dom";
 import { useFont } from "@/app/providers/FontProvider";
+import { navLinks } from "@/constants/navigation";
 
 export default function Navbar(): JSX.Element {
   const pathname = usePathname();
@@ -21,13 +22,6 @@ export default function Navbar(): JSX.Element {
   }, []);
 
   const isActive = (path: string) => pathname === path;
-
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/about", label: "About" },
-    { href: "/projects", label: "Projects" },
-    { href: "/contact", label: "Contact" },
-  ];
 
   const dropdownContent = (
     <div
@@ -69,6 +63,19 @@ export default function Navbar(): JSX.Element {
               </Link>
             </li>
           ))}
+          <li className="mt-2 px-4">
+            <a
+              href="/resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`
+      block px-4 py-2 text-sm font-thin transition-colors duration-300
+      text-text/70 hover:text-text
+    `}
+            >
+              View Resume
+            </a>
+          </li>
           <li className="mt-2 flex justify-center">
             <FontToggle />
           </li>
@@ -90,7 +97,7 @@ export default function Navbar(): JSX.Element {
               <Link
                 href={link.href}
                 className={`
-                  relative py-2 text-sm font-thin transition-all duration-300
+                  relative py-2 text-lg font-thin transition-all duration-300
                   ${
                     isActive(link.href)
                       ? "text-text"
@@ -107,6 +114,18 @@ export default function Navbar(): JSX.Element {
             </li>
           ))}
         </ul>
+        <a
+          href="/resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`
+    text-sm font-thin px-3 py-1 rounded border border-border/50
+    text-text/70 hover:text-text hover:border-text
+    transition-colors duration-300
+  `}
+        >
+          View Resume
+        </a>
         <div className="flex items-center space-x-4 pl-4 border-l border-border/50">
           <FontToggle />
           <ThemeToggle />
