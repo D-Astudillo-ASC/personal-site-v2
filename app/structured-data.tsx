@@ -12,6 +12,7 @@ export default function StructuredData() {
     "jobTitle": "Software Engineer",
     "description": "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
     "url": "https://danielastudillo.io",
+    "email": "daniel.astudillo404@gmail.com",
     "sameAs": [
       "https://linkedin.com/in/daniel-m-astudillo",
       "https://github.com/D-Astudillo-ASC",
