@@ -131,7 +131,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <FontProvider>
             <FontWrapper>
-              <div className="flex flex-col overflow-x-clip min-h-screen bg-background text-text transition-standard [--border-color:theme(colors.black)] [--text-color:theme(colors.black)] [--background-color:theme(colors.white)] dark:[--border-color:theme(colors.white)] dark:[--text-color:theme(colors.white)] dark:[--background-color:theme(colors.black)]">
+              <div className="flex flex-col overflow-x-clip min-h-screen bg-background text-text transition-standard [--border-color:theme(colors.black)] [--text-color:theme(colors.black)] [--background-color:theme(colors.white)] dark:[--border-color:theme(colors.white)] dark:[--text-color:theme(colors.white)] dark:[--background-color:#000000]">
                 <Header />
                 <main className="flex flex-grow flex-col">{children}</main>
                 <Footer />
