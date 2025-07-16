@@ -93,4 +93,27 @@ html {
     .animate-fade-in {
         animation: fade-in 0.3s ease-out forwards;
     }
+
+    /* Mobile font weight improvements */
+    /* TODO: Do more research on this */
+    @media (max-width: 768px) {
+        .font-thin {
+            font-weight: 300 !important; /* Light instead of Thin on mobile */
+        }
+        
+        .font-extralight {
+            font-weight: 400 !important; /* Normal instead of Extra Light on mobile */
+        }
+    }
+
+    /* Even more readable on very small screens */
+    @media (max-width: 480px) {
+        .font-thin {
+            font-weight: 400 !important; /* Normal weight on very small screens */
+        }
+        
+        .font-extralight {
+            font-weight: 500 !important; /* Medium weight on very small screens */
+        }
+    }
 }
