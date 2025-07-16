@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero Section */}
-      <section className="flex min-h-[80vh] flex-col items-center justify-center px-4 md:px-16 lg:px-24">
+      <section className="flex min-h-[80vh] flex-col items-center justify-center px-4 md:px-16 lg:px-24" role="banner">
         <h1 className="mb-4 text-center text-7xl font-extralight animate-pulse">
           Daniel Astudillo
         </h1>

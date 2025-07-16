@@ -3,8 +3,27 @@ import ProjectCard from "@/components/projects/ProjectCard";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Projects | Daniel Astudillo",
-  description: "Explore Daniel Astudillo's portfolio of software projects, including full-stack applications, web development, and innovative solutions.",
+  title: "Daniel Astudillo | Software Engineer | Projects",
+  description: "Software Engineer portfolio featuring Visa Card Eligibility Service, Visa Digital Benefits Platform, and modern web applications. Built with React, TypeScript, Spring Boot, and .NET Core.",
+  keywords: [
+    "Daniel Astudillo Projects",
+    "Visa Card Eligibility Service Project",
+    "Visa Digital Benefits Platform Project", 
+    "Software Engineer Portfolio",
+    "Software Developer Portfolio",
+    "React Projects",
+    "TypeScript Projects",
+    "Spring Boot Projects",
+    ".NET Core Projects",
+    "Next.js Projects",
+    "Payment Systems Projects",
+    "Full Stack Developer Projects",
+    "Web Development Portfolio"
+  ],
+  openGraph: {
+    title: "Daniel Astudillo | Software Engineer | Projects",
+    description: "Software Engineer portfolio featuring Visa Card Eligibility Service, Visa Digital Benefits Platform, and modern web applications.",
+  },
 };
 
 export default function Projects() {

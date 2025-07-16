@@ -8,8 +8,24 @@ import { Metadata } from "next";
 import ExperienceSummary from "@/components/experience/ExperienceSummary";
 
 export const metadata: Metadata = {
-  title: "About | Daniel Astudillo",
-  description: "Learn about Daniel Astudillo's journey in software development, skills, experience, and values as a Software Engineer.",
+  title: "Daniel Astudillo | Software Engineer | Visa & Wayfair Experience",
+  description: "Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core. Led migrations reducing technical debt by 10+ years. View portfolio, skills, and experience.",
+  keywords: [
+    "Daniel Astudillo Software Engineer",
+    "Visa Software Engineer",
+    "Wayfair Software Engineer", 
+    "React TypeScript Developer",
+    "Spring Boot Developer",
+    ".NET Core Developer",
+    "Full Stack Developer Portfolio",
+    "Software Engineer Experience",
+    "Payment Systems Developer",
+    "Recommendation Engine Developer"
+  ],
+  openGraph: {
+    title: "Daniel Astudillo | Software Engineer | Visa & Wayfair Experience",
+    description: "Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core.",
+  },
 };
 
 export default function About() {

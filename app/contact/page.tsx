@@ -2,8 +2,28 @@ import { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact | Daniel Astudillo",
-  description: "Get in touch with Daniel Astudillo for collaborations, opportunities, or to discuss software development projects.",
+  title: "Daniel Astudillo | Software Engineer | Contact",
+  description: "Contact Daniel Astudillo for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
+  keywords: [
+    "Contact Daniel Astudillo",
+    "Hire Software Engineer",
+    "Full Stack Developer Hire",
+    "React Developer Contact",
+    "TypeScript Developer",
+    "Next.js Developer",
+    "Spring Boot Developer",
+    ".NET Developer",
+    "Software Engineer Opportunities", 
+    "Software Developer Opportunities",
+    "Software Engineer Contact",
+    "Software Developer Contact",
+    "Technical Collaboration",
+    "Development Projects"
+  ],
+  openGraph: {
+    title: "Daniel Astudillo | Software Engineer | Contact",
+    description: "Contact Daniel Astudillo for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
+  },
 };
 
 export default function Contact() {
