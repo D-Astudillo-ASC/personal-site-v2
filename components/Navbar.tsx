@@ -65,7 +65,7 @@ export default function Navbar(): JSX.Element {
           ))}
           <li className="mt-2 px-4">
             <a
-              href="/resume.pdf"
+              href="/Daniel-Astudillo-Resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className={`
@@ -111,7 +111,7 @@ export default function Navbar(): JSX.Element {
           ))}
         </ul>
         <a
-          href="/resume.pdf"
+          href="/Daniel-Astudillo-Resume.pdf"
           target="_blank"
           rel="noopener noreferrer"
           className={`
