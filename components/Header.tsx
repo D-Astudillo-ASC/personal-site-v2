@@ -5,7 +5,7 @@ import Logo from "@/components/Logo";
 
 export default function Header(): JSX.Element {
   return (
-    <header className="fixed top-0 left-0 z-50 w-full bg-transparent transition-colors duration-300 backdrop-blur-sm shadow-md border-t border-gray-200 dark:border-gray-800 px-8 py-5">
+    <header className="fixed top-0 left-0 z-50 w-full bg-transparent transition-standard backdrop-blur-sm shadow-md border-t border-gray-200 dark:border-gray-800 px-8 py-5">
       <div className="flex items-center justify-between w-full max-w-8xl mx-auto">
         <Link href="/">
           <Logo />

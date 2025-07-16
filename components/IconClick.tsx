@@ -17,7 +17,7 @@ export default function IconClick({ icon, href, label, className = "" }: IconCli
       href={href}
       target={href.startsWith('http') ? '_blank' : undefined}
       rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-      className={`text-text/70 hover:text-text transition-colors duration-300 ${className}`}
+      className={`text-text/70 hover:text-text transition-standard ${className}`}
       aria-label={label}
     >
       <FontAwesomeIcon icon={icon} className="w-4 h-4" />

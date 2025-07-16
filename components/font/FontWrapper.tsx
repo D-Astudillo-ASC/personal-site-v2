@@ -10,7 +10,7 @@ export default function FontWrapper({ children }: { children: ReactNode }) {
     <div 
       className={`
         ${font === "helvetica" ? "font-helvetica" : "font-mono"}
-        transition-all duration-300 ease-in-out
+        transition-slow
       `}
     >
       {children}

@@ -21,9 +21,7 @@ export default function FontToggle() {
       onClick={() => setFont(font === "helvetica" ? "monospace" : "helvetica")}
       className={`
         rounded-full
-        opacity-0
-        animate-fade-in
-        transition-all duration-300 ease-in-out
+        transition-slow
         hover:scale-110
       `}
       aria-label={`Switch to ${font === "helvetica" ? "monospace" : "Helvetica Neue"} font`}
@@ -31,7 +29,7 @@ export default function FontToggle() {
     >
       <FontAwesomeIcon
         icon={faFont}
-        className="w-5 h-5 hover:text-gray-200 dark:hover:text-gray-500 transition-colors duration-500 ease-in-out"
+        className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-slower"
       />
     </button>
   );

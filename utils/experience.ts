@@ -3,6 +3,7 @@ import { Experience } from "@/types/experience";
 export interface EmploymentExperience {
   professional: number;
   internship: number;
+  total: number;
 }
 
 export function calculateYearsOfExperience(experiences: Experience[]): number {
@@ -33,8 +34,13 @@ export function calculateYearsByEmploymentType(experiences: Experience[]): Emplo
   const professionalExperiences: Experience[] = experiences.filter(exp => exp.employmentType === "Professional");
   const internshipExperiences: Experience[] = experiences.filter(exp => exp.employmentType === "Internship");
 
+  const yearsProfessional = calculateYearsOfExperience(professionalExperiences);
+  const yearsInternship = calculateYearsOfExperience(internshipExperiences);
+  const totalYears = yearsProfessional + yearsInternship;
+
   return {
-    professional: calculateYearsOfExperience(professionalExperiences),
-    internship: calculateYearsOfExperience(internshipExperiences)
+    professional: yearsProfessional,
+    internship: yearsInternship,
+    total: totalYears
   };
 } 

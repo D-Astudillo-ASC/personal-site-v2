@@ -27,7 +27,7 @@ export default function Navbar(): JSX.Element {
     <div
       className={`
         fixed left-0 right-0 top-[calc(4rem+2rem)] z-[100]
-        transition-all duration-300 ease-in-out
+        transition-slow
         backdrop-blur-md bg-white/10 dark:bg-black/10
         border-y border-white/20 dark:border-black/20
         shadow-lg md:hidden
@@ -46,7 +46,7 @@ export default function Navbar(): JSX.Element {
               <Link
                 href={link.href}
                 className={`
-                  block py-2 text-sm font-thin transition-all duration-300
+                  block py-2 text-sm font-thin transition-standard cursor-pointer
                   ${
                     isActive(link.href)
                       ? "text-text"
@@ -56,7 +56,7 @@ export default function Navbar(): JSX.Element {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <span
-                  className={`relative inline-block after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full ${isActive(link.href) ? "after:w-full" : ""}`}
+                  className={`relative inline-block after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:transition-standard hover:after:w-full ${isActive(link.href) ? "after:w-full after:bg-current" : "after:bg-gray-300 dark:after:bg-gray-600"}`}
                 >
                   {link.label}
                 </span>
@@ -69,7 +69,7 @@ export default function Navbar(): JSX.Element {
               target="_blank"
               rel="noopener noreferrer"
               className={`
-      block px-4 py-2 text-sm font-thin transition-colors duration-300
+      block px-4 py-2 text-sm font-thin transition-colors duration-300 cursor-pointer
       text-text/70 hover:text-text
     `}
             >
@@ -97,16 +97,12 @@ export default function Navbar(): JSX.Element {
               <Link
                 href={link.href}
                 className={`
-                  relative py-2 text-lg font-thin transition-all duration-300
-                  ${
-                    isActive(link.href)
-                      ? "text-text"
-                      : "text-text/70 hover:text-gray-300 dark:hover:text-gray-600"
-                  }
+                  relative py-2 text-lg font-thin transition-standard cursor-pointer
+                  text-text/70 hover:text-gray-300 dark:hover:text-gray-600
                   after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 
-                  after:bg-current after:transition-all after:duration-300
-                  hover:after:w-full
-                  ${isActive(link.href) ? "after:w-full" : ""}
+                  after:transition-slow
+                  hover:after:w-full hover:after:bg-gray-300 dark:hover:after:bg-gray-600
+                  ${isActive(link.href) ? "after:w-full after:bg-current" : ""}
                 `}
               >
                 {link.label}
@@ -119,12 +115,15 @@ export default function Navbar(): JSX.Element {
           target="_blank"
           rel="noopener noreferrer"
           className={`
-    text-sm font-thin px-3 py-1 rounded border border-border/50
-    text-text/70 hover:text-text hover:border-text
-    transition-colors duration-300
-  `}
+            relative text-lg font-thin py-1 transition-standard cursor-pointer
+            text-text/70 hover:text-gray-300 dark:hover:text-gray-600
+            transition-standard cursor-pointer
+            after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 
+            after:transition-slow
+            hover:after:w-full hover:after:bg-gray-300 dark:hover:after:bg-gray-600
+          `}
         >
-          View Resume
+          Resume
         </a>
         <div className="flex items-center space-x-4 pl-4 border-l border-border/50">
           <FontToggle />
@@ -134,7 +133,7 @@ export default function Navbar(): JSX.Element {
 
       {/* Mobile Menu Button */}
       <button
-        className="md:hidden p-2 text-text/70 hover:text-gray-300 dark:hover:text-gray-600 transition-colors"
+        className="md:hidden p-2 text-text/70 hover:text-gray-300 dark:hover:text-gray-600 transition-standard"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         aria-label="Toggle menu"
       >
