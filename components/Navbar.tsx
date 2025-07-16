@@ -73,7 +73,7 @@ export default function Navbar(): JSX.Element {
       text-text/70 hover:text-text
     `}
             >
-              View Resume
+              Resume
             </a>
           </li>
           <li className="mt-2 flex justify-center">

@@ -210,7 +210,7 @@ export default function About() {
         <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Beyond the Code</h2>
         <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
-            When I&apos;m not coding, you&apos;ll find me exploring new technologies, contributing to open-source projects, or diving into the latest developments in web development. I&apos;m particularly interested in performance optimization and creating seamless user experiences.
+            When I&apos;m not coding, you&apos;ll find me exploring new technologies or diving into the latest developments in web development. I&apos;m particularly interested in performance optimization and creating seamless user experiences.
           </p>
           <p>
             I&apos;m always excited to connect with fellow developers, share knowledge, and collaborate on interesting projects. Feel free to reach out if you&apos;d like to discuss technology, potential collaborations, or just chat about the latest trends in web development.
