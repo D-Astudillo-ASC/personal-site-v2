@@ -44,10 +44,20 @@ const helveticaNeue = localFont({
 config.autoAddCss = false;
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo | Software Engineer",
+  title: {
+    default: "Daniel Astudillo | Software Engineer",
+    template: "%s | Daniel Astudillo"
+  },
   description: "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core. Specializing in full-stack development, payment systems, and recommendation engines.",
   keywords: [
+    "Daniel Astudillo",
     "Software Engineer",
+    "Daniel Astudillo Software Engineer",
+    "Daniel Astudillo Visa",
+    "Daniel Astudillo Wayfair",
+    "Software Engineer at Visa",
+    "Payment Systems Engineer",
+    "Visa Software Engineer",
     "Full Stack Developer", 
     "React Developer",
     "TypeScript Developer",
@@ -59,6 +69,9 @@ export const metadata: Metadata = {
     "Spring Boot Developer",
     "Visa Developer",
     "Payment Systems",
+    "Financial Technology",
+    "API Development",
+    "Microservices Architecture",
     "Software Development",
     "Web Development",
     "Frontend Developer",
@@ -67,6 +80,8 @@ export const metadata: Metadata = {
     "Software Developer Portfolio",
     "Software Engineer Contact",
     "Software Developer Contact",
+    "Open to Work",
+    "Software Engineer Available",
     "Technical Collaboration",
     "Development Projects"
   ],
@@ -88,7 +103,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://danielastudillo.io',
-    title: 'Daniel Astudillo | Software Engineer | Full-Stack Developer',
+    title: 'Daniel Astudillo | Software Engineer',
     description: 'Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.',
     siteName: 'Daniel Astudillo Portfolio',
     images: [
@@ -102,7 +117,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Daniel Astudillo | Software Engineer | Full-Stack Developer',
+    title: 'Daniel Astudillo | Software Engineer',
     description: 'Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair.',
     images: ['/images/og-image.png'],
   },

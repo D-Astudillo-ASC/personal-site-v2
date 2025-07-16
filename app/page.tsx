@@ -2,10 +2,16 @@ import Link from "next/link";
 import { projects } from "@/data/projects";
 import ProjectCard from "@/components/projects/ProjectCard";
 import Introduction from "@/components/Introduction";
+import type { Metadata } from "next";
 
 // Force static generation for better performance
 export const dynamic = 'force-static';
 export const revalidate = 3600; // Revalidate every hour
+
+export const metadata: Metadata = {
+  title: "Daniel Astudillo | Software Engineer",
+  description: "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+};
 
 export default function Home() {
   const featuredProjects = projects
