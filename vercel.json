@@ -1,13 +1,10 @@
 {
-  "headers": [
-    {
-      "source": "/resume.pdf",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/pdf"
-        }
-      ]
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 10
     }
-  ]
+  },
+  "static": {
+    "public": "public"
+  }
 } 
