@@ -38,6 +38,7 @@ const helveticaNeue = localFont({
   preload: true,
   fallback: ["system-ui", "sans-serif"],
   adjustFontFallback: "Arial",
+  variable: "--font-helvetica-neue", // CSS variable for better performance
 });
 
 config.autoAddCss = false;

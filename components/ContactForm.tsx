@@ -6,12 +6,12 @@ import {
   faEnvelope, 
   faMapMarkerAlt,
   faCheck,
-  faExclamationTriangle
-} from "@fortawesome/free-solid-svg-icons";
-import { 
-  faLinkedin as faLinkedinBrand,
-  faGithub as faGithubBrand
-} from "@fortawesome/free-brands-svg-icons";
+  faExclamationTriangle,
+  faLinkedin as faLinkedinBrand
+} from "@/lib/fontawesome-icons";
+// import { 
+//   faGithub as faGithubBrand
+// } from "@/lib/fontawesome-icons";
 import ObfuscatedContent from "./ObfuscatedContent";
 
 interface ContactFormProps {

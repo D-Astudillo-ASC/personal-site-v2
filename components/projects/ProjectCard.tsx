@@ -1,9 +1,9 @@
 "use client";
 
+import React from "react";
 import { Project } from "@/types/project";
 import Image from "next/image";
-import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faExternalLink } from "@fortawesome/free-solid-svg-icons";
+import { faGithub, faExternalLink } from "@/lib/fontawesome-icons";
 import IconClick from "../IconClick";
 import { useState } from "react";
 
@@ -11,7 +11,7 @@ interface ProjectCardProps {
   project: Project;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+const ProjectCard = React.memo<ProjectCardProps>(({ project }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   
@@ -99,4 +99,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </div>
     </div>
   );
-} 
+});
+
+ProjectCard.displayName = 'ProjectCard';
+
+export default ProjectCard; 

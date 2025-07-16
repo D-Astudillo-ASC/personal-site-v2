@@ -1,4 +1,4 @@
-import { faCode, faGraduationCap, faLightbulb, faRocket } from "@fortawesome/free-solid-svg-icons";
+import { faCode, faGraduationCap, faLightbulb, faRocket } from "@/lib/fontawesome-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { experiences } from "@/data/experience";
 import { calculateYearsByEmploymentType } from "@/utils/experience";

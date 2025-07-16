@@ -53,7 +53,7 @@ export default function StructuredData() {
     if (scriptRef.current) {
       scriptRef.current.textContent = JSON.stringify(structuredData);
     }
-  }, []);
+  }, [structuredData]);
 
   return (
     <script

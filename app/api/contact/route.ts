@@ -125,7 +125,14 @@ export async function POST(request: NextRequest) {
       const userFriendlyError = generateUserFriendlyError(validationResult.error);
       return NextResponse.json(
         { error: userFriendlyError },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          }
+        }
       );
     }
     
@@ -144,7 +151,14 @@ export async function POST(request: NextRequest) {
       console.log('Spam detected from:', clientIP, sanitizedData);
       return NextResponse.json(
         { error: 'Invalid form submission. Please revise and try again.' },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          }
+        }
       );
     }
     
@@ -156,14 +170,28 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { message: 'Message sent successfully!' },
-      { status: 200 }
+      { 
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
     );
     
   } catch (error) {
     console.error('Contact form error:', error);
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
     );
   }
 } 
