@@ -124,6 +124,7 @@ export default function RootLayout({
       <head>
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
+        <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
         <StructuredData />
       </head>
       <body className={helveticaNeue.className}>

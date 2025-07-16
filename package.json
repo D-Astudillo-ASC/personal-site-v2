@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "postbuild": "cp -r public .next/standalone/",
+    "start": "node .next/standalone/server.js",
     "lint": "next lint",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "validate-amp": "ts-node scripts/validate-amp.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -30,15 +32,18 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^15.4.1",
     "@tailwindcss/postcss": "^4.1.4",
+    "@types/amphtml-validator": "^1.0.4",
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "amphtml-validator": "^1.0.38",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.25.1",
     "eslint-config-next": "^15.1.6",
     "postcss": "^8.5.3",
     "prettier": "3.5.3",
     "tailwindcss": "^4.1.5",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }
