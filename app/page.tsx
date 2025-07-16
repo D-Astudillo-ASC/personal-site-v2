@@ -58,7 +58,7 @@ export default function Home() {
       <section className="px-4 py-16 md:px-16 lg:px-24">
         <div className="container mx-auto max-w-3xl">
           <h2 className="mb-8 text-4xl font-extralight">About Me</h2>
-          <Introduction />
+          <Introduction isOpenToWork={true} />
           <div className="mt-8 text-center">
             <Link
               href="/about"

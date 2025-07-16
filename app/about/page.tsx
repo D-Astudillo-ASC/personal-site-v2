@@ -59,7 +59,7 @@ export default function About() {
 
           <p> Since then, I&apos;ve developed software across e-commerce, fintech, and infrastructure at companies like Wayfair and Visa — powering sales recommendations and efficiently routing customers in need of assistance to the most appropriate agents, building resilient backend systems at global scale, and ensuring reliability through test-driven development. </p>
           <p> 
-            What drives me isn’t just the excitement of learning a new framework or solving a tough bug—it’s the idea that something I build could genuinely make someone’s day easier, faster, or more meaningful. That’s what keeps me coming back to the keyboard: the opportunity to turn ideas into tools people rely on. 
+            What drives me isn’t just the excitement of learning a new framework or solving a tough bug — it’s the idea that something I build could genuinely make someone’s day easier, faster, or more meaningful. That’s what keeps me coming back to the keyboard: the opportunity to turn ideas into tools people rely on. 
             Whether I’m designing backend systems, collaborating cross-functionally, or refining the user experience, I approach every challenge with one goal in mind: to create software that earns trust, delivers value, and makes a real-world difference.
           </p>      
         </div>

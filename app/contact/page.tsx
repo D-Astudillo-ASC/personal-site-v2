@@ -38,7 +38,7 @@ export default function Contact() {
         </p>
       </section>
 
-      <ContactForm />
+      <ContactForm isOpenToWork={true} />
 
       {/* Additional Info */}
       <section className="mt-16 text-center">
@@ -47,7 +47,7 @@ export default function Contact() {
           <p className="text-lg font-thin text-text/70 leading-relaxed">
             Whether you have a project in mind, want to discuss potential opportunities, 
             or just want to connect, I&apos;d love to hear from you. I&apos;m particularly interested 
-            in full-stack development roles, open source collaborations, and innovative projects.
+            in high-impact, full-stack development roles and innovative projects.
           </p>
         </div>
       </section>
