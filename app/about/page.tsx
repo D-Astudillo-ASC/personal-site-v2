@@ -41,8 +41,8 @@ export default function About() {
       />
       {/* Journey Section */}
       <section className="mb-16">
-        <h2 className="mb-8 text-4xl font-extralight">My Journey</h2>
-        <div className="space-y-6 text-lg font-thin text-text/80 leading-relaxed">
+        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">My Journey</h2>
+        <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
             I&apos;ve always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better. 
           </p>
@@ -67,11 +67,11 @@ export default function About() {
 
       {/* Skills */}
       <section className="mb-16">
-        <h2 className="mb-8 text-4xl font-extralight">Skills</h2>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Skills</h2>
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
           <div>
-            <h3 className="mb-4 text-2xl font-thin">Frontend</h3>
-            <ul className="list-inside list-disc text-lg font-thin text-text/70 leading-relaxed space-y-1">
+            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Frontend</h3>
+            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>React / Next.js</li>
               <li>TypeScript</li>
               <li>JavaScript</li>
@@ -81,8 +81,8 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-2xl font-thin">Backend & APIs</h3>
-            <ul className="list-inside list-disc text-lg font-thin text-text/70 leading-relaxed space-y-1">
+            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Backend & APIs</h3>
+            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Node.js / Express</li>
               <li>.NET Core 6.0</li>
               <li>Spring Boot</li>
@@ -94,8 +94,8 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-2xl font-thin">Databases & Data</h3>
-            <ul className="list-inside list-disc text-lg font-thin text-text/70 leading-relaxed space-y-1">
+            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Databases & Data</h3>
+            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>PostgreSQL</li>
               <li>MongoDB</li>
               <li>IBM DB2</li>
@@ -105,8 +105,8 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-2xl font-thin">Testing & Quality</h3>
-            <ul className="list-inside list-disc text-lg font-thin text-text/70 leading-relaxed space-y-1">
+            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Testing & Quality</h3>
+            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>JUnit</li>
               <li>Mockito</li>
               <li>Jest</li>
@@ -119,8 +119,8 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-2xl font-thin">DevOps & Infrastructure</h3>
-            <ul className="list-inside list-disc text-lg font-thin text-text/70 leading-relaxed space-y-1">
+            <h3 className="mb-4 text-xl sm:text-2xl font-thin">DevOps & Infrastructure</h3>
+            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Docker</li>
               <li>Jenkins</li>
               <li>Apache ActiveMQ</li>
@@ -133,8 +133,8 @@ export default function About() {
           </div>
 
           <div>
-            <h3 className="mb-4 text-2xl font-thin">IDEs & Development Tools</h3>
-            <ul className="list-inside list-disc text-lg font-thin text-text/70 leading-relaxed space-y-1">
+            <h3 className="mb-4 text-xl sm:text-2xl font-thin">IDEs & Development Tools</h3>
+            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Visual Studio Code</li>
               <li>Cursor</li>
               <li>Visual Studio</li>
@@ -154,7 +154,7 @@ export default function About() {
 
       {/* Experience Section - Moved up */}
       <section className="mb-16">
-        <h2 className="mb-8 text-4xl font-extralight">Experience</h2>
+        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Experience</h2>
         <div className="space-y-8">
           {experiences.map((experience) => (
             <ExperienceCard key={experience.id} experience={experience} />
@@ -164,41 +164,41 @@ export default function About() {
 
       {/* Values Section */}
       <section className="mb-16">
-        <h2 className="mb-8 text-4xl font-extralight">What I Value</h2>
-        <div className="grid gap-8 md:grid-cols-2">
+        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">What I Value</h2>
+        <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <FontAwesomeIcon icon={faCode} className="h-6 w-6 text-text/70" />
-              <h3 className="text-2xl font-thin">Clean Code</h3>
+              <h3 className="text-xl sm:text-2xl font-thin">Clean Code</h3>
             </div>
-            <p className="text-lg font-thin text-text/70 leading-relaxed">
+            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
               I believe in writing code that&apos;s not just functional, but also maintainable, readable, and scalable. Good code is like a well-written story—it should be easy to understand and a pleasure to work with.
             </p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <FontAwesomeIcon icon={faLightbulb} className="h-6 w-6 text-text/70" />
-              <h3 className="text-2xl font-thin">Continuous Learning</h3>
+              <h3 className="text-xl sm:text-2xl font-thin">Continuous Learning</h3>
             </div>
-            <p className="text-lg font-thin text-text/70 leading-relaxed">
+            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
               Technology is always evolving, and so am I. I&apos;m constantly exploring new tools, frameworks, and methodologies to stay at the forefront of web development.
             </p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <FontAwesomeIcon icon={faRocket} className="h-6 w-6 text-text/70" />
-              <h3 className="text-2xl font-thin">User-Centric Design</h3>
+              <h3 className="text-xl sm:text-2xl font-thin">User-Centric Design</h3>
             </div>
-            <p className="text-lg font-thin text-text/70 leading-relaxed">
+            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
               Every line of code I write is with the end user in mind. I strive to create applications that are not just powerful, but also intuitive and enjoyable to use.
             </p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <FontAwesomeIcon icon={faGraduationCap} className="h-6 w-6 text-text/70" />
-              <h3 className="text-2xl font-thin">Knowledge Sharing</h3>
+              <h3 className="text-xl sm:text-2xl font-thin">Knowledge Sharing</h3>
             </div>
-            <p className="text-lg font-thin text-text/70 leading-relaxed">
+            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
               I believe in the power of community and knowledge sharing. Whether through code reviews, documentation, or mentoring, I&apos;m always looking to help others grow.
             </p>
           </div>
@@ -207,8 +207,8 @@ export default function About() {
 
       {/* Interests Section */}
       <section className="mb-16">
-        <h2 className="mb-8 text-4xl font-extralight">Beyond the Code</h2>
-        <div className="space-y-6 text-lg font-thin text-text/80 leading-relaxed">
+        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Beyond the Code</h2>
+        <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
             When I&apos;m not coding, you&apos;ll find me exploring new technologies, contributing to open-source projects, or diving into the latest developments in web development. I&apos;m particularly interested in performance optimization and creating seamless user experiences.
           </p>
@@ -220,12 +220,12 @@ export default function About() {
 
       {/* Education */}
       <section className="mb-16">
-        <h2 className="mb-8 text-4xl font-extralight">Education</h2>
+        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Education</h2>
         <div>
-          <h3 className="mb-2 text-2xl font-thin">
+          <h3 className="mb-2 text-xl sm:text-2xl font-thin">
             Bachelor of Arts in Computer Science and Mathematics
           </h3>
-          <p className="text-lg font-thin text-text/70">
+          <p className="text-base sm:text-lg font-thin text-text/70">
             Williams College &bull; {formatDate(new Date("2017-09"))} -{" "}
             {formatDate(new Date("2022-06"))}
           </p>
