@@ -47,7 +47,7 @@ export default function About() {
             I&apos;ve always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better. 
           </p>
           <p>
-            When I got my first PC in 2008, I was instantly hooked — not just by the built-ingames like <i>Minesweeper</i>, <i>Mahjong</i>, and <i>Purble Place</i>, but by the idea that this machine could do so much. I spent hours exploring every corner of it, from <i>Microsoft Paint</i> to the Control Panel and all of the interval drives that showed up in the <i>My Computer</i> window, curious about what made it all tick.
+            When I got my first PC in 2008, I was instantly hooked — not just by the built-in games like <i>Minesweeper</i>, <i>Mahjong</i>, and <i>Purble Place</i>, but by the idea that this machine could do so much. I spent hours exploring every corner of it, from <i>Microsoft Paint</i> to the Control Panel and all of the interval drives that showed up in the <i>My Computer</i> window, curious about what made it all tick.
           </p>
           <p>
             That curiosity led me to embark on my journey as a programmer in 2015, when I was a sophomore in high school, with a <i> Khan Academy</i> account and a burning desire to learn about the forces that powered the World Wide Web.
