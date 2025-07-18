@@ -46,4 +46,13 @@ export const projects: Project[] = [
     liveUrl: "https://personal-site-puce-nine.vercel.app/",
     githubUrl: "https://github.com/D-Astudillo-ASC/personal-site",
   },
+  {
+    id: "Roguelike-Game",
+    title: "Roguelike Game",
+    description: "A roguelike game built with ROT.js and pure JavaScript, modernized with Vite.js, SOLID principles, up to date dependencies, and a more interactive game experience. Features a player character that can move around a dungeon and fight with monsters. Inspired by the game 'The Binding of Isaac'. Still under development.",
+    technologies: ["ROT.js", "Vite.js", "CSS"],
+    imageUrl: "/images/projects/roguelike-game.png",
+    liveUrl: "https://roguelike-game-winter-study-2018.vercel.app",
+    githubUrl: "https://github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018",
+  },
 ]; 
