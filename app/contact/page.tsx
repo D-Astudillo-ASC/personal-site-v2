@@ -1,5 +1,7 @@
 import { Metadata } from "next";
-import ContactForm from "@/components/ContactForm";
+import dynamic from 'next/dynamic';
+
+const ContactForm = dynamic(() => import('@/components/ContactForm'));
 
 export const metadata: Metadata = {
   title: "Daniel Astudillo | Software Engineer | Contact",

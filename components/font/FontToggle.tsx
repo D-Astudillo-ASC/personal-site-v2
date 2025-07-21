@@ -1,30 +1,25 @@
 "use client";
 
+import { useFont } from "@/app/providers/FontProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFont } from "@/lib/fontawesome-icons";
-import { useFont } from "@/app/providers/FontProvider";
-import { useEffect, useState } from "react";
 
 export default function FontToggle() {
-  const [mounted, setMounted] = useState(false);
   const { font, setFont } = useFont();
 
-  useEffect(() => {
-    const timeout = setTimeout(() => setMounted(true), 10);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  if (!mounted) return null;
+  const toggleFont = () => {
+    setFont(font === "helvetica" ? "monospace" : "helvetica");
+  };
 
   return (
     <button
-      onClick={() => setFont(font === "helvetica" ? "monospace" : "helvetica")}
+      onClick={toggleFont}
       className={`
         rounded-full
         transition-slow
         hover:scale-110
       `}
-      aria-label={`Switch to ${font === "helvetica" ? "monospace" : "Helvetica Neue"} font`}
+      aria-label={`Switch to ${font === "helvetica" ? "Monospace" : "Helvetica Neue"} font`}
       title={`Current font: ${font === "helvetica" ? "Helvetica Neue" : "Monospace"}`}
     >
       <FontAwesomeIcon

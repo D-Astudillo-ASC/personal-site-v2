@@ -118,6 +118,11 @@ let nextConfig = {
   // Static generation optimization
   output: 'standalone',
   
+  // Enable source maps for production builds
+  productionBrowserSourceMaps: true,
+
+  transpilePackages: ['@fortawesome/fontawesome-svg-core', '@fortawesome/free-solid-svg-icons', '@fortawesome/free-brands-svg-icons', '@fortawesome/free-regular-svg-icons'],
+  
   // Webpack optimization (only for production builds)
   ...(process.env.NODE_ENV === 'production' && {
     webpack: (config, { dev, isServer }) => {

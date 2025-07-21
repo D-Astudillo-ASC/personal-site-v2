@@ -1,11 +1,11 @@
-"use client";
+// "use client";
 
 import { externalLinks } from "@/constants/navigation";
 import IconClick from "./IconClick";
 
 export default function Footer() {
   return (
-    <footer className="fixed bottom-0 left-0 w-full bg-transparent backdrop-blur-sm z-50 shadow-top transition-standard">
+    <footer className="fixed bottom-0 left-0 h-16 w-full bg-transparent backdrop-blur-sm z-50 shadow-top transition-standard">
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-0">
           {/*TODO: Refactor this...*/}

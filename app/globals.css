@@ -10,6 +10,17 @@ html {
     --shadow-top: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+:root {
+  --font-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+body, [data-font="helvetica"] {
+  font-family: var(--font-helvetica-neue), Arial, sans-serif;
+}
+[data-font="monospace"] {
+  font-family: var(--font-monospace);
+}
+
 @layer utilities {
     /* Standardized animations */
     @keyframes fade-in {

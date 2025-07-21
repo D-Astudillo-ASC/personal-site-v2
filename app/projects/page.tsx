@@ -1,6 +1,8 @@
 import { projects } from "@/data/projects";
-import ProjectCard from "@/components/projects/ProjectCard";
+import dynamic from 'next/dynamic';
 import { Metadata } from "next";
+
+const ProjectCard = dynamic(() => import('@/components/projects/ProjectCard'));
 
 export const metadata: Metadata = {
   title: "Daniel Astudillo | Software Engineer | Projects",

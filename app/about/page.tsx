@@ -2,10 +2,12 @@ import { faCode, faGraduationCap, faLightbulb, faRocket } from "@/lib/fontawesom
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { experiences } from "@/data/experience";
 import { calculateYearsByEmploymentType } from "@/utils/experience";
-import ExperienceCard from "@/components/experience/ExperienceCard";
+import dynamic from 'next/dynamic';
 import { formatDate } from "@/utils/date";
 import { Metadata } from "next";
-import ExperienceSummary from "@/components/experience/ExperienceSummary";
+
+const ExperienceCard = dynamic(() => import('@/components/experience/ExperienceCard'));
+const ExperienceSummary = dynamic(() => import('@/components/experience/ExperienceSummary'));
 
 export const metadata: Metadata = {
   title: "Daniel Astudillo | Software Engineer | Visa & Wayfair Experience",

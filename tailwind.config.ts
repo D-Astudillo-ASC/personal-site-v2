@@ -34,8 +34,8 @@ const config: Config = {
         background: "var(--background-color)",
       },
       fontFamily: {
-        mono: ["var(--font-mono)"],
-        helvetica: ["var(--font-helvetica)"],
+        helvetica: ["Helvetica Neue", "Arial", "sans-serif"],
+        mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
     },
   },
