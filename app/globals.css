@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-/* @custom-variant dark (&:where(.dark, .dark *)); */
-
 html {
   scroll-behavior: smooth;
 }
@@ -135,12 +133,3 @@ body,
     box-shadow: var(--shadow-bottom);
   }
 }
-
-/* Translucent backgrounds for light and dark mode */
-/* .translucent-bg {
-  background-color: rgba(255,255,255,0.8);
-  backdrop-filter: blur(8px);
-}
-.dark .translucent-bg {
-  background-color: rgba(0,0,0,0.7);
-} */

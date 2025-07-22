@@ -113,7 +113,31 @@ export default function RootLayout({
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
         <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
+        <link rel="preload" as="style" href="/_next/static/css/885dbdcb2cf02cd7.css" />
         <StructuredData />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              /* Minimal critical CSS for above-the-fold layout */
+              .flex { display: flex; }
+              .flex-col { flex-direction: column; }
+              .items-center { align-items: center; }
+              .justify-center { justify-content: center; }
+              .min-h-[80vh] { min-height: 80vh; }
+              .px-4 { padding-left: 1rem; padding-right: 1rem; }
+              .gap-4 { gap: 1rem; }
+              .mb-4 { margin-bottom: 1rem; }
+              .mb-8 { margin-bottom: 2rem; }
+              .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+              .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+              .rounded { border-radius: 0.25rem; }
+              .border { border-width: 1px; }
+              .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; }
+              .duration-200 { transition-duration: 200ms; }
+              .cursor-pointer { cursor: pointer; }
+            `,
+          }}
+        />
       </head>
       <body className={helveticaNeue.variable}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
