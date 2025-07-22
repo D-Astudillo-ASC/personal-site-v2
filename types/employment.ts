@@ -1,1 +1,1 @@
-export type EmploymentType = "Professional" | "Internship"; 
+export type EmploymentType = "Professional" | "Internship";

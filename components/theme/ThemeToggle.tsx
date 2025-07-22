@@ -28,7 +28,7 @@ export default function ThemeToggle() {
     >
       <FontAwesomeIcon
         icon={theme === "dark" ? faMoon : faSun}
-        className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-slower"
+        className="w-5 h-5"
       />
     </button>
   );

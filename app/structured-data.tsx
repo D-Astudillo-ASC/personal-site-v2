@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function StructuredData() {
   const scriptRef = useRef<HTMLScriptElement>(null);
@@ -9,31 +9,32 @@ export default function StructuredData() {
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Person",
-      "name": "Daniel Astudillo",
-      "jobTitle": "Software Engineer",
-      "description": "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
-      "url": "https://danielastudillo.io",
-      "email": "daniel.astudillo404@gmail.com",
-      "sameAs": [
+      name: "Daniel Astudillo",
+      jobTitle: "Software Engineer",
+      description:
+        "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+      url: "https://danielastudillo.io",
+      email: "daniel.astudillo404@gmail.com",
+      sameAs: [
         "https://linkedin.com/in/daniel-m-astudillo",
         "https://github.com/D-Astudillo-ASC",
-        "https://leetcode.com/dtm99"
+        "https://leetcode.com/dtm99",
       ],
-      "worksFor": [
+      worksFor: [
         {
           "@type": "Organization",
-          "name": "Visa, Inc.",
-          "jobTitle": "Software Engineer"
+          name: "Visa, Inc.",
+          jobTitle: "Software Engineer",
         },
         {
-          "@type": "Organization", 
-          "name": "Wayfair, Inc.",
-          "jobTitle": "Software Engineer Intern"
-        }
+          "@type": "Organization",
+          name: "Wayfair, Inc.",
+          jobTitle: "Software Engineer Intern",
+        },
       ],
-      "knowsAbout": [
+      knowsAbout: [
         "React",
-        "TypeScript", 
+        "TypeScript",
         "Node.js",
         "Spring Boot",
         ".NET Core",
@@ -41,23 +42,18 @@ export default function StructuredData() {
         "JavaScript",
         "Full Stack Development",
         "Payment Systems",
-        "Recommendation Engines"
+        "Recommendation Engines",
       ],
-      "alumniOf": {
+      alumniOf: {
         "@type": "Organization",
-        "name": "Williams College",
-        "description": "Bachelor of Arts in Computer Science and Mathematics"
-      }
+        name: "Williams College",
+        description: "Bachelor of Arts in Computer Science and Mathematics",
+      },
     };
     if (scriptRef.current) {
       scriptRef.current.textContent = JSON.stringify(structuredData);
     }
   }, []);
 
-  return (
-    <script
-      ref={scriptRef}
-      type="application/ld+json"
-    />
-  );
-} 
+  return <script ref={scriptRef} type="application/ld+json" />;
+}

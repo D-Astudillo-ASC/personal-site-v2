@@ -43,7 +43,7 @@ export default function About() {
       />
       {/* Journey Section */}
       <section className="mb-16">
-        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">My Journey</h2>
+        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">My Journey</h2>
         <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
             I&apos;ve always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better. 
@@ -69,10 +69,10 @@ export default function About() {
 
       {/* Skills */}
       <section className="mb-16">
-        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Skills</h2>
+        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Skills</h2>
         <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
           <div>
-            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Frontend</h3>
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Frontend</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>React / Next.js</li>
               <li>TypeScript</li>
@@ -83,7 +83,7 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Backend & APIs</h3>
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Backend & APIs</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Node.js / Express</li>
               <li>.NET Core 6.0</li>
@@ -96,7 +96,7 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Databases & Data</h3>
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Databases & Data</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>PostgreSQL</li>
               <li>MongoDB</li>
@@ -107,7 +107,7 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-xl sm:text-2xl font-thin">Testing & Quality</h3>
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Testing & Quality</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>JUnit</li>
               <li>Mockito</li>
@@ -121,7 +121,7 @@ export default function About() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-xl sm:text-2xl font-thin">DevOps & Infrastructure</h3>
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">DevOps & Infrastructure</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Docker</li>
               <li>Jenkins</li>
@@ -135,7 +135,7 @@ export default function About() {
           </div>
 
           <div>
-            <h3 className="mb-4 text-xl sm:text-2xl font-thin">IDEs & Development Tools</h3>
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">IDEs & Development Tools</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Visual Studio Code</li>
               <li>Cursor</li>
@@ -156,7 +156,7 @@ export default function About() {
 
       {/* Experience Section - Moved up */}
       <section className="mb-16">
-        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Experience</h2>
+        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Experience</h2>
         <div className="space-y-8">
           {experiences.map((experience) => (
             <ExperienceCard key={experience.id} experience={experience} />
@@ -166,7 +166,7 @@ export default function About() {
 
       {/* Values Section */}
       <section className="mb-16">
-        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">What I Value</h2>
+        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">What I Value</h2>
         <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -209,7 +209,7 @@ export default function About() {
 
       {/* Interests Section */}
       <section className="mb-16">
-        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Beyond the Code</h2>
+        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Beyond the Code</h2>
         <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
             When I&apos;m not coding, you&apos;ll find me exploring new technologies or diving into the latest developments in web development. I&apos;m particularly interested in performance optimization and creating seamless user experiences.
@@ -222,7 +222,7 @@ export default function About() {
 
       {/* Education */}
       <section className="mb-16">
-        <h2 className="mb-8 text-3xl sm:text-4xl font-extralight">Education</h2>
+        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Education</h2>
         <div>
           <h3 className="mb-2 text-xl sm:text-2xl font-thin">
             Bachelor of Arts in Computer Science and Mathematics

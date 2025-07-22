@@ -1,27 +1,28 @@
 import Link from "next/link";
 import { projects } from "@/data/projects";
-import ProjectCard from '@/components/projects/ProjectCard';
-import Introduction from '@/components/Introduction';
+import ProjectCard from "@/components/projects/ProjectCard";
+import Introduction from "@/components/Introduction";
 import type { Metadata } from "next";
 import Head from "next/head";
 
 // Force static generation for better performance
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600; // Revalidate every hour
 
 export const metadata: Metadata = {
   title: "Daniel Astudillo | Software Engineer",
-  description: "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+  description:
+    "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
 };
 
 export default function Home() {
   const featuredProjects = projects
     .filter((project) => project.featured)
-    .slice(0, 3)
+    .slice(0, 3);
 
   // Find the LCP image (first featured project)
   const lcpProject = featuredProjects[0];
-  const lcpImageBase = encodeURIComponent(lcpProject.imageUrl || '');
+  const lcpImageBase = encodeURIComponent(lcpProject.imageUrl || "");
   const lcpImageDesktop = `/_next/image?url=${lcpImageBase}&w=1200&q=70`;
   const lcpImageMobile = `/_next/image?url=${lcpImageBase}&w=750&q=70`;
 
@@ -38,11 +39,14 @@ export default function Home() {
       </Head>
       <div className="flex min-h-screen flex-col">
         {/* Hero Section with LCP Image */}
-        <section className="flex min-h-[80vh] flex-col items-center justify-center px-4 md:px-16 lg:px-24" role="banner">
-          <h1 className="mb-4 text-center text-4xl sm:text-7xl font-extralight md:animate-pulse">
+        <section
+          className="flex min-h-[80vh] flex-col items-center justify-center px-4 md:px-16 lg:px-24"
+          role="banner"
+        >
+          <h1 className="mb-4 text-center text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extralight md:animate-pulse">
             Daniel Astudillo
           </h1>
-          <p className="mb-8 text-center text-2xl font-thin text-text/70 md:animate-pulse">
+          <p className="mb-8 text-center text-xl sm:text-2xl md:text-3xl font-thin text-text/70 md:animate-pulse">
             Software Engineer
           </p>
           <div className="flex gap-4">
@@ -64,10 +68,14 @@ export default function Home() {
         {/* Featured Projects Section */}
         <section className="px-4 md:px-16 lg:px-24">
           <div className="container mx-auto">
-            <h2 className="mb-8 text-4xl font-extralight">Featured Projects</h2>
+            <h2 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-extralight">Featured Projects</h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {featuredProjects.map((project, idx) => (
-                <ProjectCard key={project.id} project={project} priority={idx === 0} />
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  priority={idx === 0}
+                />
               ))}
             </div>
             <div className="mt-8 text-center">
@@ -84,7 +92,7 @@ export default function Home() {
         {/* About Section */}
         <section className="px-4 py-16 md:px-16 lg:px-24">
           <div className="container mx-auto max-w-3xl">
-            <h2 className="mb-8 text-4xl font-extralight">About Me</h2>
+            <h2 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-extralight">About Me</h2>
             <Introduction isOpenToWork={true} />
             <div className="mt-8 text-center">
               <Link

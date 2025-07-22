@@ -5,7 +5,7 @@ import NoSSR from "./NoSSR";
 
 interface ObfuscatedContentProps {
   content: string;
-  type?: 'email' | 'phone' | 'text' | 'link';
+  type?: "email" | "phone" | "text" | "link";
   href?: string;
   className?: string;
   children?: React.ReactNode;
@@ -15,36 +15,39 @@ interface ObfuscatedContentProps {
   onContextMenu?: (e: React.MouseEvent) => void;
 }
 
-export default function ObfuscatedContent({ 
-  content, 
-  type = 'text',
+export default function ObfuscatedContent({
+  content,
+  type = "text",
   href,
-  className, 
-  children, 
+  className,
+  children,
   placeholder = "Loading...",
   fakeContent,
   onClick,
-  onContextMenu
+  onContextMenu,
 }: ObfuscatedContentProps) {
   const [decodedContent, setDecodedContent] = useState<string>("");
   const [isVisible, setIsVisible] = useState(false);
-  const [displayContent, setDisplayContent] = useState<string>(fakeContent || placeholder);
+  const [displayContent, setDisplayContent] = useState<string>(
+    fakeContent || placeholder,
+  );
 
   useEffect(() => {
     // Simple obfuscation: reverse the content and encode parts
     const obfuscated = content
-      .split('')
+      .split("")
       .reverse()
-      .map(char => char.charCodeAt(0).toString(16))
-      .join('');
-    
+      .map((char) => char.charCodeAt(0).toString(16))
+      .join("");
+
     // Decode on client side
-    const decoded = obfuscated
-      .match(/.{1,2}/g)
-      ?.map(hex => String.fromCharCode(parseInt(hex, 16)))
-      .reverse()
-      .join('') || content;
-    
+    const decoded =
+      obfuscated
+        .match(/.{1,2}/g)
+        ?.map((hex) => String.fromCharCode(parseInt(hex, 16)))
+        .reverse()
+        .join("") || content;
+
     setDecodedContent(decoded);
     setDisplayContent(children?.toString() || decoded);
     setIsVisible(true);
@@ -53,9 +56,7 @@ export default function ObfuscatedContent({
   if (!isVisible) {
     return (
       <NoSSR>
-        <span className={className}>
-          {displayContent}
-        </span>
+        <span className={className}>{displayContent}</span>
       </NoSSR>
     );
   }
@@ -77,10 +78,10 @@ export default function ObfuscatedContent({
 
   // Render different elements based on type
   switch (type) {
-    case 'email':
+    case "email":
       return (
         <NoSSR>
-          <a 
+          <a
             href={`mailto:${decodedContent}`}
             className={className}
             onClick={handleClick}
@@ -90,11 +91,11 @@ export default function ObfuscatedContent({
           </a>
         </NoSSR>
       );
-    
-    case 'phone':
+
+    case "phone":
       return (
         <NoSSR>
-          <a 
+          <a
             href={`tel:${decodedContent}`}
             className={className}
             onClick={handleClick}
@@ -104,11 +105,11 @@ export default function ObfuscatedContent({
           </a>
         </NoSSR>
       );
-    
-    case 'link':
+
+    case "link":
       return (
         <NoSSR>
-          <a 
+          <a
             href={href || decodedContent}
             className={className}
             onClick={handleClick}
@@ -120,11 +121,11 @@ export default function ObfuscatedContent({
           </a>
         </NoSSR>
       );
-    
+
     default:
       return (
         <NoSSR>
-          <span 
+          <span
             className={className}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
@@ -134,4 +135,4 @@ export default function ObfuscatedContent({
         </NoSSR>
       );
   }
-} 
+}

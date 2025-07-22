@@ -7,6 +7,8 @@ import ThemeToggle from "@/components/theme/ThemeToggle";
 import FontToggle from "@/components/font/FontToggle";
 import type { NavLink } from "@/types/navigation";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import ClientToggles from "./ClientToggles";
 
 type Props = {
   navLinks: ReadonlyArray<NavLink>;
@@ -15,6 +17,7 @@ type Props = {
 export default function MobileMenu({ navLinks }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
 
   return (
     <div>
@@ -26,66 +29,60 @@ export default function MobileMenu({ navLinks }: Props) {
       </button>
       {isOpen && (
         <div
-          className="
-            backdrop-blur-md
-            fixed left-0 right-0 top-[88px] z-[100]
-            flex flex-col items-center justify-center
-            shadow-xl md:hidden
-            pointer-events-auto
-          "
+          style={{
+            position: 'fixed',
+            top: '104px',
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            height: 'calc(100vh - 104px)',
+            background: resolvedTheme === "dark"
+              ? "rgba(17,24,39,0.7)"
+              : "rgba(255,255,255,0.6)",
+            backdropFilter: "blur(32px) saturate(180%)",
+            WebkitBackdropFilter: "blur(32px) saturate(180%)",
+            border: resolvedTheme === "dark"
+              ? "1.5px solid rgba(255,255,255,0.18)"
+              : "1.5px solid rgba(0,0,0,0.12)",
+            boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.18)",
+            color: resolvedTheme === "dark" ? "white" : "black",
+            overflowY: 'auto',
+          }}
+          className="md:hidden"
         >
-          <div className="max-w-7xl mx-auto px-4">
-            <ul className="py-4 flex flex-col items-center">
-              {navLinks.map((link) => {
-                 const isActive = pathname === link.href;
-                 return (
-                    <li key={link.href} className="w-full text-center">
-                    <Link
-                        href={link.href}
-                        className={`
-                        block py-2 text-sm font-thin transition-colors duration-200 cursor-pointer
+          <ul className="py-12 flex flex-col items-center space-y-8 w-full pb-32">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <li key={link.href} className="w-full text-center">
+                  <Link
+                    href={link.href}
+                    className={`
+                        block py-2 text-2xl font-thin transition-colors duration-200 cursor-pointer
                         hover:text-gray-700 dark:hover:text-gray-300
-                        ${isActive ? "font-bold after:w-full after:bg-current" : ""}`}
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <span
-                        className={`
-                            inline-block
-                            after:absolute after:bottom-0 after:left-0 after:h-[1px]
-                            after:transition-all after:duration-300
-                            ${isActive ? "after:w-full after:bg-current" : "after:w-0"}
-                            hover:after:w-full hover:after:bg-gray-700 dark:hover:after:bg-gray-300
-                        `}
-                        >
-                        {link.label}
-                        </span>
-                    </Link>
-                    </li>
-                );
-              })}
-              <li className="mt-2 px-4">
-                <a
-                  href="/Daniel-Astudillo-Resume.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`
-                    block py-2 text-sm font-thin transition-colors duration-200 cursor-pointer
-                    hover:text-gray-700 dark:hover:text-gray-300
-                  `}
-                >
-                  <span
-                    className="inline-block after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:transition-all after:duration-300 hover:after:w-full hover:after:bg-gray-700 dark:hover:after:bg-gray-300"
+                      `}
+                    onClick={() => setIsOpen(false)}
                   >
-                    Resume
-                  </span>
-                </a>
-              </li>
-              <li className="mt-2 flex justify-center">
-                <FontToggle />
-                <ThemeToggle />
-              </li>
-            </ul>
-          </div>
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+            <li className="w-full text-center">
+              <a
+                href="/Daniel-Astudillo-Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block py-2 text-2xl font-thin transition-colors duration-200 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                Resume
+              </a>
+            </li>
+            {/* Toggles are now part of the scrollable list */}
+            <li className="flex justify-center space-x-2 mt-8 mb-8">
+              <ClientToggles />
+            </li>
+          </ul>
         </div>
       )}
     </div>

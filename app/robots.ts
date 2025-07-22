@@ -1,17 +1,14 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://danielastudillo.io'
-  
+  const baseUrl = "https://danielastudillo.io";
+
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: '/private/',
+      userAgent: "*",
+      allow: "/",
+      disallow: "/private/",
     },
-    sitemap: [
-      `${baseUrl}/sitemap.xml`,
-      `${baseUrl}/sitemap-amp.xml`,
-    ],
-  }
-} 
+    sitemap: [`${baseUrl}/sitemap.xml`, `${baseUrl}/sitemap-amp.xml`],
+  };
+}

@@ -1,4 +1,4 @@
-import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
+import nodemailer, { Transporter, SendMailOptions } from "nodemailer";
 
 /* TODO: Consolidate repeated interfaces... */
 interface EmailConfig {
@@ -28,15 +28,15 @@ class EmailService {
 
   constructor() {
     this.config = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || '',
+        user: process.env.SMTP_USER || "",
+        pass: process.env.SMTP_PASS || "",
       },
-      from: process.env.FROM_EMAIL || 'noreply@danielastudillo.io',
-      to: process.env.CONTACT_EMAIL || 'daniel.astudillo404@gmail.com',
+      from: process.env.FROM_EMAIL || "noreply@danielastudillo.io",
+      to: process.env.CONTACT_EMAIL || "daniel.astudillo404@gmail.com",
     };
 
     this.transporter = nodemailer.createTransport({
@@ -44,7 +44,7 @@ class EmailService {
       port: this.config.port,
       secure: this.config.secure,
       auth: this.config.auth,
-      pool: true, 
+      pool: true,
       maxConnections: 5,
       maxMessages: 100,
       rateLimit: 14,
@@ -61,17 +61,22 @@ class EmailService {
   private async verifyConnection(): Promise<void> {
     try {
       await this.transporter.verify();
-      console.log('✅ SMTP connection verified successfully');
-      console.log(`🔒 Using ${this.config.secure ? 'SSL (port 465)' : 'TLS (port 587)'} encryption`);
+      console.log("✅ SMTP connection verified successfully");
+      console.log(
+        `🔒 Using ${this.config.secure ? "SSL (port 465)" : "TLS (port 587)"} encryption`,
+      );
     } catch (error) {
-      console.error('❌ SMTP connection failed:', error);
-      throw new Error('SMTP configuration is invalid');
+      console.error("❌ SMTP connection failed:", error);
+      throw new Error("SMTP configuration is invalid");
     }
   }
 
-  private generateEmailTemplate(contactFormData: ContactFormData, metadata?: { ipv4?: string; ipv6?: string; userAgent?: string }): string {
+  private generateEmailTemplate(
+    contactFormData: ContactFormData,
+    metadata?: { ipv4?: string; ipv6?: string; userAgent?: string },
+  ): string {
     const timestamp = new Date().toLocaleString();
-    
+
     return `
       <!DOCTYPE html>
       <html>
@@ -285,15 +290,15 @@ class EmailService {
             <h3>Submission Details</h3>
             <div class="contact-item">
               <span class="contact-label">IPv4 Address:</span>
-              <span class="contact-value">${metadata?.ipv4 || 'Unknown'}</span>
+              <span class="contact-value">${metadata?.ipv4 || "Unknown"}</span>
             </div>
             <div class="contact-item">
               <span class="contact-label">IPv6 Address:</span>
-              <span class="contact-value">${metadata?.ipv6 || 'Unknown'}</span>
+              <span class="contact-value">${metadata?.ipv6 || "Unknown"}</span>
             </div>
             <div class="contact-item">
               <span class="contact-label">User Agent:</span>
-              <span class="contact-value">${metadata?.userAgent || 'Unknown'}</span>
+              <span class="contact-value">${metadata?.userAgent || "Unknown"}</span>
             </div>
           </div>
           
@@ -307,28 +312,38 @@ class EmailService {
     `;
   }
 
-  private async sendWithRetry(mailOptions: SendMailOptions, retryCount: number = 0): Promise<void> {
+  private async sendWithRetry(
+    mailOptions: SendMailOptions,
+    retryCount: number = 0,
+  ): Promise<void> {
     try {
       const result = await this.transporter.sendMail(mailOptions);
-      console.log('✅ Email sent successfully:', {
+      console.log("✅ Email sent successfully:", {
         messageId: result.messageId,
         to: mailOptions.to,
         subject: mailOptions.subject,
       });
     } catch (error) {
       console.error(`❌ Email send attempt ${retryCount + 1} failed:`, error);
-      
+
       if (retryCount < this.maxRetries - 1) {
-        console.log(`🔄 Retrying in ${this.retryDelay}ms... (attempt ${retryCount + 2}/${this.maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+        console.log(
+          `🔄 Retrying in ${this.retryDelay}ms... (attempt ${retryCount + 2}/${this.maxRetries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, this.retryDelay));
         return this.sendWithRetry(mailOptions, retryCount + 1);
       } else {
-        throw new Error(`Failed to send email after ${this.maxRetries} attempts: ${error}`);
+        throw new Error(
+          `Failed to send email after ${this.maxRetries} attempts: ${error}`,
+        );
       }
     }
   }
 
-  async sendContactFormEmail(contactFormData: ContactFormData, metadata?: { ipv4?: string; ipv6?: string; userAgent?: string }): Promise<void> {
+  async sendContactFormEmail(
+    contactFormData: ContactFormData,
+    metadata?: { ipv4?: string; ipv6?: string; userAgent?: string },
+  ): Promise<void> {
     const mailOptions: SendMailOptions = {
       from: this.config.from,
       to: this.config.to,
@@ -336,13 +351,13 @@ class EmailService {
       html: this.generateEmailTemplate(contactFormData, metadata),
       // Additional headers for better deliverability
       headers: {
-        'X-Priority': '1',
-        'X-MSMail-Priority': 'High',
-        'Importance': 'high',
+        "X-Priority": "1",
+        "X-MSMail-Priority": "High",
+        Importance: "high",
       },
       // Add metadata if provided
       ...(metadata && {
-        text: `Contact Form Submission\n\nFrom: ${contactFormData.name} (${contactFormData.email})\nSubject: ${contactFormData.subject}\nMessage: ${contactFormData.message}\n\nMetadata:\nIPv4: ${metadata.ipv4 || 'Unknown'}\nIPv6: ${metadata.ipv6 || 'Unknown'}\nUser Agent: ${metadata.userAgent || 'Unknown'}`,
+        text: `Contact Form Submission\n\nFrom: ${contactFormData.name} (${contactFormData.email})\nSubject: ${contactFormData.subject}\nMessage: ${contactFormData.message}\n\nMetadata:\nIPv4: ${metadata.ipv4 || "Unknown"}\nIPv6: ${metadata.ipv6 || "Unknown"}\nUser Agent: ${metadata.userAgent || "Unknown"}`,
       }),
     };
 
@@ -351,16 +366,24 @@ class EmailService {
 
   async sendTestEmail(): Promise<void> {
     const testData: ContactFormData = {
-      name: 'Test User',
-      email: 'test@example.com',
-      subject: 'Test Email',
-      message: 'This is a test email to verify SMTP configuration.',
+      name: "Test User",
+      email: "test@example.com",
+      subject: "Test Email",
+      message: "This is a test email to verify SMTP configuration.",
     };
 
     await this.sendContactFormEmail(testData);
   }
 
-  getConfigStatus(): { configured: boolean; host: string; port: number; secure: boolean; from: string; to: string; encryption: string } {
+  getConfigStatus(): {
+    configured: boolean;
+    host: string;
+    port: number;
+    secure: boolean;
+    from: string;
+    to: string;
+    encryption: string;
+  } {
     return {
       configured: !!(this.config.auth.user && this.config.auth.pass),
       host: this.config.host,
@@ -368,14 +391,14 @@ class EmailService {
       secure: this.config.secure,
       from: this.config.from,
       to: this.config.to,
-      encryption: this.config.secure ? 'SSL (Port 465)' : 'TLS (Port 587)',
+      encryption: this.config.secure ? "SSL (Port 465)" : "TLS (Port 587)",
     };
   }
-  
+
   async close(): Promise<void> {
     if (this.transporter) {
       await this.transporter.close();
-      console.log('📧 SMTP connection closed');
+      console.log("📧 SMTP connection closed");
     }
   }
 }
@@ -383,4 +406,4 @@ class EmailService {
 // Create singleton instance
 const emailService = new EmailService();
 
-export default emailService; 
+export default emailService;

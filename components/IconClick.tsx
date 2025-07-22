@@ -11,12 +11,17 @@ interface IconClickProps {
   className?: string;
 }
 
-export default function IconClick({ icon, href, label, className = "" }: IconClickProps) {
+export default function IconClick({
+  icon,
+  href,
+  label,
+  className = "",
+}: IconClickProps) {
   return (
     <Link
       href={href}
-      target={href.startsWith('http') ? '_blank' : undefined}
-      rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
       className={`text-text/70 hover:text-text transition-standard ${className}`}
       aria-label={label}
     >

@@ -15,9 +15,10 @@ config.autoAddCss = false;
 export const metadata: Metadata = {
   title: {
     default: "Daniel Astudillo | Software Engineer",
-    template: "%s | Daniel Astudillo"
+    template: "%s | Daniel Astudillo",
   },
-  description: "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core. Specializing in full-stack development, payment systems, and recommendation engines.",
+  description:
+    "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core. Specializing in full-stack development, payment systems, and recommendation engines.",
   keywords: [
     "Daniel Astudillo",
     "Software Engineer",
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     "Software Engineer at Visa",
     "Payment Systems Engineer",
     "Visa Software Engineer",
-    "Full Stack Developer", 
+    "Full Stack Developer",
     "React Developer",
     "TypeScript Developer",
     "Next.js Developer",
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     "Open to Work",
     "Software Engineer Available",
     "Technical Collaboration",
-    "Development Projects"
+    "Development Projects",
   ],
   authors: [{ name: "Daniel Astudillo" }],
   creator: "Daniel Astudillo",
@@ -63,38 +64,41 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://danielastudillo.io',
-    title: 'Daniel Astudillo | Software Engineer',
-    description: 'Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.',
-    siteName: 'Daniel Astudillo Portfolio',
+    type: "website",
+    locale: "en_US",
+    url: "https://danielastudillo.io",
+    title: "Daniel Astudillo | Software Engineer",
+    description:
+      "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+    siteName: "Daniel Astudillo Portfolio",
     images: [
       {
-        url: '/images/og-image.png',
+        url: "/images/og-image.png",
         width: 1200,
         height: 630,
-        alt: 'Daniel Astudillo - Software Engineer',
+        alt: "Daniel Astudillo - Software Engineer",
       },
     ],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Daniel Astudillo | Software Engineer',
-    description: 'Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair.',
-    images: ['/images/og-image.png'],
+    card: "summary_large_image",
+    title: "Daniel Astudillo | Software Engineer",
+    description:
+      "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair.",
+    images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: 'https://danielastudillo.io',
+    canonical: "https://danielastudillo.io",
   },
   verification: {
-    google: 'google-site-verification=meze9z3hYiB2JgJvuX2cIUCJGlj8oY3YlKIxDh23_g4', // Add your Google Search Console verification code
+    google:
+      "google-site-verification=meze9z3hYiB2JgJvuX2cIUCJGlj8oY3YlKIxDh23_g4", // Add your Google Search Console verification code
   },
 };
 
@@ -110,8 +114,6 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
         <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
         <StructuredData />
-        <link rel="preconnect" href="https://danielastudillo.io" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://danielastudillo.io" />
       </head>
       <body className={helveticaNeue.variable}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

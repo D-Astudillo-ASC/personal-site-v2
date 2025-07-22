@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faEnvelope, 
+import {
+  faEnvelope,
   faMapMarkerAlt,
   faCheck,
   faExclamationTriangle,
-  faLinkedin as faLinkedinBrand
+  faLinkedin as faLinkedinBrand,
 } from "@/lib/fontawesome-icons";
-// import { 
+// import {
 //   faGithub as faGithubBrand
 // } from "@/lib/fontawesome-icons";
 import ObfuscatedContent from "./ObfuscatedContent";
 
 interface ContactFormProps {
-  isOpenToWork?: boolean;  
+  isOpenToWork?: boolean;
 }
 
 interface FormData {
@@ -27,31 +27,31 @@ interface FormData {
 }
 
 interface FormStatus {
-  type: 'idle' | 'loading' | 'success' | 'error';
+  type: "idle" | "loading" | "success" | "error";
   message?: string;
 }
 
-export default function ContactForm({isOpenToWork}: ContactFormProps) {
+export default function ContactForm({ isOpenToWork }: ContactFormProps) {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     subject: "",
     message: "",
-    website: "" // Honeypot field - always empty
+    website: "", // Honeypot field - always empty
   });
 
-  const [status, setStatus] = useState<FormStatus>({ type: 'idle' });
+  const [status, setStatus] = useState<FormStatus>({ type: "idle" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    setStatus({ type: 'loading' });
+
+    setStatus({ type: "loading" });
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
+      const response = await fetch("/api/contact", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -59,9 +59,9 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
       const result = await response.json();
 
       if (response.ok) {
-        setStatus({ 
-          type: 'success', 
-          message: result.message || 'Message sent successfully!' 
+        setStatus({
+          type: "success",
+          message: result.message || "Message sent successfully!",
         });
         // Reset form on success
         setFormData({
@@ -69,54 +69,60 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
           email: "",
           subject: "",
           message: "",
-          website: "" // Reset honeypot field
+          website: "", // Reset honeypot field
         });
       } else {
-        setStatus({ 
-          type: 'error', 
-          message: result.error || 'Failed to send message. Please try again.' 
+        setStatus({
+          type: "error",
+          message: result.error || "Failed to send message. Please try again.",
         });
       }
     } catch (error) {
-      console.error('Contact form error:', error);
-      setStatus({ 
-        type: 'error', 
-        message: 'Network error. Please check your connection and try again.' 
+      console.error("Contact form error:", error);
+      setStatus({
+        type: "error",
+        message: "Network error. Please check your connection and try again.",
       });
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    
+
     // Clear error status when user starts typing
-    if (status.type === 'error') {
-      setStatus({ type: 'idle' });
+    if (status.type === "error") {
+      setStatus({ type: "idle" });
     }
   };
 
-  const isFormValid = formData.name.trim() && 
-                     formData.email.trim() && 
-                     formData.subject.trim() && 
-                     formData.message.trim();
+  const isFormValid =
+    formData.name.trim() &&
+    formData.email.trim() &&
+    formData.subject.trim() &&
+    formData.message.trim();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
       {/* Contact Information */}
       <section className="space-y-8">
         <h2 className="text-3xl font-extralight mb-8">Contact Information</h2>
-        
+
         {/* Email */}
         <div className="flex items-start gap-4 p-6 rounded-lg border border-border/30 bg-background/50 hover:bg-background/80 transition-slow hover-lift">
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-text/10 flex items-center justify-center">
-            <FontAwesomeIcon icon={faEnvelope} className="h-5 w-5 text-text/70" />
+            <FontAwesomeIcon
+              icon={faEnvelope}
+              className="h-5 w-5 text-text/70"
+            />
           </div>
           <div>
             <h3 className="text-xl font-light mb-1">Email</h3>
-            <ObfuscatedContent 
+            <ObfuscatedContent
               content="daniel.astudillo404@gmail.com"
               type="email"
               fakeContent="contact@danielastudillo.io"
@@ -124,26 +130,33 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
             >
               daniel.astudillo404@gmail.com
             </ObfuscatedContent>
-            <p className="text-sm font-thin text-text/50">I typically respond in ≤ 2 hours</p>
+            <p className="text-sm font-thin text-text/50">
+              I typically respond in ≤ 2 hours
+            </p>
           </div>
         </div>
 
         {/* LinkedIn */}
         <div className="flex items-start gap-4 p-6 rounded-lg border border-border/30 bg-background/50 hover:bg-background/80 transition-slow hover-lift">
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-text/10 flex items-center justify-center">
-            <FontAwesomeIcon icon={faLinkedinBrand} className="h-5 w-5 text-text/70" />
+            <FontAwesomeIcon
+              icon={faLinkedinBrand}
+              className="h-5 w-5 text-text/70"
+            />
           </div>
           <div>
             <h3 className="text-xl font-light mb-1">LinkedIn</h3>
-            <a 
-              href="https://linkedin.com/in/daniel-m-astudillo" 
-              target="_blank" 
+            <a
+              href="https://linkedin.com/in/daniel-m-astudillo"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-lg font-thin text-text/70 hover:text-text transition-standard"
             >
               linkedin.com/in/daniel-m-astudillo
             </a>
-            <p className="text-sm font-thin text-text/50">Connect for professional opportunities</p>
+            <p className="text-sm font-thin text-text/50">
+              Connect for professional opportunities
+            </p>
           </div>
         </div>
 
@@ -170,12 +183,22 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
         {/* Location */}
         <div className="flex items-start gap-4 p-6 rounded-lg border border-border/30 bg-background/50 hover:bg-background/80 transition-slow hover-lift">
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-text/10 flex items-center justify-center">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="h-5 w-5 text-text/70" />
+            <FontAwesomeIcon
+              icon={faMapMarkerAlt}
+              className="h-5 w-5 text-text/70"
+            />
           </div>
           <div>
             <h3 className="text-xl font-light mb-1">Location</h3>
-            <p className="text-lg font-thin text-text/70 mb-2"> NYC Metropolitan Area </p>
-            {isOpenToWork && <p className="text-sm font-thin text-text/50">Open to onsite, hybrid, and remote opportunities. </p>}
+            <p className="text-lg font-thin text-text/70 mb-2">
+              {" "}
+              NYC Metropolitan Area{" "}
+            </p>
+            {isOpenToWork && (
+              <p className="text-sm font-thin text-text/50">
+                Open to onsite, hybrid, and remote opportunities.{" "}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -183,26 +206,39 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
       {/* Contact Form */}
       <section className="space-y-8">
         <h2 className="text-3xl font-extralight mb-8">Send a Message</h2>
-        
+
         {/* Status Messages */}
-        {status.type === 'success' && (
+        {status.type === "success" && (
           <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <FontAwesomeIcon icon={faCheck} className="h-5 w-5 text-green-600 dark:text-green-400" />
-            <p className="text-green-800 dark:text-green-200 font-thin">{status.message}</p>
+            <FontAwesomeIcon
+              icon={faCheck}
+              className="h-5 w-5 text-green-600 dark:text-green-400"
+            />
+            <p className="text-green-800 dark:text-green-200 font-thin">
+              {status.message}
+            </p>
           </div>
         )}
-        
-        {status.type === 'error' && (
+
+        {status.type === "error" && (
           <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <FontAwesomeIcon icon={faExclamationTriangle} className="h-5 w-5 text-red-600 dark:text-red-400" />
-            <p className="text-red-800 dark:text-red-200 font-thin">{status.message}</p>
+            <FontAwesomeIcon
+              icon={faExclamationTriangle}
+              className="h-5 w-5 text-red-600 dark:text-red-400"
+            />
+            <p className="text-red-800 dark:text-red-200 font-thin">
+              {status.message}
+            </p>
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-light text-text/70 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-light text-text/70 mb-2"
+              >
                 Name
               </label>
               <input
@@ -212,14 +248,17 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                disabled={status.type === 'loading'}
+                disabled={status.type === "loading"}
                 className="w-full px-4 py-3 bg-background/50 border border-border/30 rounded-lg text-text font-thin focus:outline-none focus:border-text/50 focus:bg-background/80 transition-fast disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Your name"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="email" className="block text-sm font-light text-text/70 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-light text-text/70 mb-2"
+              >
                 Email
               </label>
               <input
@@ -229,7 +268,7 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                disabled={status.type === 'loading'}
+                disabled={status.type === "loading"}
                 className="w-full px-4 py-3 bg-background/50 border border-border/30 rounded-lg text-text font-thin focus:outline-none focus:border-text/50 focus:bg-background/80 transition-fast disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="your.email@example.com"
               />
@@ -237,7 +276,10 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-sm font-light text-text/70 mb-2">
+            <label
+              htmlFor="subject"
+              className="block text-sm font-light text-text/70 mb-2"
+            >
               Subject
             </label>
             <input
@@ -247,14 +289,17 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
               value={formData.subject}
               onChange={handleChange}
               required
-              disabled={status.type === 'loading'}
+              disabled={status.type === "loading"}
               className="w-full px-4 py-3 bg-background/50 border border-border/30 rounded-lg text-text font-thin focus:outline-none focus:border-text/50 focus:bg-background/80 transition-fast disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="What's this about?"
             />
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-light text-text/70 mb-2">
+            <label
+              htmlFor="message"
+              className="block text-sm font-light text-text/70 mb-2"
+            >
               Message
             </label>
             <textarea
@@ -264,7 +309,7 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
               onChange={handleChange}
               required
               rows={6}
-              disabled={status.type === 'loading'}
+              disabled={status.type === "loading"}
               className="w-full px-4 py-3 bg-background/50 border border-border/30 rounded-lg text-text font-thin focus:outline-none focus:border-text/50 focus:bg-background/80 transition-fast resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Tell me about your project, opportunity, or just say hello!"
             />
@@ -272,7 +317,9 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
 
           {/* Honeypot field - hidden from users but visible to bots */}
           <div className="absolute left-[-9999px] opacity-0 pointer-events-none">
-            <label htmlFor="website" className="sr-only">Website</label>
+            <label htmlFor="website" className="sr-only">
+              Website
+            </label>
             <input
               type="text"
               id="website"
@@ -288,14 +335,14 @@ export default function ContactForm({isOpenToWork}: ContactFormProps) {
           <div className="flex justify-center">
             <button
               type="submit"
-              disabled={!isFormValid || status.type === 'loading'}
+              disabled={!isFormValid || status.type === "loading"}
               className="px-8 py-4 bg-text text-background text-lg font-thin rounded border border-border/50 hover:bg-text/90 transition-standard hover-scale focus:outline-none focus:ring-2 focus:ring-text/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-text"
             >
-              {status.type === 'loading' ? 'Sending...' : 'Send Message'}
+              {status.type === "loading" ? "Sending..." : "Send Message"}
             </button>
           </div>
         </form>
       </section>
     </div>
   );
-} 
+}

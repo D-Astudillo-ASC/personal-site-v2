@@ -10,6 +10,8 @@
     "postbuild": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
     "start": "node .next/standalone/server.js",
     "lint": "next lint",
+    "format": "prettier --write **/*.{ts,tsx,css,mjs}",
+    "format:check": "prettier --check **/*.{ts,tsx,css,mjs}",
     "analyze": "ANALYZE=true next build",
     "validate-amp": "ts-node scripts/validate-amp.ts"
   },
@@ -33,7 +35,7 @@
     "@next/bundle-analyzer": "^15.4.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/amphtml-validator": "^1.0.4",
-    "@types/node": "^24.0.15",
+    "@types/node": "^24.1.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "amphtml-validator": "^1.0.38",

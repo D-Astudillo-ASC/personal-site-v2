@@ -16,7 +16,7 @@ export function useObfuscatedContent({
   fakeContent,
   realContent,
   selector = "a[href*='mailto:'], a[href*='tel:']",
-  delay = 1000
+  delay = 1000,
 }: UseObfuscatedContentOptions) {
   const router = useRouter();
 
@@ -24,26 +24,31 @@ export function useObfuscatedContent({
     const updateContent = () => {
       setTimeout(() => {
         const elements = document.querySelectorAll(selector);
-        
+
         // Check if any elements contain the fake content before processing
-        const hasFakeContent = Array.from(elements).some(element => 
-          element.textContent?.includes(fakeContent) || 
-          (element instanceof HTMLAnchorElement && element.href.includes(fakeContent))
+        const hasFakeContent = Array.from(elements).some(
+          (element) =>
+            element.textContent?.includes(fakeContent) ||
+            (element instanceof HTMLAnchorElement &&
+              element.href.includes(fakeContent)),
         );
-        
+
         // Only process if fake content is found
         if (!hasFakeContent) {
           return;
         }
-        
+
         elements.forEach((element) => {
           // Check if element contains fake content
           if (element.textContent?.includes(fakeContent)) {
             // Replace text content
             if (element.textContent) {
-              element.textContent = element.textContent.replace(fakeContent, realContent);
+              element.textContent = element.textContent.replace(
+                fakeContent,
+                realContent,
+              );
             }
-            
+
             // Replace href if it's a link
             if (element instanceof HTMLAnchorElement) {
               if (element.href.includes(fakeContent)) {
@@ -64,14 +69,14 @@ export function useObfuscatedContent({
     };
 
     // Listen for route changes
-    window.addEventListener('popstate', handleRouteChange);
-    
+    window.addEventListener("popstate", handleRouteChange);
+
     // For Next.js App Router, we can also listen to navigation events
     // NOTE: This is a simplified approach - in practice, we might want to use
     // a more sophisticated route change detection method
-    
+
     return () => {
-      window.removeEventListener('popstate', handleRouteChange);
+      window.removeEventListener("popstate", handleRouteChange);
     };
   }, [fakeContent, realContent, selector, delay]);
 }
@@ -84,7 +89,7 @@ export function useObfuscatedEmail(fakeEmail: string, realEmail: string) {
     fakeContent: fakeEmail,
     realContent: realEmail,
     selector: "a[href*='mailto:']",
-    delay: 1000
+    delay: 1000,
   });
 }
 
@@ -96,6 +101,6 @@ export function useObfuscatedPhone(fakePhone: string, realPhone: string) {
     fakeContent: fakePhone,
     realContent: realPhone,
     selector: "a[href*='tel:']",
-    delay: 1000
+    delay: 1000,
   });
-} 
+}

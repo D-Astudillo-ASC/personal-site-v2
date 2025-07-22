@@ -4,7 +4,11 @@ import { faEnvelope, faCode } from "@fortawesome/free-solid-svg-icons";
 export const navLinks = [
   { href: "/", label: "Home", ariaLabel: "Daniel Astudillo Home" },
   { href: "/about", label: "About", ariaLabel: "Daniel Astudillo About" },
-  { href: "/projects", label: "Projects", ariaLabel: "Daniel Astudillo Projects" },
+  {
+    href: "/projects",
+    label: "Projects",
+    ariaLabel: "Daniel Astudillo Projects",
+  },
   { href: "/contact", label: "Contact", ariaLabel: "Daniel Astudillo Contact" },
 ] as const;
 

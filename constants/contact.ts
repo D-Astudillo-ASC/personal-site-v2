@@ -14,22 +14,22 @@ export const SPAM_PATTERNS = [
   /\b(unsubscribe|opt out|remove me|do not contact)\b/i,
   /\b(cheap|discount|bargain|clearance|wholesale)\b/i,
   /\b(earn \$\d+|\$\d+ per day|\$\d+ per week|\$\d+ per month)\b/i,
-  
+
   // Excessive formatting
   /[A-Z]{5,}/, // Excessive caps
   /!{3,}/, // Multiple exclamation marks
-  
+
   // Links and contact methods
   /\b(www\.|http:\/\/|https:\/\/)/, // URLs in message
   /\b(\d{10,})\b/, // Long numbers (potential phone numbers or account numbers)
   /\b(whatsapp|telegram|skype|wechat)\b/i,
-  
+
   // Urgency and pressure tactics
   /\b(offer expires|while supplies last|order now|apply now)\b/i,
   /\b(insurance|medicare|healthcare|pharmacy|prescription)\b/i,
   /\b(loan approval|bad credit|credit repair|debt relief)\b/i,
   /\b(urgent|immediately|asap|final notice|last chance)\b/i,
-  
+
   // Adult content and inappropriate material
   /\b(adult|porn|xxx|sex|nude|naked|escort|hooker|prostitute)\b/i,
   /\b(adult dating|adult friend|adult chat|adult video|adult site)\b/i,
@@ -70,4 +70,4 @@ export const SPAM_PATTERNS = [
   /\b(adult cam mobile app|adult cam phone app)\b/i,
   /\b(adult message mobile app|adult message phone app)\b/i,
   /\b(adult social mobile app|adult social phone app)\b/i,
-]; 
+];

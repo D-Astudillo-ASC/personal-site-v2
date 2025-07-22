@@ -11,21 +11,34 @@ interface ProjectCardProps {
 export default function ProjectCard({ project, priority = false }: ProjectCardProps) {
   const hasImage = !!project.imageUrl;
 
+  // Map image URLs to their actual dimensions
+  const imageDimensions: Record<string, { width: number; height: number }> = {
+    "/images/projects/vces.avif": { width: 1200, height: 581 },
+    "/images/projects/vdbp.avif": { width: 1200, height: 627 },
+    "/images/projects/personal-site-v2.avif": { width: 1200, height: 544 },
+    "/images/projects/personal-site-v1.avif": { width: 1200, height: 425 },
+    "/images/projects/click-to-pay.avif": { width: 1201, height: 541 },
+    "/images/projects/roguelike-game.avif": { width: 1200, height: 640 },
+  };
+  const imgDims = project.imageUrl ? imageDimensions[project.imageUrl] : undefined;
+
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-lg border border-border/50 bg-background md:transition-slow hover:border-text hover:shadow-lg hover:shadow-text/5 md:hover-lift">
+    <div className="relative flex flex-col overflow-hidden rounded-lg border border-border/50 bg-background md:transition-slow md:hover:border-text md:hover:shadow-lg md:hover:shadow-text/5 md:hover-lift">
       {/* Image Container */}
-      <div className="group relative h-48 w-full aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800 md:bg-gradient-to-br md:from-gray-100 md:to-gray-200 md:dark:from-gray-800 md:dark:to-gray-900 md:transition-slow md:hover:shadow-lg md:hover:shadow-text/5 md:hover-lift">
+      <div className="group relative w-full overflow-hidden bg-gray-100 dark:bg-gray-800 md:bg-gradient-to-br md:from-gray-100 md:to-gray-200 md:dark:from-gray-800 md:dark:to-gray-900 md:transition-slow md:hover:shadow-lg md:hover:shadow-text/5 md:hover-lift">
         {/* Project Image */}
-        {hasImage && (
+        {hasImage && imgDims && (
           <Image
             src={project.imageUrl!}
             // In ProjectCard.tsx, temporarily replace the image src with:
             // src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
             alt={project.title}
-            fill
+            width={imgDims.width}
+            height={imgDims.height}
             priority={priority}
+            fetchPriority={priority ? "high" : "auto"}
             quality={30}
-            className="object-cover opacity-100 md:transition-slower md:group-hover:scale-110 md:group-hover:brightness-110"
+            className="object-cover w-full h-auto md:transition-slower md:group-hover:scale-110 md:group-hover:brightness-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         )}
@@ -38,14 +51,14 @@ export default function ProjectCard({ project, priority = false }: ProjectCardPr
           </div>
         )}
         {/* Project Links Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-slow group-hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 md:transition-slow md:  group-hover:opacity-100">
           <div className="flex gap-4">
             {project.githubUrl && (
               <IconClick
                 icon={faGithub}
                 href={project.githubUrl}
                 label={`View ${project.title} on GitHub`}
-                className="h-8 w-8 rounded-full bg-white/90 p-2 text-black shadow-lg transition-fast hover:bg-white hover:scale-110"
+                className="h-8 w-8 rounded-full bg-white/90 p-2 text-black shadow-lg md:transition-fast md:hover:bg-white md:hover:scale-110"
               />
             )}
             {project.liveUrl && (
@@ -53,7 +66,7 @@ export default function ProjectCard({ project, priority = false }: ProjectCardPr
                 icon={faExternalLink}
                 href={project.liveUrl}
                 label={`Visit ${project.title} live site`}
-                className="h-8 w-8 rounded-full bg-white/90 p-2 text-black shadow-lg transition-fast hover:bg-white hover:scale-110"
+                className="h-8 w-8 rounded-full bg-white/90 p-2 text-black shadow-lg md:transition-fast md:hover:bg-white md:hover:scale-110"
               />
             )}
           </div>
