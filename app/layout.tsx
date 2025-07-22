@@ -113,7 +113,6 @@ export default function RootLayout({
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
         <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
-        <link rel="preload" as="style" href="/_next/static/css/885dbdcb2cf02cd7.css" />
         <StructuredData />
         <style
           dangerouslySetInnerHTML={{
