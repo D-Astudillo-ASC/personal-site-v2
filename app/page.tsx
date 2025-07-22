@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { projects } from "@/data/projects";
 import ProjectCard from '@/components/projects/ProjectCard';
-import nextDynamic from 'next/dynamic';
+import Introduction from '@/components/Introduction';
 import type { Metadata } from "next";
 import Head from "next/head";
-
-const Introduction = nextDynamic(() => import('@/components/Introduction'));
 
 // Force static generation for better performance
 export const dynamic = 'force-static';

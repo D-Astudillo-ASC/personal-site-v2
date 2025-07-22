@@ -1,14 +1,24 @@
 "use client";
 
-import { useFont } from "@/app/providers/FontProvider";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFont } from "@/lib/fontawesome-icons";
+import { setGlobalFont } from "@/utils/font";
 
 export default function FontToggle() {
-  const { font, setFont } = useFont();
+  const [font, setFont] = useState<"helvetica" | "monospace">("helvetica");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("font") as "helvetica" | "monospace" | null;
+    if (saved) {
+      setFont(saved);
+    }
+  }, []);
 
   const toggleFont = () => {
-    setFont(font === "helvetica" ? "monospace" : "helvetica");
+    const newFont = font === "helvetica" ? "monospace" : "helvetica";
+    setFont(newFont);
+    setGlobalFont(newFont);
   };
 
   return (

@@ -5,9 +5,10 @@ import React from "react";
 import Footer from "@/components/Footer";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-import { FontProvider } from "./providers/FontProvider";
-import FontBody from "./providers/FontBody";
+import FontClientScript from "@/components/font/FontClientScript";
 import StructuredData from "./structured-data";
+import { helveticaNeue } from "./fonts";
+import { ThemeProvider } from "next-themes";
 
 config.autoAddCss = false;
 
@@ -112,14 +113,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://danielastudillo.io" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://danielastudillo.io" />
       </head>
-      <body>
-        <FontProvider>
-          <FontBody>
-            <Header />
-            <main className="flex flex-grow flex-col">{children}</main>
-            <Footer />
-          </FontBody>
-        </FontProvider>
+      <body className={helveticaNeue.variable}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <FontClientScript />
+          <Header />
+          <main className="flex flex-grow flex-col">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

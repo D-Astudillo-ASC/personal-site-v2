@@ -1,16 +1,14 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* @custom-variant dark (&:where(.dark, .dark *)); */
 
 html {
     scroll-behavior: smooth;
 }
 
-@theme {
-    --shadow-top: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
 :root {
+    --shadow-top: 0 -4px 16px 0 rgba(0,0,0,0.12); /* positive y offset */
+  --shadow-bottom: 0 4px 16px 0 rgba(0,0,0,0.12); /* negative y offset for footer if needed */
   --font-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
@@ -127,4 +125,20 @@ body, [data-font="helvetica"] {
             font-weight: 500 !important; /* Medium weight on very small screens */
         }
     }
+
+    .shadow-top {
+        box-shadow: var(--shadow-top);
+    }
+    .shadow-bottom {
+        box-shadow: var(--shadow-bottom);
+    }
 }
+
+/* Translucent backgrounds for light and dark mode */
+/* .translucent-bg {
+  background-color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(8px);
+}
+.dark .translucent-bg {
+  background-color: rgba(0,0,0,0.7);
+} */

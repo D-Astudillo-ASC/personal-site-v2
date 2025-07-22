@@ -14,15 +14,17 @@ export default function ProjectCard({ project, priority = false }: ProjectCardPr
   return (
     <div className="relative flex flex-col overflow-hidden rounded-lg border border-border/50 bg-background md:transition-slow hover:border-text hover:shadow-lg hover:shadow-text/5 md:hover-lift">
       {/* Image Container */}
-      <div className="group relative h-48 w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
+      <div className="group relative h-48 w-full aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800 md:bg-gradient-to-br md:from-gray-100 md:to-gray-200 md:dark:from-gray-800 md:dark:to-gray-900 md:transition-slow md:hover:shadow-lg md:hover:shadow-text/5 md:hover-lift">
         {/* Project Image */}
         {hasImage && (
           <Image
             src={project.imageUrl!}
+            // In ProjectCard.tsx, temporarily replace the image src with:
+            // src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
             alt={project.title}
             fill
             priority={priority}
-            quality={70}
+            quality={30}
             className="object-cover opacity-100 md:transition-slower md:group-hover:scale-110 md:group-hover:brightness-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
