@@ -33,4 +33,5 @@ const FeaturedProjects = React.memo(({ featuredProjects }: FeaturedProjectsProps
   );
 });
 
+FeaturedProjects.displayName = "FeaturedProjects";
 export default FeaturedProjects; 
