@@ -49,11 +49,11 @@ export default function Home() {
             <div className="mt-8 text-center">
               <Link
                 href="/about"
-                aria-label="Daniel Astudillo About"
+                aria-label="About Daniel Astudillo"
                 className="relative inline-block text-lg font-thin px-6 py-2 rounded border border-border/50 text-text/70 hover:text-text transition-standard cursor-pointer hover-scale"
               >
-                Learn More
-                <span className="sr-only">Daniel Astudillo About</span>
+                About Daniel Astudillo
+                <span className="sr-only">About Daniel Astudillo</span>
               </Link>
             </div>
           </div>

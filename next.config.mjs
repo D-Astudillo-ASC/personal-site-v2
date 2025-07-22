@@ -1,5 +1,7 @@
+import createMDX from '@next/mdx';
+
 /** @type {import('next').NextConfig} */
-let nextConfig = {
+const nextConfig = {
   // Font optimization and caching
   async headers() {
     return [
@@ -172,6 +174,7 @@ let nextConfig = {
       return config;
     },
   }),
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
 };
 
 // Conditionally wrap with bundle analyzer
@@ -182,4 +185,23 @@ if (process.env.ANALYZE === "true") {
   nextConfig = withBundleAnalyzer(nextConfig);
 }
 
-export default nextConfig;
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+  // TODO: Explore remark and rehype plugins.
+//   options: {
+//     remarkPlugins: [
+//       // Without options
+//       'remark-gfm',
+//       // With options
+//       ['remark-toc', { heading: 'The Table' }],
+//     ],
+//     rehypePlugins: [
+//       // Without options
+//       'rehype-slug',
+//       // With options
+//       ['rehype-katex', { strict: true, throwOnError: true }],
+//     ],
+//   },
+});
+
+export default withMDX(nextConfig);

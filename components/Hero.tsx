@@ -13,13 +13,13 @@ const Hero = React.memo(() => {
       <div className="flex gap-4">
         <Link
           href="/projects"
-          className="text-lg font-thin px-6 py-2 rounded border border-border/50 bg-text text-background transition-colors duration-200 cursor-pointer hover:bg-text/90"
+          className="text-lg font-thin px-6 py-2 rounded border border-border/50 ext-text/70 hover:text-text transition-standard cursor-pointer hover-scale"
         >
           View Projects
         </Link>
         <Link
           href="/contact"
-          className="text-lg font-thin px-6 py-2 rounded border border-border/50 text-text/70 hover:text-text transition-colors duration-200 cursor-pointer"
+          className="text-lg font-thin px-6 py-2 rounded border border-border/50 text-text/70 hover:text-text transition-standard cursor-pointer hover-scale"
         >
           Contact Me
         </Link>
