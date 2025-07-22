@@ -2,13 +2,14 @@ import { Project } from "@/types/project";
 import Image from "next/image";
 import { faGithub, faExternalLink } from "@/lib/fontawesome-icons";
 import IconClick from "../IconClick";
+import React from "react";
 
 interface ProjectCardProps {
   project: Project;
   priority?: boolean;
 }
 
-export default function ProjectCard({ project, priority = false }: ProjectCardProps) {
+const ProjectCard = React.memo(function ProjectCard({ project, priority = false }: ProjectCardProps) {
   const hasImage = !!project.imageUrl;
 
   // Map image URLs to their actual dimensions
@@ -93,4 +94,6 @@ export default function ProjectCard({ project, priority = false }: ProjectCardPr
       </div>
     </div>
   );
-}
+});
+
+export default ProjectCard;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEnvelope,
@@ -41,6 +41,15 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
   });
 
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
+
+  // Debounce form data updates to reduce input delay
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const debouncedSetFormData = useCallback((newData: FormData) => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      setFormData(newData);
+    }, 100); // 100ms debounce
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,10 +98,11 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setFormData({
+    const newData = {
       ...formData,
       [e.target.name]: e.target.value,
-    });
+    };
+    debouncedSetFormData(newData);
 
     // Clear error status when user starts typing
     if (status.type === "error") {
