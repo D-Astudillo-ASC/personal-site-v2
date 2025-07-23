@@ -1,8 +1,13 @@
 import { MetadataRoute } from "next";
 
-export default function sitemap(request: Request): MetadataRoute.Sitemap {
-  const url = new URL(request.url);
-  const baseUrl = `${url.protocol}//${url.host}`;
+let baseUrl: string;
+if (process.env.NODE_ENV !== "production" && process.env.VERCEL_URL) {
+  baseUrl = process.env.VERCEL_URL;
+} else {
+  baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+}
+
+export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: baseUrl,
