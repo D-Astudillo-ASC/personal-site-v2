@@ -139,9 +139,6 @@ const nextConfig = {
   // Static generation optimization
   output: "standalone",
 
-  // Enable source maps for production builds
-  productionBrowserSourceMaps: true,
-
   transpilePackages: [
     "@fortawesome/fontawesome-svg-core",
     "@fortawesome/free-solid-svg-icons",
