@@ -9,6 +9,7 @@ import FontClientScript from "@/components/font/FontClientScript";
 import StructuredData from "./structured-data";
 import { helveticaNeue } from "./fonts";
 import { ThemeProvider } from "next-themes";
+import PWARegister from "@/components/PWARegister";
 
 config.autoAddCss = false;
 
@@ -112,6 +113,8 @@ export default function RootLayout({
       <head>
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
         <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
         <StructuredData />
         <style
@@ -141,6 +144,7 @@ export default function RootLayout({
       <body className={helveticaNeue.variable}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <FontClientScript />
+          <PWARegister />
           <Header />
           <main className="flex flex-grow flex-col">{children}</main>
           <Footer />
