@@ -1,11 +1,33 @@
 import Link from "next/link";
+import { Metadata } from "next";
+import Breadcrumbs from "@/components/Breadcrumbs";
+
+export const metadata: Metadata = {
+  title: "Daniel Astudillo | Software Engineer | Blog",
+  description: "Blog by Daniel Astudillo, Software Engineer. Insights on React, Next.js, TypeScript, software engineering, and career advice.",
+  keywords: [
+    "Daniel Astudillo Blog",
+    "Software Engineering Blog",
+    "React Blog",
+    "Next.js Blog",
+    "TypeScript Blog",
+    "Career Advice",
+    "Web Development Blog",
+    "Full Stack Blog"
+  ],
+  openGraph: {
+    title: "Daniel Astudillo | Software Engineer | Blog",
+    description: "Blog by Daniel Astudillo, Software Engineer. Insights on React, Next.js, TypeScript, software engineering, and career advice.",
+  },
+};
 
 export default function BlogIndex() {
   // In a real setup, you would use import.meta.glob or fs to read all post folders and extract frontmatter.
   // For now, just link to the sample post.
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-16 pt-32">
-      <h1 className="mb-8 text-3xl sm:text-4xl md:text-5xl font-extralight">Daniel Astudillo Blog</h1>
+    <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
+      <Breadcrumbs />
+      <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-thin">Blog</h1>
       <p className="mb-8 text-lg font-thin text-text/70 leading-relaxed">
         Welcome to my blog! Here you&apos;ll find articles about my projects, career journey, and thoughts on software engineering and technology. Stay tuned for upcoming posts.
       </p>

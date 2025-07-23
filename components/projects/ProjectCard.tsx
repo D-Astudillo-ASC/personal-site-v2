@@ -31,9 +31,7 @@ const ProjectCard = React.memo(function ProjectCard({ project, priority = false 
         {hasImage && imgDims && (
           <Image
             src={project.imageUrl!}
-            // In ProjectCard.tsx, temporarily replace the image src with:
-            // src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-            alt={project.title}
+            alt={`${project.title} - ${project.description} - Built with ${project.technologies.join(', ')}`}
             width={imgDims.width}
             height={imgDims.height}
             priority={priority}

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface IntroductionProps {
   isOpenToWork?: boolean;
 }
@@ -11,7 +13,9 @@ export default function Introduction({
         <p className="text-lg font-thin text-text/80 leading-relaxed">
           I&apos;m a Software Engineer with experience building systems that
           millions of people depend on. At{" "}
-          <span className="font-medium text-text">Visa</span>, I worked on
+          <Link href="/about" className="font-medium text-text hover:text-primary transition-colors">
+            Visa
+          </Link>, I worked on
           critical financial services processing{" "}
           <span className="font-medium text-text">
             20M+ monthly API requests
@@ -19,7 +23,9 @@ export default function Introduction({
           , led legacy migrations that reduced technical debt by{" "}
           <span className="font-medium text-text">10+ years</span>, and
           architected modern payment platforms. At{" "}
-          <span className="font-medium text-text">Wayfair</span>, I
+          <Link href="/about" className="font-medium text-text hover:text-primary transition-colors">
+            Wayfair
+          </Link>, I
           revolutionized sales recommendation engines with{" "}
           <span className="font-medium text-text">
             20% accuracy improvements
@@ -31,12 +37,24 @@ export default function Introduction({
 
         <p className="text-lg font-thin text-text/80 leading-relaxed">
           My expertise spans the full technology stack — from{" "}
-          <span className="font-medium text-text">React</span>,{" "}
-          <span className="font-medium text-text">Next.js</span>, and{" "}
-          <span className="font-medium text-text">TypeScript</span> frontends to{" "}
-          <span className="font-medium text-text">Spring Boot</span>,{" "}
-          <span className="font-medium text-text">.NET Core</span>, and{" "}
-          <span className="font-medium text-text">Python</span> backends.
+          <Link href="/projects" className="font-medium text-text hover:text-primary transition-colors">
+            React
+          </Link>,{" "}
+          <Link href="/projects" className="font-medium text-text hover:text-primary transition-colors">
+            Next.js
+          </Link>, and{" "}
+          <Link href="/projects" className="font-medium text-text hover:text-primary transition-colors">
+            TypeScript
+          </Link> frontends to{" "}
+          <Link href="/projects" className="font-medium text-text hover:text-primary transition-colors">
+            Spring Boot
+          </Link>,{" "}
+          <Link href="/projects" className="font-medium text-text hover:text-primary transition-colors">
+            .NET Core
+          </Link>, and{" "}
+          <Link href="/projects" className="font-medium text-text hover:text-primary transition-colors">
+            Python
+          </Link> backends.
         </p>
       </div>
 
@@ -50,6 +68,9 @@ export default function Introduction({
             people love to use. I thrive in environments that value innovation,
             technical excellence, and the kind of impact that changes how people
             interact with technology.
+            <Link href="/contact" className="font-medium text-text hover:text-primary transition-colors">
+              Let&apos;s discuss how we can work together
+            </Link>.
           </p>
         </div>
       )}

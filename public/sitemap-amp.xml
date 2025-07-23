@@ -15,4 +15,13 @@
     <xhtml:link rel="amphtml" href="https://danielastudillo.io/amp.html"/>
   </url>
   
+  <!-- Blog AMP Reference -->
+  <url>
+    <loc>https://danielastudillo.io/blog</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="amphtml" href="https://danielastudillo.io/amp.html"/>
+  </url>
+  
 </urlset> 

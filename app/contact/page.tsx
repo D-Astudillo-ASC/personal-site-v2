@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import dynamic from 'next/dynamic';
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const ContactForm = dynamic(() => import('@/components/ContactForm'));
 
@@ -31,6 +32,7 @@ export const metadata: Metadata = {
 export default function Contact() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-16 pt-32">
+      <Breadcrumbs />
       {/* Header Section */}
       <section className="mb-16 text-center">
         <h1 className="mb-4 text-2xl sm:text-4xl md:text-5xl font-extralight">Get In Touch</h1>

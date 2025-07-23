@@ -5,6 +5,8 @@ import { calculateYearsByEmploymentType } from "@/utils/experience";
 import dynamic from 'next/dynamic';
 import { formatDate } from "@/utils/date";
 import { Metadata } from "next";
+import Link from "next/link";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const ExperienceCard = dynamic(() => import('@/components/experience/ExperienceCard'));
 const ExperienceSummary = dynamic(() => import('@/components/experience/ExperienceSummary'));
@@ -36,6 +38,7 @@ export default function About() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
+      <Breadcrumbs />
       <ExperienceSummary
         professional={professional}
         internship={internship}
@@ -74,9 +77,9 @@ export default function About() {
           <div>
             <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Frontend</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li>React / Next.js</li>
-              <li>TypeScript</li>
-              <li>JavaScript</li>
+              <li><Link href="/projects" className="hover:text-primary transition-colors">React / Next.js</Link></li>
+              <li><Link href="/projects" className="hover:text-primary transition-colors">TypeScript</Link></li>
+              <li><Link href="/projects" className="hover:text-primary transition-colors">JavaScript</Link></li>
               <li>Tailwind CSS</li>
               <li>HTML5 / CSS3</li>
               <li>Framer Motion</li>
@@ -86,9 +89,9 @@ export default function About() {
             <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Backend & APIs</h3>
             <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
               <li>Node.js / Express</li>
-              <li>.NET Core 6.0</li>
-              <li>Spring Boot</li>
-              <li>Java 17</li>
+              <li><Link href="/projects" className="hover:text-primary transition-colors">.NET Core 6.0</Link></li>
+              <li><Link href="/projects" className="hover:text-primary transition-colors">Spring Boot</Link></li>
+              <li><Link href="/projects" className="hover:text-primary transition-colors">Java 17</Link></li>
               <li>C#</li>
               <li>Python</li>
               <li>RESTful APIs</li>
