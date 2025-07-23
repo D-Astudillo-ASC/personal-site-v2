@@ -3,7 +3,10 @@ import Link from "next/link";
 
 const Hero = React.memo(() => {
   return (
-    <section className="flex min-h-[80vh] flex-col items-center justify-center px-4" role="banner">
+    <section
+      className="flex min-h-[80vh] flex-col items-center justify-center px-4"
+      role="banner"
+    >
       <h1 className="mb-4 text-center text-4xl sm:text-5xl md:text-6xl font-extralight">
         Daniel Astudillo
       </h1>
@@ -29,4 +32,4 @@ const Hero = React.memo(() => {
 });
 
 Hero.displayName = "Hero";
-export default Hero; 
+export default Hero;

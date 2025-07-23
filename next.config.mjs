@@ -1,4 +1,4 @@
-import createMDX from '@next/mdx';
+import createMDX from "@next/mdx";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -88,12 +88,28 @@ const nextConfig = {
         ],
       },
       {
-        // Cache sitemap files
         source: "/sitemap.xml",
         headers: [
           {
             key: "Cache-Control",
             value: "public, max-age=86400", // 24 hours
+          },
+          {
+            key: "Content-Type",
+            value: "application/xml",
+          },
+        ],
+      },
+      {
+        source: "/amp/sitemap.xml",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400", // 24 hours
+          },
+          {
+            key: "Content-Type",
+            value: "application/xml",
           },
         ],
       },
@@ -174,7 +190,7 @@ const nextConfig = {
       return config;
     },
   }),
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 };
 
 // Conditionally wrap with bundle analyzer
@@ -188,20 +204,20 @@ if (process.env.ANALYZE === "true") {
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
   // TODO: Explore remark and rehype plugins.
-//   options: {
-//     remarkPlugins: [
-//       // Without options
-//       'remark-gfm',
-//       // With options
-//       ['remark-toc', { heading: 'The Table' }],
-//     ],
-//     rehypePlugins: [
-//       // Without options
-//       'rehype-slug',
-//       // With options
-//       ['rehype-katex', { strict: true, throwOnError: true }],
-//     ],
-//   },
+  //   options: {
+  //     remarkPlugins: [
+  //       // Without options
+  //       'remark-gfm',
+  //       // With options
+  //       ['remark-toc', { heading: 'The Table' }],
+  //     ],
+  //     rehypePlugins: [
+  //       // Without options
+  //       'rehype-slug',
+  //       // With options
+  //       ['rehype-katex', { strict: true, throwOnError: true }],
+  //     ],
+  //   },
 });
 
 export default withMDX(nextConfig);

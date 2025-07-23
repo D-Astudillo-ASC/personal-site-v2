@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { projects } from "@/data/projects";
-import ProjectCard from "@/components/projects/ProjectCard";
 import Introduction from "@/components/Introduction";
 import type { Metadata } from "next";
 import Head from "next/head";
@@ -44,7 +43,9 @@ export default function Home() {
         <FeaturedProjects featuredProjects={featuredProjects} />
         <section className="px-4 py-16 md:px-16 lg:px-24">
           <div className="container mx-auto max-w-3xl">
-            <h2 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-extralight">About Me</h2>
+            <h2 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-extralight">
+              About Me
+            </h2>
             <Introduction isOpenToWork={true} />
             <div className="mt-8 text-center">
               <Link

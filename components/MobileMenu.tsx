@@ -30,23 +30,25 @@ export default function MobileMenu({ navLinks }: Props) {
       {isOpen && (
         <div
           style={{
-            position: 'fixed',
-            top: '104px',
+            position: "fixed",
+            top: "104px",
             left: 0,
             right: 0,
             zIndex: 100,
-            height: 'calc(100vh - 104px)',
-            background: resolvedTheme === "dark"
-              ? "rgba(17,24,39,0.7)"
-              : "rgba(255,255,255,0.6)",
+            height: "calc(100vh - 104px)",
+            background:
+              resolvedTheme === "dark"
+                ? "rgba(17,24,39,0.7)"
+                : "rgba(255,255,255,0.6)",
             backdropFilter: "blur(32px) saturate(180%)",
             WebkitBackdropFilter: "blur(32px) saturate(180%)",
-            border: resolvedTheme === "dark"
-              ? "1.5px solid rgba(255,255,255,0.18)"
-              : "1.5px solid rgba(0,0,0,0.12)",
+            border:
+              resolvedTheme === "dark"
+                ? "1.5px solid rgba(255,255,255,0.18)"
+                : "1.5px solid rgba(0,0,0,0.12)",
             boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.18)",
             color: resolvedTheme === "dark" ? "white" : "black",
-            overflowY: 'auto',
+            overflowY: "auto",
           }}
           className="md:hidden"
         >

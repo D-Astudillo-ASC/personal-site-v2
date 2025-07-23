@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://danielastudillo.io";
-
+export default function sitemap(request: Request): MetadataRoute.Sitemap {
+  const url = new URL(request.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
   return [
     {
       url: baseUrl,
