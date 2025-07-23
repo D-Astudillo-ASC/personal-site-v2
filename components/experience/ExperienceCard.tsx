@@ -11,14 +11,16 @@ export default function ExperienceCard({ experience }: ExperienceCardProps) {
       {/* Header */}
       <div className="mb-4">
         <h3 className="text-2xl sm:text-3xl font-medium text-text">{experience.title}</h3>
-        <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-text/80">
-          <span className="font-thin">{experience.company}</span>
-          <span className="hidden sm:inline">•</span>
-          <span className="font-thin">{experience.location}</span>
-          <span className="hidden sm:inline">•</span>
-          <span className="font-thin">
-            {formatDate(experience.startDate)} - {experience.endDate ? formatDate(experience.endDate) : 'Present'}
-          </span>
+        <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-start gap-2 sm:gap-4 text-lg sm:text-xl text-text/80 text-left">
+          <div className="flex flex-row items-center gap-2 text-left">
+            <span className="font-thin">{experience.company}</span>
+            <span className="hidden sm:inline text-xl text-text/40">•</span>
+            <span className="font-thin">{experience.location}</span>
+            <span className="hidden sm:inline text-xl text-text/40">•</span>
+            <span className="font-thin">
+              {formatDate(experience.startDate)} - {experience.endDate ? formatDate(experience.endDate) : 'Present'}
+            </span>
+          </div>
         </div>
       </div>
 
