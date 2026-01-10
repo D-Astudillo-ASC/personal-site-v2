@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   keywords: [
     "Daniel Astudillo Software Engineer",
     "Visa Software Engineer",
-    "Wayfair Software Engineer", 
+    "Wayfair Software Engineer",
     "React TypeScript Developer",
     "Spring Boot Developer",
     ".NET Core Developer",
@@ -26,9 +26,13 @@ export const metadata: Metadata = {
     "Payment Systems Developer",
     "Recommendation Engine Developer"
   ],
+  alternates: {
+    canonical: "https://danielastudillo.io/about",
+  },
   openGraph: {
     title: "Daniel Astudillo | Software Engineer | Visa & Wayfair Experience",
     description: "Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core.",
+    url: "https://danielastudillo.io/about",
   },
 };
 
@@ -49,7 +53,7 @@ export default function About() {
         <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">My Journey</h2>
         <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
-            I&apos;ve always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better. 
+            I&apos;ve always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better.
           </p>
           <p>
             When I got my first PC in 2008, I was instantly hooked — not just by the built-in games like <i>Minesweeper</i>, <i>Mahjong</i>, and <i>Purble Place</i>, but by the idea that this machine could do so much. I spent hours exploring every corner of it, from <i>Microsoft Paint</i> to the Control Panel and all of the internal drives that showed up in the <i>My Computer</i> window, curious about what made it all tick.
@@ -58,15 +62,15 @@ export default function About() {
             That curiosity led me to embark on my journey as a programmer in 2015, when I was a sophomore in high school, with a <i> Khan Academy</i> account and a burning desire to learn about the forces that powered the World Wide Web.
 
             I advanced through the <i> Computer programming - JavaScript and the Web </i> course, and I was totally captivated by the magic of typing characters and watching something come to life in a browser.
-            
+
             This spark quickly grew into a passion for building meaningful digital experiences and tools that solve real-world problems through the art of software engineering.
           </p>
 
           <p> Since then, I&apos;ve developed software across e-commerce, fintech, and infrastructure at companies like Wayfair and Visa — powering sales recommendations and efficiently routing customers in need of assistance to the most appropriate agents, building resilient backend systems at global scale, and ensuring reliability through test-driven development. </p>
-          <p> 
-            What drives me isn’t just the excitement of learning a new framework or solving a tough bug — it’s the idea that something I build could genuinely make someone’s day easier, faster, or more meaningful. That’s what keeps me coming back to the keyboard: the opportunity to turn ideas into tools people rely on. 
+          <p>
+            What drives me isn’t just the excitement of learning a new framework or solving a tough bug — it’s the idea that something I build could genuinely make someone’s day easier, faster, or more meaningful. That’s what keeps me coming back to the keyboard: the opportunity to turn ideas into tools people rely on.
             Whether I’m designing backend systems, collaborating cross-functionally, or refining the user experience, I approach every challenge with one goal in mind: to create software that earns trust, delivers value, and makes a real-world difference.
-          </p>      
+          </p>
         </div>
       </section>
 

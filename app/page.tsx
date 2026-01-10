@@ -2,7 +2,6 @@ import Link from "next/link";
 import { projects } from "@/data/projects";
 import Introduction from "@/components/Introduction";
 import type { Metadata } from "next";
-import Head from "next/head";
 import Hero from "@/components/Hero";
 import FeaturedProjects from "@/components/FeaturedProjects";
 
@@ -10,34 +9,37 @@ import FeaturedProjects from "@/components/FeaturedProjects";
 export const dynamic = "force-static";
 export const revalidate = 3600; // Revalidate every hour
 
+// Calculate LCP image URLs for metadata
+const featuredProjects = projects.filter((project) => project.featured).slice(0, 3);
+const lcpProject = featuredProjects[0];
+const lcpImageBase = encodeURIComponent(lcpProject.imageUrl || "");
+const lcpImageDesktop = `/_next/image?url=${lcpImageBase}&w=1200&q=70`;
+const lcpImageMobile = `/_next/image?url=${lcpImageBase}&w=750&q=70`;
+
 export const metadata: Metadata = {
   title: "Daniel Astudillo | Software Engineer",
   description:
     "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+  alternates: {
+    canonical: "https://danielastudillo.io",
+  },
+  openGraph: {
+    url: "https://danielastudillo.io",
+    type: "website",
+  },
 };
 
 export default function Home() {
-  const featuredProjects = projects
-    .filter((project) => project.featured)
-    .slice(0, 3);
-
-  // Find the LCP image (first featured project)
-  const lcpProject = featuredProjects[0];
-  const lcpImageBase = encodeURIComponent(lcpProject.imageUrl || "");
-  const lcpImageDesktop = `/_next/image?url=${lcpImageBase}&w=1200&q=70`;
-  const lcpImageMobile = `/_next/image?url=${lcpImageBase}&w=750&q=70`;
-
   return (
     <>
-      <Head>
-        <link
-          rel="preload"
-          as="image"
-          href={lcpImageDesktop}
-          imageSrcSet={`${lcpImageMobile} 750w, ${lcpImageDesktop} 1200w`}
-          imageSizes="(max-width: 768px) 100vw, 50vw"
-        />
-      </Head>
+      {/* LCP Image Preload with imageSrcSet - App Router hoists this to <head> */}
+      <link
+        rel="preload"
+        as="image"
+        href={lcpImageDesktop}
+        imageSrcSet={`${lcpImageMobile} 750w, ${lcpImageDesktop} 1200w`}
+        imageSizes="(max-width: 768px) 100vw, 50vw"
+      />
       <div className="flex min-h-screen flex-col">
         <Hero />
         <FeaturedProjects featuredProjects={featuredProjects} />

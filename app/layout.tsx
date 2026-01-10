@@ -94,9 +94,9 @@ export const metadata: Metadata = {
       "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair.",
     images: ["/images/og-image.png"],
   },
-  alternates: {
-    canonical: "https://danielastudillo.io",
-  },
+  // Note: canonical URLs are set per-page, not in root layout
+  // Each page should set its own canonical URL in its metadata
+  // This prevents Google from treating all pages as redirects to the homepage
   verification: {
     google:
       "google-site-verification=meze9z3hYiB2JgJvuX2cIUCJGlj8oY3YlKIxDh23_g4", // Add your Google Search Console verification code

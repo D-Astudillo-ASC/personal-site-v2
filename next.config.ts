@@ -144,6 +144,26 @@ const nextConfig: NextConfig = {
 
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 
+  // Redirect www to non-www (canonical domain)
+  // Using redirects() is recommended for simple, static redirects
+  // Note: HTTP to HTTPS is handled automatically by Vercel at the platform level
+  // See: https://community.vercel.com/t/http-forward-to-https/6219
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.danielastudillo.io",
+          },
+        ],
+        destination: "https://danielastudillo.io/:path*",
+        permanent: true, // 301 redirect
+      },
+    ];
+  },
+
   // Configure logging for better debugging
   logging: {
     fetches: {

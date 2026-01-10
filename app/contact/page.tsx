@@ -23,9 +23,13 @@ export const metadata: Metadata = {
     "Technical Collaboration",
     "Development Projects"
   ],
+  alternates: {
+    canonical: "https://danielastudillo.io/contact",
+  },
   openGraph: {
     title: "Daniel Astudillo | Software Engineer | Contact",
     description: "Contact Daniel Astudillo for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
+    url: "https://danielastudillo.io/contact",
   },
 };
 

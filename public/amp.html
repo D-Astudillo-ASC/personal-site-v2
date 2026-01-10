@@ -1,28 +1,101 @@
 <!doctype html>
 <html ⚡ lang="en">
+
 <head>
   <meta charset="utf-8">
   <script async src="https://cdn.ampproject.org/v0.js"></script>
   <title>Daniel Astudillo | Software Engineer | Open to Work</title>
-  <link rel="canonical" href="https://danielastudillo.io/">
+  <link rel="canonical" href="https://danielastudillo.io/amp.html">
   <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-  <meta name="description" content="Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.">
-  
+  <meta name="description"
+    content="Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.">
+
   <!-- AMP Boilerplate -->
-  <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style>
-  <noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
-  
+  <style amp-boilerplate>
+    body {
+      -webkit-animation: -amp-start 8s steps(1, end) 0s 1 normal both;
+      -moz-animation: -amp-start 8s steps(1, end) 0s 1 normal both;
+      -ms-animation: -amp-start 8s steps(1, end) 0s 1 normal both;
+      animation: -amp-start 8s steps(1, end) 0s 1 normal both
+    }
+
+    @-webkit-keyframes -amp-start {
+      from {
+        visibility: hidden
+      }
+
+      to {
+        visibility: visible
+      }
+    }
+
+    @-moz-keyframes -amp-start {
+      from {
+        visibility: hidden
+      }
+
+      to {
+        visibility: visible
+      }
+    }
+
+    @-ms-keyframes -amp-start {
+      from {
+        visibility: hidden
+      }
+
+      to {
+        visibility: visible
+      }
+    }
+
+    @-o-keyframes -amp-start {
+      from {
+        visibility: hidden
+      }
+
+      to {
+        visibility: visible
+      }
+    }
+
+    @keyframes -amp-start {
+      from {
+        visibility: hidden
+      }
+
+      to {
+        visibility: visible
+      }
+    }
+  </style>
+  <noscript>
+    <style amp-boilerplate>
+      body {
+        -webkit-animation: none;
+        -moz-animation: none;
+        -ms-animation: none;
+        animation: none
+      }
+    </style>
+  </noscript>
+
   <!-- Custom AMP Styles -->
   <style amp-custom>
     /* Reset and base styles */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
       color: #000;
       background: #fff;
     }
-    
+
     /* Header with white to black gradient */
     .header {
       background: linear-gradient(135deg, #ffffff 0%, #000000 100%);
@@ -35,14 +108,14 @@
       justify-content: center;
       align-items: center;
     }
-    
+
     .header h1 {
       font-size: 4rem;
       font-weight: 200;
       margin-bottom: 1rem;
       animation: pulse 2s infinite;
     }
-    
+
     .header p {
       font-size: 1.5rem;
       font-weight: 100;
@@ -50,12 +123,19 @@
       margin-bottom: 2rem;
       animation: pulse 2s infinite;
     }
-    
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.8;
+      }
     }
-    
+
     /* Navigation buttons */
     .nav-buttons {
       display: flex;
@@ -63,41 +143,41 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-    
+
     .nav-button {
       color: #000;
       text-decoration: none;
       padding: 0.75rem 1.5rem;
-      border: 1px solid rgba(0,0,0,0.5);
+      border: 1px solid rgba(0, 0, 0, 0.5);
       border-radius: 4px;
       background: #fff;
       font-size: 1.125rem;
       font-weight: 100;
       transition: all 0.2s ease;
     }
-    
+
     .nav-button.secondary {
       background: transparent;
-      color: rgba(0,0,0,0.7);
-      border-color: rgba(0,0,0,0.5);
+      color: rgba(0, 0, 0, 0.7);
+      border-color: rgba(0, 0, 0, 0.5);
     }
-    
+
     .nav-button:hover {
       transform: scale(1.02);
     }
-    
+
     /* Main content */
     .main {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 1rem;
     }
-    
+
     .section {
       margin-bottom: 4rem;
       padding: 2rem 0;
     }
-    
+
     .section h2 {
       font-size: 2.5rem;
       margin-bottom: 2rem;
@@ -105,7 +185,7 @@
       font-weight: 200;
       text-align: center;
     }
-    
+
     /* Featured Projects */
     .projects-grid {
       display: grid;
@@ -113,48 +193,48 @@
       gap: 2rem;
       margin-bottom: 2rem;
     }
-    
+
     @media (min-width: 768px) {
       .projects-grid {
         grid-template-columns: 1fr 1fr;
       }
     }
-    
+
     /* Project Cards */
     .project-card {
       background: white;
-      border: 1px solid rgba(0,0,0,0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 8px;
       padding: 1.5rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s ease;
     }
-    
+
     .project-card:hover {
       transform: scale(1.02);
     }
-    
+
     .project-card h3 {
       font-size: 1.5rem;
       margin-bottom: 0.5rem;
       color: #000;
       font-weight: 400;
     }
-    
+
     .project-card p {
       font-size: 1rem;
       margin-bottom: 1rem;
       color: #666;
       line-height: 1.6;
     }
-    
+
     .project-tech {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       margin-top: 1rem;
     }
-    
+
     .tech-tag {
       background: #f0f0f0;
       color: #333;
@@ -163,13 +243,13 @@
       font-size: 0.875rem;
       font-weight: 300;
     }
-    
+
     /* About Section */
     .about-content {
       max-width: 800px;
       margin: 0 auto;
     }
-    
+
     .about-content p {
       font-size: 1.125rem;
       margin-bottom: 1.5rem;
@@ -177,12 +257,12 @@
       line-height: 1.7;
       font-weight: 100;
     }
-    
+
     .about-content strong {
       font-weight: 500;
       color: #000;
     }
-    
+
     /* Contact info */
     .contact-info {
       background: #f8f9fa;
@@ -191,17 +271,17 @@
       margin-top: 2rem;
       text-align: center;
     }
-    
+
     .contact-info h3 {
       margin-bottom: 1rem;
       font-weight: 400;
     }
-    
+
     .contact-info p {
       margin-bottom: 0.5rem;
       font-weight: 100;
     }
-    
+
     /* Footer */
     .footer {
       background: #000;
@@ -210,16 +290,30 @@
       padding: 2rem 1rem;
       margin-top: 3rem;
     }
-    
+
     /* Responsive */
     @media (max-width: 600px) {
-      .header h1 { font-size: 2.5rem; }
-      .header p { font-size: 1.25rem; }
-      .nav-buttons { flex-direction: column; align-items: center; }
-      .nav-button { width: 100%; max-width: 200px; text-align: center; }
+      .header h1 {
+        font-size: 2.5rem;
+      }
+
+      .header p {
+        font-size: 1.25rem;
+      }
+
+      .nav-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .nav-button {
+        width: 100%;
+        max-width: 200px;
+        text-align: center;
+      }
     }
   </style>
-  
+
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -247,6 +341,7 @@
   }
   </script>
 </head>
+
 <body>
   <!-- Header -->
   <header class="header">
@@ -258,7 +353,7 @@
       <a href="#contact" class="nav-button secondary">Contact Me</a>
     </div>
   </header>
-  
+
   <!-- Main Content -->
   <main class="main">
     <!-- Featured Projects Section -->
@@ -267,7 +362,10 @@
       <div class="projects-grid">
         <div class="project-card">
           <h3>Visa Card Eligibility Service</h3>
-          <p>A real-time API service that enables financial institutions and merchants to determine card eligibility for exclusive benefits, offers, and promotions. Built with microservices architecture using .NET Core and Spring Boot, providing secure endpoints for card validation, eligibility checks, benefit redemption, and iFrame integration.</p>
+          <p>A real-time API service that enables financial institutions and merchants to determine card eligibility for
+            exclusive benefits, offers, and promotions. Built with microservices architecture using .NET Core and Spring
+            Boot, providing secure endpoints for card validation, eligibility checks, benefit redemption, and iFrame
+            integration.</p>
           <div class="project-tech">
             <span class="tech-tag">.NET Core</span>
             <span class="tech-tag">Spring Boot</span>
@@ -276,10 +374,12 @@
             <span class="tech-tag">SQL Server</span>
           </div>
         </div>
-        
+
         <div class="project-card">
           <h3>Visa Digital Benefits Platform</h3>
-          <p>A comprehensive benefits orchestration platform that empowers card issuers to create and manage personalized cardholder rewards programs. Built with Spring Boot/Java 17, the system provides intelligent benefit allocation based on spending behavior, geographic location, and card tier eligibility.</p>
+          <p>A comprehensive benefits orchestration platform that empowers card issuers to create and manage
+            personalized cardholder rewards programs. Built with Spring Boot/Java 17, the system provides intelligent
+            benefit allocation based on spending behavior, geographic location, and card tier eligibility.</p>
           <div class="project-tech">
             <span class="tech-tag">Spring Boot</span>
             <span class="tech-tag">Java 17</span>
@@ -288,10 +388,11 @@
             <span class="tech-tag">REST APIs</span>
           </div>
         </div>
-        
+
         <div class="project-card">
           <h3>Personal Website v2</h3>
-          <p>Current iteration of my personal website built with Next.js, TypeScript, React and Tailwind CSS. Features a dark mode toggle and font switcher.</p>
+          <p>Current iteration of my personal website built with Next.js, TypeScript, React and Tailwind CSS. Features a
+            dark mode toggle and font switcher.</p>
           <div class="project-tech">
             <span class="tech-tag">Next.js</span>
             <span class="tech-tag">TypeScript</span>
@@ -301,30 +402,40 @@
           </div>
         </div>
       </div>
-      
+
       <div style="text-align: center; margin-top: 2rem;">
         <a href="https://danielastudillo.io/projects" class="nav-button secondary">View All Projects</a>
       </div>
     </section>
-    
+
     <!-- About Section -->
     <section id="about" class="section">
       <h2>About Me</h2>
       <div class="about-content">
-        <p>I'm a Software Engineer with experience building systems that millions of people depend on. At <strong>Visa</strong>, I worked on critical financial services processing <strong>20M+ monthly API requests</strong>, led legacy migrations that reduced technical debt by <strong>10+ years</strong>, and architected modern payment platforms. At <strong>Wayfair</strong>, I revolutionized sales recommendation engines with <strong>20% accuracy improvements</strong> and achieved <strong>100% test coverage</strong> on mission-critical systems.</p>
-        
-        <p>My expertise spans the full technology stack — from <strong>React</strong>, <strong>Next.js</strong>, and <strong>TypeScript</strong> frontends to <strong>Spring Boot</strong>, <strong>.NET Core</strong>, and <strong>Python</strong> backends.</p>
-        
+        <p>I'm a Software Engineer with experience building systems that millions of people depend on. At
+          <strong>Visa</strong>, I worked on critical financial services processing <strong>20M+ monthly API
+            requests</strong>, led legacy migrations that reduced technical debt by <strong>10+ years</strong>, and
+          architected modern payment platforms. At <strong>Wayfair</strong>, I revolutionized sales recommendation
+          engines with <strong>20% accuracy improvements</strong> and achieved <strong>100% test coverage</strong> on
+          mission-critical systems.</p>
+
+        <p>My expertise spans the full technology stack — from <strong>React</strong>, <strong>Next.js</strong>, and
+          <strong>TypeScript</strong> frontends to <strong>Spring Boot</strong>, <strong>.NET Core</strong>, and
+          <strong>Python</strong> backends.</p>
+
         <div style="padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.2); margin-top: 2rem;">
-          <p>I'm currently seeking opportunities to work on challenging problems that matter — whether that's building the next generation of financial technology, optimizing data pipelines that power millions of decisions, or creating intuitive experiences that people love to use. I thrive in environments that value innovation, technical excellence, and the kind of impact that changes how people interact with technology.</p>
+          <p>I'm currently seeking opportunities to work on challenging problems that matter — whether that's building
+            the next generation of financial technology, optimizing data pipelines that power millions of decisions, or
+            creating intuitive experiences that people love to use. I thrive in environments that value innovation,
+            technical excellence, and the kind of impact that changes how people interact with technology.</p>
         </div>
-        
+
         <div style="text-align: center; margin-top: 2rem;">
           <a href="https://danielastudillo.io/about" class="nav-button secondary">Learn More</a>
         </div>
       </div>
     </section>
-    
+
     <!-- Contact Section -->
     <section id="contact" class="section">
       <h2>Contact</h2>
@@ -346,7 +457,9 @@
       <div class="projects-grid">
         <div class="project-card">
           <h3>Welcome to My Blog</h3>
-          <p>Announcing the launch of my new personal blog: what to expect, why I'm writing, and a bit about me. I'll be sharing insights from real-world engineering work, documenting my journey as a developer, and writing about projects, tools, and technologies I love.</p>
+          <p>Announcing the launch of my new personal blog: what to expect, why I'm writing, and a bit about me. I'll be
+            sharing insights from real-world engineering work, documenting my journey as a developer, and writing about
+            projects, tools, and technologies I love.</p>
           <div class="project-tech">
             <span class="tech-tag">Blog</span>
             <span class="tech-tag">Software Engineering</span>
@@ -359,10 +472,11 @@
       </div>
     </section>
   </main>
-  
+
   <!-- Footer -->
   <footer class="footer">
     <p>&copy; 2024 Daniel Astudillo. All rights reserved.</p>
   </footer>
 </body>
-</html> 
+
+</html>

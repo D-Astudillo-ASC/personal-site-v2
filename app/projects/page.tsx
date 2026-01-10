@@ -23,9 +23,13 @@ export const metadata: Metadata = {
     "Full Stack Developer Projects",
     "Web Development Portfolio"
   ],
+  alternates: {
+    canonical: "https://danielastudillo.io/projects",
+  },
   openGraph: {
     title: "Daniel Astudillo | Software Engineer | Projects",
     description: "Software Engineer portfolio featuring Visa Card Eligibility Service, Visa Digital Benefits Platform, and modern web applications.",
+    url: "https://danielastudillo.io/projects",
   },
 };
 

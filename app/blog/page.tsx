@@ -15,9 +15,13 @@ export const metadata: Metadata = {
     "Web Development Blog",
     "Full Stack Blog"
   ],
+  alternates: {
+    canonical: "https://danielastudillo.io/blog",
+  },
   openGraph: {
     title: "Daniel Astudillo | Software Engineer | Blog",
     description: "Blog by Daniel Astudillo, Software Engineer. Insights on React, Next.js, TypeScript, software engineering, and career advice.",
+    url: "https://danielastudillo.io/blog",
   },
 };
 
