@@ -13,6 +13,7 @@ import { ThemeProvider } from "next-themes";
 config.autoAddCss = false;
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://danielastudillo.io"),
   title: {
     default: "Daniel Astudillo | Software Engineer",
     template: "%s | Daniel Astudillo",
