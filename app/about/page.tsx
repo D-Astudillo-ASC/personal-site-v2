@@ -12,8 +12,8 @@ const ExperienceCard = dynamic(() => import('@/components/experience/ExperienceC
 const ExperienceSummary = dynamic(() => import('@/components/experience/ExperienceSummary'));
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo | Software Engineer | Visa & Wayfair Experience",
-  description: "Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core. Led migrations reducing technical debt by 10+ years. View portfolio, skills, and experience.",
+  title: "Daniel Astudillo - Software Engineer | Visa & Wayfair Experience | Portfolio",
+  description: "Daniel Astudillo is a Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core. Led migrations reducing technical debt by 10+ years. View portfolio, skills, and experience.",
   keywords: [
     "Daniel Astudillo Software Engineer",
     "Visa Software Engineer",
@@ -43,6 +43,9 @@ export default function About() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
       <Breadcrumbs />
+      <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extralight">
+        About Daniel Astudillo - Software Engineer
+      </h1>
       <ExperienceSummary
         professional={professional}
         internship={internship}
@@ -53,7 +56,7 @@ export default function About() {
         <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">My Journey</h2>
         <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
           <p>
-            I&apos;ve always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better.
+            I&apos;m <strong className="font-medium text-text">Daniel Astudillo</strong>, a Software Engineer who&apos;s always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better.
           </p>
           <p>
             When I got my first PC in 2008, I was instantly hooked — not just by the built-in games like <i>Minesweeper</i>, <i>Mahjong</i>, and <i>Purble Place</i>, but by the idea that this machine could do so much. I spent hours exploring every corner of it, from <i>Microsoft Paint</i> to the Control Panel and all of the internal drives that showed up in the <i>My Computer</i> window, curious about what made it all tick.

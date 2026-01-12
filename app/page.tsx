@@ -17,15 +17,34 @@ const lcpImageDesktop = `/_next/image?url=${lcpImageBase}&w=1200&q=70`;
 const lcpImageMobile = `/_next/image?url=${lcpImageBase}&w=750&q=70`;
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo | Software Engineer",
+  title: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
   description:
-    "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+    "Daniel Astudillo is a Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core. View portfolio, projects, and contact information.",
   alternates: {
     canonical: "https://danielastudillo.io",
   },
   openGraph: {
     url: "https://danielastudillo.io",
     type: "website",
+    title: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
+    description: "Daniel Astudillo is a Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, and .NET Core.",
+    siteName: "Daniel Astudillo Portfolio",
+    locale: "en_US",
+    images: [
+      {
+        url: "https://danielastudillo.io/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Daniel Astudillo - Software Engineer",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
+    description: "Daniel Astudillo is a Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, and .NET Core.",
+    creator: "@danielastudillo",
+    images: ["https://danielastudillo.io/images/og-image.png"],
   },
 };
 

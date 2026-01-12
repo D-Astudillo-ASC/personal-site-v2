@@ -3,11 +3,41 @@ export default function StructuredData() {
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Daniel Astudillo",
+    alternateName: [
+      "Daniel M. Astudillo",
+      "Daniel Astudillo Software Engineer",
+      "danielastudillo",
+      "daniel astudillo",
+      "Daniel Astudillo Full-Stack Developer",
+      "Daniel Astudillo React Developer",
+      "Daniel Astudillo TypeScript Developer",
+    ],
     jobTitle: "Software Engineer",
     description:
-      "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+      "Daniel Astudillo is a Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
     url: "https://danielastudillo.io",
     email: "daniel.astudillo404@gmail.com",
+    givenName: "Daniel",
+    familyName: "Astudillo",
+    additionalName: "M.",
+    honorificPrefix: "",
+    honorificSuffix: "",
+    knowsAbout: [
+      "React",
+      "TypeScript",
+      "Node.js",
+      "Spring Boot",
+      ".NET Core",
+      "Java",
+      "JavaScript",
+      "Full Stack Development",
+      "Payment Systems",
+      "Recommendation Engines",
+      "Software Engineering",
+      "Web Development",
+      "Frontend Development",
+      "Backend Development",
+    ],
     sameAs: [
       "https://linkedin.com/in/daniel-m-astudillo",
       "https://github.com/D-Astudillo-ASC",
@@ -24,18 +54,6 @@ export default function StructuredData() {
         name: "Wayfair, Inc.",
         jobTitle: "Software Engineer Intern",
       },
-    ],
-    knowsAbout: [
-      "React",
-      "TypeScript",
-      "Node.js",
-      "Spring Boot",
-      ".NET Core",
-      "Java",
-      "JavaScript",
-      "Full Stack Development",
-      "Payment Systems",
-      "Recommendation Engines",
     ],
     alumniOf: {
       "@type": "Organization",
@@ -107,6 +125,34 @@ export default function StructuredData() {
     ],
   };
 
+  // WebSite schema for better site understanding and potential search box
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Daniel Astudillo Portfolio",
+    url: "https://danielastudillo.io",
+    description:
+      "Portfolio website of Daniel Astudillo, Software Engineer with experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, and .NET Core.",
+    author: {
+      "@type": "Person",
+      name: "Daniel Astudillo",
+      url: "https://danielastudillo.io",
+    },
+    publisher: {
+      "@type": "Person",
+      name: "Daniel Astudillo",
+    },
+    inLanguage: "en-US",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: "https://danielastudillo.io/blog?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
       <script
@@ -116,6 +162,10 @@ export default function StructuredData() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
     </>
   );

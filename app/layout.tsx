@@ -15,11 +15,11 @@ config.autoAddCss = false;
 export const metadata: Metadata = {
   metadataBase: new URL("https://danielastudillo.io"),
   title: {
-    default: "Daniel Astudillo | Software Engineer",
+    default: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
     template: "%s | Daniel Astudillo",
   },
   description:
-    "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core. Specializing in full-stack development, payment systems, and recommendation engines.",
+    "Daniel Astudillo is a Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core. Specializing in full-stack development, payment systems, and recommendation engines.",
   keywords: [
     "Daniel Astudillo",
     "Software Engineer",
@@ -74,13 +74,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://danielastudillo.io",
-    title: "Daniel Astudillo | Software Engineer",
+    title: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
     description:
-      "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
+      "Daniel Astudillo is a Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
     siteName: "Daniel Astudillo Portfolio",
     images: [
       {
-        url: "/images/og-image.png",
+        url: "https://danielastudillo.io/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "Daniel Astudillo - Software Engineer",
@@ -89,10 +89,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Daniel Astudillo | Software Engineer",
+    title: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
     description:
-      "Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair.",
-    images: ["/images/og-image.png"],
+      "Daniel Astudillo is a Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, and .NET Core.",
+    creator: "@danielastudillo",
+    images: ["https://danielastudillo.io/images/og-image.png"],
   },
   // Note: canonical URLs are set per-page, not in root layout
   // Each page should set its own canonical URL in its metadata
@@ -114,6 +115,9 @@ export default function RootLayout({
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
         <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
+        {/* rel="me" for identity verification - helps with SEO and social linking */}
+        <link rel="me" href="https://linkedin.com/in/daniel-m-astudillo" />
+        <link rel="me" href="https://github.com/D-Astudillo-ASC" />
         <StructuredData />
         <style
           dangerouslySetInnerHTML={{

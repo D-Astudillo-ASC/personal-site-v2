@@ -5,8 +5,8 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 const ContactForm = dynamic(() => import('@/components/ContactForm'));
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo | Software Engineer | Contact",
-  description: "Contact Daniel Astudillo for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
+  title: "Contact Daniel Astudillo - Software Engineer | Hire Full-Stack Developer",
+  description: "Contact Daniel Astudillo, Software Engineer, for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
   keywords: [
     "Contact Daniel Astudillo",
     "Hire Software Engineer",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Next.js Developer",
     "Spring Boot Developer",
     ".NET Developer",
-    "Software Engineer Opportunities", 
+    "Software Engineer Opportunities",
     "Software Developer Opportunities",
     "Software Engineer Contact",
     "Software Developer Contact",
@@ -39,9 +39,11 @@ export default function Contact() {
       <Breadcrumbs />
       {/* Header Section */}
       <section className="mb-16 text-center">
-        <h1 className="mb-4 text-2xl sm:text-4xl md:text-5xl font-extralight">Get In Touch</h1>
+        <h1 className="mb-4 text-2xl sm:text-4xl md:text-5xl font-extralight">
+          Contact Daniel Astudillo - Software Engineer
+        </h1>
         <p className="text-xl font-thin text-text/70 leading-relaxed max-w-2xl mx-auto">
-          I&apos;m always excited to connect with fellow developers, discuss potential collaborations, 
+          I&apos;m <strong className="font-medium text-text">Daniel Astudillo</strong>, a Software Engineer always excited to connect with fellow developers, discuss potential collaborations,
           or just chat about technology. Feel free to reach out through any of the channels below.
         </p>
       </section>
@@ -53,8 +55,8 @@ export default function Contact() {
         <div className="max-w-2xl mx-auto p-8 rounded-lg border border-border/30 bg-background/30">
           <h3 className="text-lg sm:text-xl md:text-2xl font-light mb-4">Let&apos;s Work Together</h3>
           <p className="text-lg font-thin text-text/70 leading-relaxed">
-            Whether you have a project in mind, want to discuss potential opportunities, 
-            or just want to connect, I&apos;d love to hear from you. I&apos;m particularly interested 
+            Whether you have a project in mind, want to discuss potential opportunities,
+            or just want to connect, I&apos;d love to hear from you. I&apos;m particularly interested
             in high-impact, full-stack development roles and innovative projects.
           </p>
         </div>

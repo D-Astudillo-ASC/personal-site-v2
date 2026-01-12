@@ -11,7 +11,7 @@ export default function Introduction({
     <div className="space-y-8">
       <div className="space-y-6">
         <p className="text-lg font-thin text-text/80 leading-relaxed">
-          I&apos;m a Software Engineer with experience building systems that
+          I&apos;m <strong className="font-medium text-text">Daniel Astudillo</strong>, a Software Engineer with experience building systems that
           millions of people depend on. At{" "}
           <Link
             href="/about"
@@ -42,7 +42,7 @@ export default function Introduction({
         </p>
 
         <p className="text-lg font-thin text-text/80 leading-relaxed">
-          My expertise spans the full technology stack — from{" "}
+          As <strong className="font-medium text-text">Daniel Astudillo</strong>, my expertise spans the full technology stack — from{" "}
           <Link
             href="/projects"
             className="font-medium text-text hover:text-primary transition-colors"

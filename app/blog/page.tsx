@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo | Software Engineer | Blog",
-  description: "Blog by Daniel Astudillo, Software Engineer. Insights on React, Next.js, TypeScript, software engineering, and career advice.",
+  title: "Daniel Astudillo - Software Engineer Blog | Articles & Insights",
+  description: "Blog by Daniel Astudillo, Software Engineer at Visa and Wayfair. Insights on React, Next.js, TypeScript, software engineering, payment systems, and career advice.",
   keywords: [
     "Daniel Astudillo Blog",
     "Software Engineering Blog",
@@ -31,9 +31,9 @@ export default function BlogIndex() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
       <Breadcrumbs />
-      <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-thin">Blog</h1>
+      <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-thin">Daniel Astudillo&apos;s Blog</h1>
       <p className="mb-8 text-lg font-thin text-text/70 leading-relaxed">
-        Welcome to my blog! Here you&apos;ll find articles about my projects, career journey, and thoughts on software engineering and technology. Stay tuned for upcoming posts.
+        Welcome to <strong className="font-medium text-text">Daniel Astudillo</strong>&apos;s blog! Here you&apos;ll find articles about my projects, career journey, and thoughts on software engineering and technology. Stay tuned for upcoming posts.
       </p>
       <div className="space-y-12">
         <article className="border-b border-border/20 pb-8">
