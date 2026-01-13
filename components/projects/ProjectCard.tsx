@@ -34,8 +34,9 @@ const ProjectCard = React.memo(function ProjectCard({ project, priority = false 
             alt={`${project.title} by Daniel Astudillo - ${project.description} - Built with ${project.technologies.join(', ')}`}
             width={imgDims.width}
             height={imgDims.height}
-            priority={priority}
-            fetchPriority={priority ? "high" : "auto"}
+            // Avoid Chrome's "preloaded but not used" warning by not injecting a preload tag.
+            // For the first/most important card, we still hint the browser to fetch sooner.
+            loading={priority ? "eager" : "lazy"}
             quality={30}
             className="object-cover w-full h-auto md:transition-slower md:group-hover:scale-110 md:group-hover:brightness-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

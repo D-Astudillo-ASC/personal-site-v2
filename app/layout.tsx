@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import FontClientScript from "@/components/font/FontClientScript";
+import DevtoolsEasterEgg from "@/components/DevtoolsEasterEgg";
 import StructuredData from "./structured-data";
 import { helveticaNeue } from "./fonts";
 import { ThemeProvider } from "next-themes";
@@ -146,6 +147,7 @@ export default function RootLayout({
       <body className={helveticaNeue.variable}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <FontClientScript />
+          <DevtoolsEasterEgg />
           <Header />
           <main className="flex flex-grow flex-col">{children}</main>
           <Footer />

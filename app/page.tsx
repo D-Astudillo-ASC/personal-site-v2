@@ -9,12 +9,7 @@ import FeaturedProjects from "@/components/FeaturedProjects";
 export const dynamic = "force-static";
 export const revalidate = 3600; // Revalidate every hour
 
-// Calculate LCP image URLs for metadata
 const featuredProjects = projects.filter((project) => project.featured).slice(0, 3);
-const lcpProject = featuredProjects[0];
-const lcpImageBase = encodeURIComponent(lcpProject.imageUrl || "");
-const lcpImageDesktop = `/_next/image?url=${lcpImageBase}&w=1200&q=70`;
-const lcpImageMobile = `/_next/image?url=${lcpImageBase}&w=750&q=70`;
 
 export const metadata: Metadata = {
   title: "Daniel Astudillo - Software Engineer | Portfolio & Experience",
@@ -51,14 +46,6 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      {/* LCP Image Preload with imageSrcSet - App Router hoists this to <head> */}
-      <link
-        rel="preload"
-        as="image"
-        href={lcpImageDesktop}
-        imageSrcSet={`${lcpImageMobile} 750w, ${lcpImageDesktop} 1200w`}
-        imageSizes="(max-width: 768px) 100vw, 50vw"
-      />
       <div className="flex min-h-screen flex-col">
         <Hero />
         <FeaturedProjects featuredProjects={featuredProjects} />
