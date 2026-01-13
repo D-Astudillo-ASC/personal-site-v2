@@ -1,5 +1,40 @@
-import type { MDXComponents } from 'mdx/types'
- 
+import Image from "next/image";
+import type { ImgHTMLAttributes } from "react";
+import type { MDXComponents } from "mdx/types";
+
+const parseDimension = (value: unknown): number | undefined => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const n = Number.parseInt(value, 10);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
+}
+
+type MDXImgProps = ImgHTMLAttributes<HTMLImageElement> & {
+  src?: string;
+};
+
+const MDXImage = (props: MDXImgProps) => {
+  const { src, alt, width, height, className, ...rest } = props;
+  if (!src) return null;
+
+  const w = parseDimension(width) ?? 1200;
+  const h = parseDimension(height) ?? 800;
+
+  return (
+    <Image
+      src={src}
+      alt={alt ?? ""}
+      width={w}
+      height={h}
+      sizes="100vw"
+      className={`rounded-lg my-6 max-w-full h-auto ${className ?? ""}`}
+      {...rest}
+    />
+  );
+}
+
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     h1: (props) => <h1 className="text-5xl font-bold text-primary mb-6 mt-10" {...props} />, // Already styled by prose, but can override
@@ -22,7 +57,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     td: (props) => <td className="border-b border-border/30 px-4 py-2" {...props} />,
     strong: (props) => <strong className="font-semibold text-text" {...props} />,
     em: (props) => <em className="italic text-text/80" {...props} />,
-    img: (props) => <img className="rounded-lg my-6 max-w-full h-auto" {...props} />,
+    img: (props) => <MDXImage {...props} />,
     ...components,
-  }
+  };
 }

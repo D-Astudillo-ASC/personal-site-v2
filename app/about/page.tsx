@@ -12,26 +12,31 @@ const ExperienceCard = dynamic(() => import('@/components/experience/ExperienceC
 const ExperienceSummary = dynamic(() => import('@/components/experience/ExperienceSummary'));
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo - Software Engineer | Visa & Wayfair Experience | Portfolio",
-  description: "Daniel Astudillo is a Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core. Led migrations reducing technical debt by 10+ years. View portfolio, skills, and experience.",
+  title: "About Daniel",
+  description:
+    "I’m Daniel Astudillo — a software engineer who builds fast, reliable web products. I’ve shipped at Visa and Wayfair across payments, recommendations, and platform systems, using React/TypeScript, Node.js, Java/Spring Boot, and .NET.",
   keywords: [
-    "Daniel Astudillo Software Engineer",
-    "Visa Software Engineer",
-    "Wayfair Software Engineer",
-    "React TypeScript Developer",
-    "Spring Boot Developer",
-    ".NET Core Developer",
-    "Full Stack Developer Portfolio",
-    "Software Engineer Experience",
-    "Payment Systems Developer",
-    "Recommendation Engine Developer"
+    "Daniel Astudillo",
+    "Software Engineer",
+    "Visa",
+    "Wayfair",
+    "React",
+    "TypeScript",
+    "Next.js",
+    "Node.js",
+    "Spring Boot",
+    ".NET",
+    "Full-stack",
+    "Payments",
+    "Recommendations",
   ],
   alternates: {
     canonical: "https://danielastudillo.io/about",
   },
   openGraph: {
-    title: "Daniel Astudillo | Software Engineer | Visa & Wayfair Experience",
-    description: "Software Engineer with 3+ years experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, .NET Core.",
+    title: "About Daniel Astudillo",
+    description:
+      "Software engineer who builds fast, reliable web products — experience at Visa and Wayfair across payments, recommendations, and platform systems.",
     url: "https://danielastudillo.io/about",
   },
 };
@@ -44,7 +49,7 @@ export default function About() {
     <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
       <Breadcrumbs />
       <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extralight">
-        About Daniel Astudillo - Software Engineer
+        About Daniel
       </h1>
       <ExperienceSummary
         professional={professional}

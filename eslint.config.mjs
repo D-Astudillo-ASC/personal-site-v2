@@ -17,6 +17,8 @@ export default [
       "*.config.{js,ts,mjs}",
       "tailwind.config.*",
       "next.config.*",
+      "archive/**",
+      "scripts/**",
     ],
   },
   ...tseslint.configs.recommended,

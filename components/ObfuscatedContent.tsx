@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import type React from "react";
 import NoSSR from "./NoSSR";
 
 interface ObfuscatedContentProps {
@@ -26,34 +26,14 @@ export default function ObfuscatedContent({
   onClick,
   onContextMenu,
 }: ObfuscatedContentProps) {
-  const [decodedContent, setDecodedContent] = useState<string>("");
-  const [isVisible, setIsVisible] = useState(false);
-  const [displayContent, setDisplayContent] = useState<string>(
-    fakeContent || placeholder,
-  );
+  const isClient = typeof window !== "undefined";
+  const decodedContent = isClient ? content : "";
+  const displayContent = isClient
+    ? (children?.toString() || decodedContent)
+    : (fakeContent || placeholder);
 
-  useEffect(() => {
-    // Simple obfuscation: reverse the content and encode parts
-    const obfuscated = content
-      .split("")
-      .reverse()
-      .map((char) => char.charCodeAt(0).toString(16))
-      .join("");
-
-    // Decode on client side
-    const decoded =
-      obfuscated
-        .match(/.{1,2}/g)
-        ?.map((hex) => String.fromCharCode(parseInt(hex, 16)))
-        .reverse()
-        .join("") || content;
-
-    setDecodedContent(decoded);
-    setDisplayContent(children?.toString() || decoded);
-    setIsVisible(true);
-  }, [content, children]);
-
-  if (!isVisible) {
+  // On the server (and before hydration), render placeholder/fake content to reduce scraping.
+  if (!isClient) {
     return (
       <NoSSR>
         <span className={className}>{displayContent}</span>

@@ -1,9 +1,23 @@
 #!/usr/bin/env ts-node
 
 import * as ampValidator from "amphtml-validator";
+import { Validator } from "amphtml-validator";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
+type AmpValidationStatus = "PASS" | "FAIL";
+
+type AmpValidationError = {
+  line: number;
+  message: string;
+  specUrl?: string;
+};
+
+type AmpValidationResult = {
+  status: AmpValidationStatus;
+  errors: AmpValidationError[];
+};
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -21,8 +35,8 @@ console.log("");
 // Validate the AMP HTML
 ampValidator
   .getInstance()
-  .then(function (validator: any) {
-    const result = validator.validateString(ampHtml);
+  .then(function (validator: Validator) {
+    const result = validator.validateString(ampHtml) as unknown as AmpValidationResult;
 
     console.log("📊 Validation Results:");
     console.log("   Status:", result.status);
@@ -41,7 +55,7 @@ ampValidator
     // Display errors
     if (result.errors.length > 0) {
       console.log("🚨 ERRORS:");
-      result.errors.forEach((error: any, index: number) => {
+      result.errors.forEach((error: AmpValidationError, index: number) => {
         console.log(`   ${index + 1}. Line ${error.line}: ${error.message}`);
         if (error.specUrl) {
           console.log(`      More info: ${error.specUrl}`);
@@ -66,6 +80,7 @@ ampValidator
       "   - Google Search Console: https://search.google.com/search-console",
     );
   })
-  .catch(function (error: any) {
-    console.log("❌ Error running AMP validator:", error.message);
+  .catch(function (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log("❌ Error running AMP validator:", message);
   });

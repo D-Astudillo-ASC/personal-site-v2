@@ -42,7 +42,7 @@ export default function Introduction({
         </p>
 
         <p className="text-lg font-thin text-text/80 leading-relaxed">
-          As <strong className="font-medium text-text">Daniel Astudillo</strong>, my expertise spans the full technology stack — from{" "}
+          I build and ship end-to-end — from{" "}
           <Link
             href="/projects"
             className="font-medium text-text hover:text-primary transition-colors"

@@ -111,7 +111,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />

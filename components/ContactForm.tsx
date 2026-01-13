@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useState, useCallback, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -43,7 +44,7 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
 
   // Debounce form data updates to reduce input delay
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debouncedSetFormData = useCallback((newData: FormData) => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {

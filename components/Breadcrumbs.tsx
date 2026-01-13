@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useMemo, useCallback } from "react";
 
 interface BreadcrumbItem {
   label: string;
@@ -12,13 +12,8 @@ interface BreadcrumbItem {
 
 export default function Breadcrumbs() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const generateBreadcrumbs = (): BreadcrumbItem[] => {
+  const generateBreadcrumbs = useCallback((): BreadcrumbItem[] => {
     const segments = pathname.split("/").filter(Boolean);
     const breadcrumbs: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
 
@@ -42,17 +37,12 @@ export default function Breadcrumbs() {
     });
 
     return breadcrumbs;
-  };
+  }, [pathname]);
 
-  const breadcrumbs = generateBreadcrumbs();
+  const breadcrumbs = useMemo(() => generateBreadcrumbs(), [generateBreadcrumbs]);
 
   // Don't show breadcrumbs on home page
   if (breadcrumbs.length <= 1) {
-    return null;
-  }
-
-  // Don't render until mounted to prevent hydration issues
-  if (!mounted) {
     return null;
   }
 

@@ -5,8 +5,9 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 const ContactForm = dynamic(() => import('@/components/ContactForm'));
 
 export const metadata: Metadata = {
-  title: "Contact Daniel Astudillo - Software Engineer | Hire Full-Stack Developer",
-  description: "Contact Daniel Astudillo, Software Engineer, for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
+  title: "Contact",
+  description:
+    "Want to collaborate, talk shop, or discuss an opportunity? Send a note — I’m open to high-impact full-stack work (React/TypeScript, Next.js, Java/Spring Boot, .NET).",
   keywords: [
     "Contact Daniel Astudillo",
     "Hire Software Engineer",
@@ -27,8 +28,9 @@ export const metadata: Metadata = {
     canonical: "https://danielastudillo.io/contact",
   },
   openGraph: {
-    title: "Daniel Astudillo | Software Engineer | Contact",
-    description: "Contact Daniel Astudillo for software engineering opportunities, full-stack development projects, or technical collaborations. Available for React, TypeScript, Next.js, Spring Boot, and .NET roles.",
+    title: "Contact",
+    description:
+      "Want to collaborate, talk shop, or discuss an opportunity? Send a note.",
     url: "https://danielastudillo.io/contact",
   },
 };
@@ -40,11 +42,11 @@ export default function Contact() {
       {/* Header Section */}
       <section className="mb-16 text-center">
         <h1 className="mb-4 text-2xl sm:text-4xl md:text-5xl font-extralight">
-          Contact Daniel Astudillo - Software Engineer
+          Contact
         </h1>
         <p className="text-xl font-thin text-text/70 leading-relaxed max-w-2xl mx-auto">
-          I&apos;m <strong className="font-medium text-text">Daniel Astudillo</strong>, a Software Engineer always excited to connect with fellow developers, discuss potential collaborations,
-          or just chat about technology. Feel free to reach out through any of the channels below.
+          Want to collaborate, talk shop, or discuss an opportunity? Feel free to reach
+          out — I read every message.
         </p>
       </section>
 

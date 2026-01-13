@@ -3,18 +3,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faXmark } from "@/lib/fontawesome-icons";
-import ThemeToggle from "@/components/theme/ThemeToggle";
-import FontToggle from "@/components/font/FontToggle";
 import type { NavLink } from "@/types/navigation";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import ClientToggles from "./ClientToggles";
 
-type Props = {
+interface MobileMenuProps {
   navLinks: ReadonlyArray<NavLink>;
 };
 
-export default function MobileMenu({ navLinks }: Props) {
+export default function MobileMenu({ navLinks }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { resolvedTheme } = useTheme();
@@ -62,6 +60,7 @@ export default function MobileMenu({ navLinks }: Props) {
                     className={`
                         block py-2 text-2xl font-thin transition-colors duration-200 cursor-pointer
                         hover:text-gray-700 dark:hover:text-gray-300
+                        ${isActive ? "text-text dark:text-white" : "text-text/80"}
                       `}
                     onClick={() => setIsOpen(false)}
                   >

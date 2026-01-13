@@ -6,8 +6,9 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 const ProjectCard = dynamic(() => import('@/components/projects/ProjectCard'));
 
 export const metadata: Metadata = {
-  title: "Daniel Astudillo | Software Engineer | Projects",
-  description: "Software Engineer portfolio featuring Visa Card Eligibility Service, Visa Digital Benefits Platform, and modern web applications. Built with React, TypeScript, Spring Boot, and .NET Core.",
+  title: "Projects",
+  description:
+    "A selection of work across payments, platforms, and modern web apps — built with React/TypeScript, Next.js, Node.js, Java/Spring Boot, and .NET.",
   keywords: [
     "Daniel Astudillo Projects",
     "Visa Card Eligibility Service Project",
@@ -27,8 +28,9 @@ export const metadata: Metadata = {
     canonical: "https://danielastudillo.io/projects",
   },
   openGraph: {
-    title: "Daniel Astudillo | Software Engineer | Projects",
-    description: "Software Engineer portfolio featuring Visa Card Eligibility Service, Visa Digital Benefits Platform, and modern web applications.",
+    title: "Projects",
+    description:
+      "A selection of work across payments, platforms, and modern web apps.",
     url: "https://danielastudillo.io/projects",
   },
 };
@@ -37,7 +39,10 @@ export default function Projects() {
   return (
     <div className="container mx-auto px-4 py-16 pt-27">
       <Breadcrumbs />
-      <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-thin">Projects by Daniel Astudillo</h1>
+      <h1 className="mb-3 text-2xl sm:text-3xl md:text-4xl font-thin">Projects</h1>
+      <p className="mb-8 text-lg font-thin text-text/70 leading-relaxed max-w-3xl">
+        A few things I’ve built across payments, platforms, and product experiences.
+      </p>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />

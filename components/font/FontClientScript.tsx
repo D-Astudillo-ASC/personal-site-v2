@@ -5,23 +5,23 @@ import { useEffect, useState } from "react";
 export const FONT_CHANGE_EVENT = "fontChange";
 
 export default function FontClientScript() {
-  const [font, setFont] = useState("helvetica");
+  const [font, setFont] = useState(() => {
+    if (typeof window === "undefined") return "helvetica";
+    return window.localStorage.getItem("font") ?? "helvetica";
+  });
 
   useEffect(() => {
-    // Read initial font from localStorage
-    const saved = localStorage.getItem("font");
-    if (saved) setFont(saved);
-
-    // Set initial font on body
     if (font === "monospace") {
       document.body.setAttribute("data-font", "monospace");
     } else {
       document.body.removeAttribute("data-font");
     }
+  }, [font]);
 
+  useEffect(() => {
     // Listen for font change events
-    const handleFontChange = (event: CustomEvent) => {
-      const newFont = event.detail.font;
+    const handleFontChange = (event: Event) => {
+      const { font: newFont } = (event as CustomEvent<{ font: string }>).detail;
       setFont(newFont);
       localStorage.setItem("font", newFont);
       if (newFont === "monospace") {
@@ -31,12 +31,12 @@ export default function FontClientScript() {
       }
     };
 
-    window.addEventListener(FONT_CHANGE_EVENT, handleFontChange as EventListener);
+    window.addEventListener(FONT_CHANGE_EVENT, handleFontChange);
 
     return () => {
-      window.removeEventListener(FONT_CHANGE_EVENT, handleFontChange as EventListener);
+      window.removeEventListener(FONT_CHANGE_EVENT, handleFontChange);
     };
-  }, [font]);
+  }, []);
 
   return null;
 }
