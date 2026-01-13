@@ -11,7 +11,7 @@ const Hero = React.memo(() => {
         Daniel Astudillo
       </h1>
       <p className="mb-8 text-center text-lg sm:text-2xl font-thin text-text/70">
-        Software Engineer | Full-Stack Developer | React, TypeScript, Spring Boot Expert
+        Software Engineer | Full-Stack Developer | React, TypeScript, Next.js, .NET
       </p>
       <div className="flex gap-4">
         <Link
