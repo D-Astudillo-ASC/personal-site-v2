@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node
 
-import * as ampValidator from "amphtml-validator";
-import { Validator } from "amphtml-validator";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+const ampValidator = require("amphtml-validator");
+const fs = require("fs");
+const path = require("path");
+
+type Validator = Awaited<ReturnType<typeof ampValidator.getInstance>>;
 
 type AmpValidationStatus = "PASS" | "FAIL";
 
@@ -18,10 +18,6 @@ type AmpValidationResult = {
   status: AmpValidationStatus;
   errors: AmpValidationError[];
 };
-
-// Get __dirname equivalent for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Read the AMP HTML file
 const ampHtmlPath = path.join(__dirname, "../public/amp.html");
