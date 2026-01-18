@@ -1,11 +1,12 @@
 import { MetadataRoute } from "next";
 
-let baseUrl: string;
-if (process.env.NODE_ENV !== "production" && process.env.VERCEL_URL) {
-  baseUrl = process.env.VERCEL_URL;
-} else {
-  baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-}
+const baseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://danielastudillo.io"
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
