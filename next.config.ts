@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
 
+  // Explicitly disable trailing slashes to prevent redirects
+  // This ensures URLs like /blog and /contact don't redirect
+  // All URLs should be without trailing slashes for consistency
+  trailingSlash: false,
+
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
