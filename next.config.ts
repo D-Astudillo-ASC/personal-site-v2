@@ -149,8 +149,8 @@ const nextConfig: NextConfig = {
 
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 
-  // Note: Domain redirects (www to non-www) should be configured in Vercel Dashboard
-  // Settings > Domains > Configure redirects there to avoid conflicts
+  // Note: www to non-www redirects are handled by Vercel Dashboard
+  // Settings > Domains > Configure redirects there
   // HTTP to HTTPS is handled automatically by Vercel at the platform level
   // See: https://community.vercel.com/t/http-forward-to-https/6219
   // See: https://vercel.com/docs/projects/domains/deploying-and-redirecting

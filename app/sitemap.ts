@@ -1,12 +1,19 @@
 import { MetadataRoute } from "next";
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.NODE_ENV === "production"
-    ? "https://danielastudillo.io"
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
+// Always use non-www domain for consistency
+// This prevents Google from seeing www vs non-www mismatches
+const getBaseUrl = (): string => {
+  if (process.env.NODE_ENV === "production") {
+    return "https://danielastudillo.io";
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+};
+
+// Ensure non-www even if env var has www
+const baseUrl = getBaseUrl().replace(/^https:\/\/www\./, "https://");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
