@@ -1,0 +1,76 @@
+name: Auto-merge Dependabot Security PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge-security:
+    runs-on: ubuntu-latest
+    # Only run for Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Check if PR is a security/patch update
+        id: check-pr
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body || '' }}"
+
+          # Check for security-related keywords
+          if echo "$PR_TITLE $PR_BODY" | grep -qiE "(security|vulnerability|CVE|patch|patch update|dependabot.*security)"; then
+            echo "is_security=true" >> $GITHUB_OUTPUT
+            echo "✅ Security-related PR detected"
+          # Check if it's a patch version update (format: "Bump package from x.y.z to x.y.z+1 (patch)")
+          elif echo "$PR_TITLE" | grep -qE "\(patch\)"; then
+            echo "is_security=true" >> $GITHUB_OUTPUT
+            echo "✅ Patch update detected"
+          else
+            echo "is_security=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ Not a security/patch update - will not auto-merge"
+          fi
+
+      - name: Wait for status checks
+        if: steps.check-pr.outputs.is_security == 'true'
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-regexp: ".*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          allowed-conclusions: success,neutral,skipped
+
+      - name: Auto-merge security PR
+        if: steps.check-pr.outputs.is_security == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+
+            try {
+              // Try to merge the PR
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash',
+                commit_title: '${{ github.event.pull_request.title }}',
+              });
+              
+              console.log('✅ Security PR auto-merged successfully');
+            } catch (error) {
+              if (error.status === 405) {
+                console.log('⚠️ PR cannot be merged (may require review or have conflicts)');
+                console.log('ℹ️ Please review and merge manually');
+              } else if (error.status === 409) {
+                console.log('⚠️ PR has merge conflicts or is not ready');
+                console.log('ℹ️ Please resolve conflicts and try again');
+              } else {
+                console.error('❌ Error merging PR:', error.message);
+                throw error;
+              }
+            }

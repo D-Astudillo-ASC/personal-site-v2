@@ -1,0 +1,61 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    # Open pull requests for version updates
+    open-pull-requests-limit: 10
+    # Group updates to reduce PR noise
+    groups:
+      # Group Next.js and React-related packages
+      nextjs:
+        patterns:
+          - "next"
+          - "@next/*"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      # Group TypeScript-related packages
+      typescript:
+        patterns:
+          - "typescript"
+          - "typescript-eslint"
+          - "@types/*"
+          - "ts-node"
+      # Group ESLint-related packages
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "eslint-*"
+      # Group Tailwind CSS-related packages
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "postcss"
+          - "autoprefixer"
+      # Group FontAwesome packages
+      fontawesome:
+        patterns:
+          - "@fortawesome/*"
+    # Commit message preferences
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    # Labels for PRs
+    labels:
+      - "dependencies"
+      - "automated"
+    # Reviewers (optional - uncomment and add your GitHub username)
+    # reviewers:
+    #   - "danielastudillo"
+    # Assignees (optional - uncomment and add your GitHub username)
+    # assignees:
+    #   - "danielastudillo"
