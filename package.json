@@ -39,7 +39,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@types/amphtml-validator": "^1.0.4",
     "@types/node": "^25.0.10",
-    "@types/react": "^19.2.10",
+    "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
     "amphtml-validator": "^1.0.38",
     "autoprefixer": "^10.4.23",
