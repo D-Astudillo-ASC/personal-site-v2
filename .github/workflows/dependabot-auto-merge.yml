@@ -18,8 +18,9 @@ jobs:
       - name: Check if PR is a security/patch update
         id: check-pr
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY="${{ github.event.pull_request.body || '' }}"
+          # Read from event file to avoid shell interpreting backticks in PR body
+          PR_TITLE=$(jq -r '.pull_request.title // ""' "$GITHUB_EVENT_PATH")
+          PR_BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
 
           # Check for security-related keywords
           if echo "$PR_TITLE $PR_BODY" | grep -qiE "(security|vulnerability|CVE|patch|patch update|dependabot.*security)"; then
