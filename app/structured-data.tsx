@@ -143,14 +143,15 @@ export default function StructuredData() {
       name: "Daniel Astudillo",
     },
     inLanguage: "en-US",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: "https://danielastudillo.io/blog?q={search_term_string}",
-      },
-      "query-input": "required name=search_term_string",
-    },
+    // TODO: Add search action in the future for search engine optimization of blog posts.
+    // potentialAction: {
+    //   "@type": "SearchAction",
+    //   target: {
+    //     "@type": "EntryPoint",
+    //     urlTemplate: "https://danielastudillo.io/blog?q={search_term_string}",
+    //   },
+    //   "query-input": "required name=search_term_string",
+    // },
   };
 
   return (

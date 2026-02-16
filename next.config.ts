@@ -286,19 +286,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: "/amp/sitemap.xml",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400", // 24 hours
-          },
-          {
-            key: "Content-Type",
-            value: "application/xml",
-          },
-        ],
-      },
     ];
   },
 };

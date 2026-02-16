@@ -115,7 +115,6 @@ export default function RootLayout({
       <head>
         {/* TODO: Add favicon for light and dark mode...*/}
         <link rel="icon" type="image/x-icon" href="/favicon-dark.ico" />
-        <link rel="amphtml" href="https://danielastudillo.io/amp.html" />
         {/* rel="me" for identity verification - helps with SEO and social linking */}
         <link rel="me" href="https://linkedin.com/in/daniel-m-astudillo" />
         <link rel="me" href="https://github.com/D-Astudillo-ASC" />
