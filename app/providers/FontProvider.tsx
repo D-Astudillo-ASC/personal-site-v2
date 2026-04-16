@@ -1,16 +1,25 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { FontFamily, FontContextType } from "@/types/font";
 
 const FontContext = createContext<FontContextType | undefined>(undefined);
 
 export function FontProvider({ children }: { children: ReactNode }) {
-  const [font, setFont] = useState<FontFamily>(() => {
-    if (typeof window === "undefined") return "helvetica";
-    const savedFont = window.localStorage.getItem("font") as FontFamily | null;
-    return savedFont ?? "helvetica";
-  });
+  const [font, setFont] = useState<FontFamily>("helvetica");
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("font") as FontFamily | null;
+    if (saved === "helvetica" || saved === "monospace") {
+      setFont(saved);
+    }
+  }, []);
 
   // Save preference when it changes
   const handleSetFont = (newFont: FontFamily) => {

@@ -234,16 +234,21 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        // Cache CSS and JS files
-        source: "/_next/static/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
+      // Do not set Cache-Control on /_next/static in development — Next.js
+      // needs default caching for Turbopack/HMR (see dev server warning).
+      ...(isDev
+        ? []
+        : [
+            {
+              source: "/_next/static/:path*",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ],
+            },
+          ]),
       {
         // Cache favicon files
         source: "/favicon-dark.ico",

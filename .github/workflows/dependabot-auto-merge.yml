@@ -1,4 +1,4 @@
-name: Auto-merge Dependabot Security PRs
+name: Auto-merge Dependabot patch and security PRs
 
 on:
   pull_request:
@@ -7,36 +7,52 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
 
 jobs:
   auto-merge-security:
     runs-on: ubuntu-latest
-    # Only run for Dependabot PRs
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
 
     steps:
-      - name: Check if PR is a security/patch update
-        id: check-pr
-        run: |
-          # Read from event file to avoid shell interpreting backticks in PR body
-          PR_TITLE=$(jq -r '.pull_request.title // ""' "$GITHUB_EVENT_PATH")
-          PR_BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-          # Check for security-related keywords
-          if echo "$PR_TITLE $PR_BODY" | grep -qiE "(security|vulnerability|CVE|patch|patch update|dependabot.*security)"; then
-            echo "is_security=true" >> $GITHUB_OUTPUT
-            echo "✅ Security-related PR detected"
-          # Check if it's a patch version update (format: "Bump package from x.y.z to x.y.z+1 (patch)")
-          elif echo "$PR_TITLE" | grep -qE "\(patch\)"; then
-            echo "is_security=true" >> $GITHUB_OUTPUT
-            echo "✅ Patch update detected"
+      - name: Decide if PR should auto-merge
+        id: decide
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+        run: |
+          set -euo pipefail
+          merge=false
+          title="${PR_TITLE:-}"
+          body="${PR_BODY:-}"
+          combined="${title} ${body}"
+          ut="${UPDATE_TYPE:-}"
+
+          if [ "$ut" = "version-update:semver-patch" ]; then
+            merge=true
+            echo "reason=semver-patch (Dependabot metadata)" >> "$GITHUB_OUTPUT"
+          elif echo "$combined" | grep -qiE 'CVE-[0-9]{4}-[0-9]+|GHSA-[0-9A-Za-z-]{4,}|github\.com/advisories/|github\.com/[^[:space:]]+/[^[:space:]]+/security/advisories/'; then
+            merge=true
+            echo "reason=security advisory signal in PR" >> "$GITHUB_OUTPUT"
+          elif echo "$title" | grep -qiE '\(patch\)'; then
+            merge=true
+            echo "reason=PR title contains (patch)" >> "$GITHUB_OUTPUT"
           else
-            echo "is_security=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ Not a security/patch update - will not auto-merge"
+            echo "reason=not eligible" >> "$GITHUB_OUTPUT"
           fi
 
+          echo "merge=$merge" >> "$GITHUB_OUTPUT"
+          echo "update-type=$ut merge=$merge"
+
       - name: Wait for status checks
-        if: steps.check-pr.outputs.is_security == 'true'
+        if: steps.decide.outputs.merge == 'true'
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -45,33 +61,32 @@ jobs:
           wait-interval: 10
           allowed-conclusions: success,neutral,skipped
 
-      - name: Auto-merge security PR
-        if: steps.check-pr.outputs.is_security == 'true'
+      - name: Auto-merge eligible Dependabot PR
+        if: steps.decide.outputs.merge == 'true'
         uses: actions/github-script@v7
+        env:
+          MERGE_TITLE: ${{ github.event.pull_request.title }}
         with:
           script: |
             const prNumber = context.issue.number;
+            const title = process.env.MERGE_TITLE || context.payload.pull_request.title;
 
             try {
-              // Try to merge the PR
               await github.rest.pulls.merge({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: prNumber,
                 merge_method: 'squash',
-                commit_title: '${{ github.event.pull_request.title }}',
+                commit_title: title,
               });
-              
-              console.log('✅ Security PR auto-merged successfully');
+              console.log('Eligible Dependabot PR merged successfully');
             } catch (error) {
               if (error.status === 405) {
-                console.log('⚠️ PR cannot be merged (may require review or have conflicts)');
-                console.log('ℹ️ Please review and merge manually');
+                console.log('PR cannot be merged (branch protection or reviews may be required).');
               } else if (error.status === 409) {
-                console.log('⚠️ PR has merge conflicts or is not ready');
-                console.log('ℹ️ Please resolve conflicts and try again');
+                console.log('PR is not mergeable (conflicts or pending checks).');
               } else {
-                console.error('❌ Error merging PR:', error.message);
+                console.error('Merge error:', error.message);
                 throw error;
               }
             }

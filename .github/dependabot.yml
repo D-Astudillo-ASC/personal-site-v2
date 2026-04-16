@@ -49,10 +49,6 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    # Labels for PRs
-    labels:
-      - "dependencies"
-      - "automated"
     # Reviewers (optional - uncomment and add your GitHub username)
     # reviewers:
     #   - "danielastudillo"

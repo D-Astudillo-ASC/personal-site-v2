@@ -143,7 +143,13 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={helveticaNeue.variable}>
+      <body className={helveticaNeue.variable} suppressHydrationWarning>
+        {/* Runs before first paint so monospace preference never flashes Helvetica */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem("font")==="monospace")document.body.setAttribute("data-font","monospace");}catch(e){}})();`,
+          }}
+        />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <FontClientScript />
           <DevtoolsEasterEgg />

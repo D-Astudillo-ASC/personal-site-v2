@@ -19,7 +19,7 @@ const FeaturedProjects = React.memo(
               <ProjectCard
                 key={project.id}
                 project={project}
-                priority={idx === 0}
+                priority={idx < 2}
               />
             ))}
           </div>

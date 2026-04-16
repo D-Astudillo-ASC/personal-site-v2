@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFont } from "@/lib/fontawesome-icons";
 import { setGlobalFont } from "@/utils/font";
 
+type SiteFont = "helvetica" | "monospace";
+
 export default function FontToggle() {
-  const [font, setFont] = useState<"helvetica" | "monospace">(() => {
-    if (typeof window === "undefined") return "helvetica";
-    const saved = window.localStorage.getItem("font") as
-      | "helvetica"
-      | "monospace"
-      | null;
-    return saved ?? "helvetica";
-  });
+  // Initial render matches SSR; layout.tsx blocking script applies body font
+  // before paint. Sync React state before paint (useLayoutEffect).
+  const [font, setFont] = useState<SiteFont>("helvetica");
+
+  useLayoutEffect(() => {
+    const saved = window.localStorage.getItem("font") as SiteFont | null;
+    if (saved === "helvetica" || saved === "monospace") {
+      setFont(saved);
+    }
+  }, []);
 
   const toggleFont = () => {
     const newFont = font === "helvetica" ? "monospace" : "helvetica";
