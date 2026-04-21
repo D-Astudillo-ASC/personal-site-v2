@@ -56,6 +56,9 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          # Do not wait on this workflow's own job — check name matches job id
+          # "auto-merge-security". check-regexp ".*" would include it and deadlock.
+          ignore-checks: auto-merge-security
           check-regexp: ".*"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
