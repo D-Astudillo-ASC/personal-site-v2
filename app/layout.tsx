@@ -5,7 +5,7 @@ import React from "react";
 import Footer from "@/components/Footer";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-import FontClientScript from "@/components/font/FontClientScript";
+import FontDocumentSync from "@/components/font/FontDocumentSync";
 import DevtoolsEasterEgg from "@/components/DevtoolsEasterEgg";
 import StructuredData from "./structured-data";
 import { helveticaNeue } from "./fonts";
@@ -151,7 +151,7 @@ export default function RootLayout({
           }}
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <FontClientScript />
+          <FontDocumentSync />
           <DevtoolsEasterEgg />
           <Header />
           <main className="flex flex-grow flex-col">{children}</main>

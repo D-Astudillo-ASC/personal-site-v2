@@ -3,29 +3,30 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
+  useCallback,
+  useSyncExternalStore,
   ReactNode,
 } from "react";
 import { FontFamily, FontContextType } from "@/types/font";
+import {
+  commitFontPreference,
+  getFontPreferenceServerSnapshot,
+  getFontPreferenceSnapshot,
+  subscribeFontPreference,
+} from "@/lib/fontPreferenceStore";
 
 const FontContext = createContext<FontContextType | undefined>(undefined);
 
 export function FontProvider({ children }: { children: ReactNode }) {
-  const [font, setFont] = useState<FontFamily>("helvetica");
+  const font = useSyncExternalStore(
+    subscribeFontPreference,
+    getFontPreferenceSnapshot,
+    getFontPreferenceServerSnapshot,
+  );
 
-  useEffect(() => {
-    const saved = window.localStorage.getItem("font") as FontFamily | null;
-    if (saved === "helvetica" || saved === "monospace") {
-      setFont(saved);
-    }
+  const handleSetFont = useCallback((newFont: FontFamily) => {
+    commitFontPreference(newFont);
   }, []);
-
-  // Save preference when it changes
-  const handleSetFont = (newFont: FontFamily) => {
-    setFont(newFont);
-    localStorage.setItem("font", newFont);
-  };
 
   return (
     <FontContext.Provider value={{ font, setFont: handleSetFont }}>
@@ -40,4 +41,4 @@ export function useFont() {
     throw new Error("useFont must be used within a FontProvider");
   }
   return context;
-} 
+}
