@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Enable version updates for npm
+  # npm ecosystem: updates package.json + pnpm-lock.yaml
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

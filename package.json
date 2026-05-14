@@ -12,7 +12,10 @@
     "lint": "eslint . --fix",
     "format": "prettier --write **/*.{ts,tsx,css,mjs}",
     "format:check": "prettier --check **/*.{ts,tsx,css,mjs}",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "security:shai-hulud": "bash scripts/shai-hulud-scan.sh",
+    "security:shai-hulud:clean": "CLEAN_NEXT=1 bash scripts/shai-hulud-scan.sh",
+    "security:shai-hulud:paranoid": "bash scripts/shai-hulud-scan.sh --paranoid"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
@@ -35,7 +38,9 @@
   "devDependencies": {
     "@eslint/js": "9.39.4",
     "@next/bundle-analyzer": "16.3.0-canary.19",
+    "@next/eslint-plugin-next": "16.3.0-canary.19",
     "@tailwindcss/postcss": "^4.2.4",
+    "@types/mdx": "^2.0.13",
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -59,5 +64,6 @@
     "last 2 Firefox versions",
     "last 2 Edge versions",
     "last 2 Safari versions"
-  ]
+  ],
+  "packageManager": "pnpm@11.1.1"
 }

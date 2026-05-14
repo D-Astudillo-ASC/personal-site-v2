@@ -34,10 +34,12 @@ export async function GET(request: NextRequest) {
       message: 'This is a test email to verify SMTP configuration and metadata display.',
     };
     
+    // Use RFC 5737 / 3849 documentation ranges only — avoids LAN-style literals that
+    // security scanners (e.g. Shai-Hulud “network exfiltration” heuristics) flag as C2-like.
     const testMetadata = {
-      ipv4: '192.168.1.100 (Test)',
-      ipv6: '2001:db8::1 (Test)',
-      userAgent: userAgent
+      ipv4: '192.0.2.1 (TEST-NET-1, example only)',
+      ipv6: '2001:db8::1 (documentation prefix, example only)',
+      userAgent: userAgent,
     };
     
     console.log('📊 Test Metadata:', testMetadata);
