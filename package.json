@@ -41,7 +41,7 @@
     "@next/eslint-plugin-next": "16.3.0-canary.28",
     "@tailwindcss/postcss": "^4.2.4",
     "@types/mdx": "^2.0.13",
-    "@types/node": "^25.6.2",
+    "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.5.0",
@@ -57,7 +57,7 @@
     "tailwindcss": "^4.2.2",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.3"
+    "typescript-eslint": "^8.59.4"
   },
   "browserslist": [
     "last 2 Chrome versions",
