@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
   },
 
   // Static generation optimization
-  output: "standalone",
+  output: process.env.DOCKER_BUILD === "true" ? "standalone" : undefined,
 
   // Disable production source maps for smaller builds (standalone output)
   productionBrowserSourceMaps: false,
@@ -239,16 +239,16 @@ const nextConfig: NextConfig = {
       ...(isDev
         ? []
         : [
-            {
-              source: "/_next/static/:path*",
-              headers: [
-                {
-                  key: "Cache-Control",
-                  value: "public, max-age=31536000, immutable",
-                },
-              ],
-            },
-          ]),
+          {
+            source: "/_next/static/:path*",
+            headers: [
+              {
+                key: "Cache-Control",
+                value: "public, max-age=31536000, immutable",
+              },
+            ],
+          },
+        ]),
       {
         // Cache favicon files
         source: "/favicon-dark.ico",
