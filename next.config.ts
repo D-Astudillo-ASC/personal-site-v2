@@ -34,7 +34,6 @@ const nextConfig: NextConfig = {
 
   // Optimize bundle size
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: [
       "@fortawesome/fontawesome-svg-core",
       "@fortawesome/free-solid-svg-icons",
