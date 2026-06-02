@@ -6,42 +6,54 @@ interface ExperienceCardProps {
 }
 
 export default function ExperienceCard({ experience }: ExperienceCardProps) {
+  const dateRange = `${formatDate(experience.startDate)} — ${
+    experience.endDate ? formatDate(experience.endDate) : "Present"
+  }`;
+
   return (
-    <div className="group relative rounded-lg border border-border/50 bg-background/50 p-4 sm:p-6 transition-slow hover:border-text hover-lift">
-      {/* Header */}
-      <div className="mb-4">
-        <h3 className="text-2xl sm:text-3xl font-medium text-text">{experience.title}</h3>
-        <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-start gap-2 sm:gap-4 text-lg sm:text-xl text-text/80 text-left">
-          <div className="flex flex-row items-center gap-2 text-left">
-            <span className="font-thin">{experience.company}</span>
-            <span className="hidden sm:inline text-xl text-text/40">•</span>
-            <span className="font-thin">{experience.location}</span>
-            <span className="hidden sm:inline text-xl text-text/40">•</span>
-            <span className="font-thin">
-              {formatDate(experience.startDate)} - {experience.endDate ? formatDate(experience.endDate) : 'Present'}
-            </span>
-          </div>
-        </div>
-      </div>
+    <article className="relative border-l border-border pl-6 sm:pl-8">
+      {/* Timeline node */}
+      <span
+        aria-hidden="true"
+        className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-accent ring-4 ring-background"
+      />
+
+      {/* Overline: date range + location */}
+      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+        {dateRange}
+        <span className="mx-2 text-muted/40">/</span>
+        {experience.location}
+      </p>
+
+      {/* Role + company */}
+      <h3 className="mt-2 text-xl font-medium text-text sm:text-2xl">
+        {experience.title}
+      </h3>
+      <p className="mt-0.5 text-sm text-muted">{experience.company}</p>
 
       {/* Description */}
-      <ul className="mb-6 list-inside list-disc space-y-2 text-text/80">
+      <ul className="mt-4 space-y-2">
         {experience.description.map((item, index) => (
-          <li key={index} className="text-base sm:text-lg font-extralight leading-relaxed">{item}</li>
+          <li
+            key={index}
+            className="relative pl-4 text-sm leading-relaxed text-muted before:absolute before:left-0 before:text-accent before:content-['–']"
+          >
+            {item}
+          </li>
         ))}
       </ul>
 
       {/* Technologies */}
-      <div className="flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-1.5">
         {experience.technologies.map((tech) => (
           <span
             key={tech}
-            className="rounded-full bg-text/5 px-2 sm:px-3 py-1 text-xs font-medium text-text/70 ring-1 ring-text/10 transition-slow hover:bg-text/10 hover:text-text hover:ring-text/20"
+            className="rounded bg-text/5 px-2 py-0.5 font-mono text-[11px] text-muted/80 ring-1 ring-border transition-fast hover:text-text"
           >
             {tech}
           </span>
         ))}
       </div>
-    </div>
+    </article>
   );
-} 
+}

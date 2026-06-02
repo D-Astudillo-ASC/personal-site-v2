@@ -8,13 +8,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/private/",
-          "/_next/static/", // Disallow Next.js static files (fonts, chunks, etc.)
-          "/api/", // Disallow API routes
-          "/favicon-dark.ico", // Disallow favicon files
-          "/favicon-light.ico",
-        ],
+        // Only block routes with no SEO value. Never block /_next/static —
+        // crawlers need the CSS/JS to render and score the page.
+        disallow: ["/api/", "/private/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

@@ -30,23 +30,26 @@ export default function DevtoolsEasterEgg() {
 
       // Note: this logs once per page load/session. If you want it to log every time DevTools
       // opens/closes, remove the `hasLogged` guard.
-       
+
       console.log(
         "%cHello there! What a pleasant surprise to see you here.\n\nI’m assuming you’re either a fellow developer, a curious explorer, or someone who clicked the wrong thing and is now committing to the bit.\n\nEither way: welcome to the back room.",
-        accent
+        accent,
       );
-       
-      console.log("%cA few fun facts while you’re here:", `font-weight: 700; ${text}`);
-       
+
+      console.log(
+        "%cA few fun facts while you’re here:",
+        `font-weight: 700; ${text}`,
+      );
+
       console.log(
         "%c- This site is built with Next.js + TypeScript.\n- I care a lot about performance, UX, and clean code.\n- If you found a bug… congratulations, you’re now the honorary QA lead.",
-        text
+        text,
       );
-       
+
       console.log(
         "%cIf you want to collaborate, talk shop, or send a meme that made you exhale through your nose, hit the Contact page.\n\n%cP.S. You’re officially allowed to view-source. I won’t tell anyone.",
         text,
-        `font-style: italic; ${muted}`
+        `font-style: italic; ${muted}`,
       );
     };
 
@@ -70,4 +73,3 @@ export default function DevtoolsEasterEgg() {
 
   return null;
 }
-

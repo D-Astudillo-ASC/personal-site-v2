@@ -1,253 +1,248 @@
-import { faCode, faGraduationCap, faLightbulb, faRocket } from "@/lib/fontawesome-icons";
+import {
+  faBolt,
+  faShieldHalved,
+  faChartLine,
+  faCode,
+} from "@/lib/fontawesome-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { experiences } from "@/data/experience";
-import { calculateYearsByEmploymentType } from "@/utils/experience";
-import dynamic from 'next/dynamic';
 import { formatDate } from "@/utils/date";
 import { Metadata } from "next";
 import Link from "next/link";
-import Breadcrumbs from "@/components/Breadcrumbs";
-
-const ExperienceCard = dynamic(() => import('@/components/experience/ExperienceCard'));
-const ExperienceSummary = dynamic(() => import('@/components/experience/ExperienceSummary'));
+import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
+import ExperienceCard from "@/components/experience/ExperienceCard";
+import ExperienceSummary from "@/components/experience/ExperienceSummary";
 
 export const metadata: Metadata = {
-  title: "About Daniel",
+  title: "About",
   description:
-    "I’m Daniel Astudillo — a software engineer who builds fast, reliable web products. I’ve shipped at Visa and Wayfair across payments, recommendations, and platform systems, using React/TypeScript, Node.js, Java/Spring Boot, and .NET.",
-  keywords: [
-    "Daniel Astudillo",
-    "Software Engineer",
-    "Visa",
-    "Wayfair",
-    "React",
-    "TypeScript",
-    "Next.js",
-    "Node.js",
-    "Spring Boot",
-    ".NET",
-    "Full-stack",
-    "Payments",
-    "Recommendations",
-  ],
+    "Daniel Astudillo is a full-stack software engineer in New York building high-performance financial systems — data platforms at S&P Global and payment infrastructure at Visa handling 20M+ monthly requests.",
   alternates: {
     canonical: "https://danielastudillo.io/about",
   },
   openGraph: {
-    title: "About Daniel Astudillo",
+    title: "About — Daniel Astudillo",
     description:
-      "Software engineer who builds fast, reliable web products — experience at Visa and Wayfair across payments, recommendations, and platform systems.",
+      "Full-stack engineer in NYC building high-performance financial systems. S&P Global data platforms, Visa payment infrastructure at 20M+ requests/month.",
     url: "https://danielastudillo.io/about",
   },
 };
 
+const skillGroups = [
+  {
+    label: "Frontend",
+    items: [
+      "React / Next.js",
+      "TypeScript",
+      "React Native / Expo",
+      "Tailwind CSS",
+      "Framer Motion",
+    ],
+  },
+  {
+    label: "Backend & APIs",
+    items: [
+      ".NET Core / EF Core",
+      "Spring Boot / Java",
+      "Node.js / Express",
+      "C# / Python",
+      "gRPC / REST / GraphQL",
+    ],
+  },
+  {
+    label: "Data & Messaging",
+    items: [
+      "PostgreSQL",
+      "Google BigQuery",
+      "MongoDB / Firestore",
+      "ActiveMQ Artemis / JMS",
+      "IBM DB2 / SQL Server",
+    ],
+  },
+  {
+    label: "GenAI & ML",
+    items: [
+      "LangChain / RAG",
+      "OpenAI API",
+      "LLM prompt engineering",
+      "Pandas / NumPy",
+      "Scikit-learn",
+    ],
+  },
+  {
+    label: "Testing & Quality",
+    items: [
+      "JUnit / Mockito",
+      "Jest / pytest",
+      "Storybook",
+      "Checkmarx / SonarQube",
+    ],
+  },
+  {
+    label: "DevOps & Cloud",
+    items: [
+      "Docker / Kubernetes (GKE)",
+      "AWS (EC2, S3)",
+      "Vercel / Fly.io",
+      "Jenkins / Azure DevOps",
+    ],
+  },
+];
+
+const principles = [
+  {
+    icon: faBolt,
+    title: "Performance is a feature",
+    body: "Faster queries, lower latency, leaner builds. A 21s API path that lands at ~250ms changes what a product can do — that's the work I optimize for.",
+  },
+  {
+    icon: faShieldHalved,
+    title: "Reliability earns trust",
+    body: "When a system moves money for millions of users, correctness and uptime aren't optional. I design for failure modes, not just the happy path.",
+  },
+  {
+    icon: faChartLine,
+    title: "Measured, not claimed",
+    body: "Every engineering decision should move a number — p95 latency, error rate, coverage. I orient around outcomes, not activity.",
+  },
+  {
+    icon: faCode,
+    title: "Clarity compounds",
+    body: "Readable code and clear writing are the same discipline. The next engineer — often future me — should understand the why without an archaeology dig.",
+  },
+];
+
 export default function About() {
-  const { professional, internship, total } =
-    calculateYearsByEmploymentType(experiences);
-
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
-      <Breadcrumbs />
-      <h1 className="mb-8 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extralight">
-        About Daniel
-      </h1>
-      <ExperienceSummary
-        professional={professional}
-        internship={internship}
-        total={total}
-      />
-      {/* Journey Section */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">My Journey</h2>
-        <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
+    <PageShell maxWidth="4xl">
+      <PageHeader label="About" title="Daniel Astudillo" />
+
+      <ExperienceSummary />
+
+      {/* Journey */}
+      <section className="mb-20">
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Background
+        </h2>
+        <div className="space-y-6 text-base leading-relaxed text-muted">
           <p>
-            I&apos;m <strong className="font-medium text-text">Daniel Astudillo</strong>, a Software Engineer who&apos;s always been fascinated by how things work — methodically taking them apart, understanding their inner mechanics, and putting them back together better.
+            I&apos;m a full-stack software engineer who builds
+            high-performance financial systems. I&apos;ve always been wired
+            to understand how things work — take them apart, learn the
+            mechanics, put them back together better.
           </p>
           <p>
-            When I got my first PC in 2008, I was instantly hooked — not just by the built-in games like <i>Minesweeper</i>, <i>Mahjong</i>, and <i>Purble Place</i>, but by the idea that this machine could do so much. I spent hours exploring every corner of it, from <i>Microsoft Paint</i> to the Control Panel and all of the internal drives that showed up in the <i>My Computer</i> window, curious about what made it all tick.
+            That instinct turned into programming in 2015, a Khan Academy
+            account, and the small thrill of typing characters and watching
+            something come alive in a browser. It grew into a career building
+            tools that solve real problems at scale.
           </p>
           <p>
-            That curiosity led me to embark on my journey as a programmer in 2015, when I was a sophomore in high school, with a <i> Khan Academy</i> account and a burning desire to learn about the forces that powered the World Wide Web.
-
-            I advanced through the <i> Computer programming - JavaScript and the Web </i> course, and I was totally captivated by the magic of typing characters and watching something come to life in a browser.
-
-            This spark quickly grew into a passion for building meaningful digital experiences and tools that solve real-world problems through the art of software engineering.
+            At{" "}
+            <Link
+              href="/projects"
+              className="text-text transition-fast hover:text-accent"
+            >
+              Visa
+            </Link>{" "}
+            I worked on payment and eligibility systems at 20M+ monthly
+            requests — modernizing .NET and Spring Boot services, replacing
+            hundreds of stored procedures with APIs, and building the first
+            real-time benefit-redemption pipeline between VCES and VDBP at
+            99.99% uptime. After Visa, I spent time shipping on my own: mobile
+            apps, a CRDT collaborative editor, and RAG prototypes.
           </p>
-
-          <p> Since then, I&apos;ve developed software across e-commerce, fintech, and infrastructure at companies like Wayfair and Visa — powering sales recommendations and efficiently routing customers in need of assistance to the most appropriate agents, building resilient backend systems at global scale, and ensuring reliability through test-driven development. </p>
           <p>
-            What drives me isn’t just the excitement of learning a new framework or solving a tough bug — it’s the idea that something I build could genuinely make someone’s day easier, faster, or more meaningful. That’s what keeps me coming back to the keyboard: the opportunity to turn ideas into tools people rely on.
-            Whether I’m designing backend systems, collaborating cross-functionally, or refining the user experience, I approach every challenge with one goal in mind: to create software that earns trust, delivers value, and makes a real-world difference.
+            At S&amp;P Global I started on Data-as-a-Service — taking core API
+            latency from ~21 seconds to under 2 with the Storage Write API, then
+            to roughly 200–300ms on PostgreSQL, while modernizing the frontend
+            and migrating dozens of routes off BigQuery. That expanded into Data
+            Studio: a microfrontend platform (Module Federation, Fastify BFFs,
+            shared contracts) serving DaaS, mData, and other remotes.
+          </p>
+          <p>
+            What I optimize for is measurable impact on paths users and
+            operators feel — query latency, deploy safety, cache coherence
+            across pods — backed by tests and coverage, not heroics after
+            something breaks.
           </p>
         </div>
       </section>
 
-      {/* Skills */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Skills</h2>
-        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Frontend</h3>
-            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li><Link href="/projects" className="hover:text-primary transition-colors">React / Next.js</Link></li>
-              <li><Link href="/projects" className="hover:text-primary transition-colors">TypeScript</Link></li>
-              <li><Link href="/projects" className="hover:text-primary transition-colors">JavaScript</Link></li>
-              <li>Tailwind CSS</li>
-              <li>HTML5 / CSS3</li>
-              <li>Framer Motion</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Backend & APIs</h3>
-            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li>Node.js / Express</li>
-              <li><Link href="/projects" className="hover:text-primary transition-colors">.NET Core 6.0</Link></li>
-              <li><Link href="/projects" className="hover:text-primary transition-colors">Spring Boot</Link></li>
-              <li><Link href="/projects" className="hover:text-primary transition-colors">Java 17</Link></li>
-              <li>C#</li>
-              <li>Python</li>
-              <li>RESTful APIs</li>
-              <li>GraphQL</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Databases & Data</h3>
-            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li>PostgreSQL</li>
-              <li>MongoDB</li>
-              <li>IBM DB2</li>
-              <li>SQL Server</li>
-              <li>BigQuery</li>
-              <li>SQL</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">Testing & Quality</h3>
-            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li>JUnit</li>
-              <li>Mockito</li>
-              <li>Jest</li>
-              <li>pytest</li>
-              <li>unittest</li>
-              <li>Postman</li>
-              <li>Storybook</li>
-              <li>Checkmarx</li>
-              <li>SonarQube</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">DevOps & Infrastructure</h3>
-            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li>Docker</li>
-              <li>Jenkins</li>
-              <li>Apache ActiveMQ</li>
-              <li>Turborepo</li>
-              <li>Git</li>
-              <li>CI/CD</li>
-              <li>AWS EC2</li>
-              <li>AWS S3</li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-thin">IDEs & Development Tools</h3>
-            <ul className="list-inside list-disc text-base sm:text-lg font-thin text-text/70 leading-relaxed space-y-1">
-              <li>Visual Studio Code</li>
-              <li>Cursor</li>
-              <li>Visual Studio</li>
-              <li>IntelliJ IDEA</li>
-              <li>DataGrip</li>
-              <li>Rider</li>
-              <li>WebStorm</li>
-              <li>PyCharm</li>
-              <li>npm / yarn</li>
-              <li>Maven</li>
-              <li>NuGet</li>
-              <li>pip</li>
-            </ul>
-          </div>
+      {/* Stack */}
+      <section className="mb-20">
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Stack
+        </h2>
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          {skillGroups.map((group) => (
+            <div key={group.label}>
+              <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.15em] text-accent">
+                {group.label}
+              </h3>
+              <ul className="space-y-1.5 text-sm text-muted">
+                {group.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Experience Section - Moved up */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Experience</h2>
-        <div className="space-y-8">
+      {/* Experience */}
+      <section className="mb-20">
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Experience
+        </h2>
+        <div className="space-y-10">
           {experiences.map((experience) => (
             <ExperienceCard key={experience.id} experience={experience} />
           ))}
         </div>
       </section>
 
-      {/* Values Section */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">What I Value</h2>
-        <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <FontAwesomeIcon icon={faCode} className="h-6 w-6 text-text/70" />
-              <h3 className="text-xl sm:text-2xl font-thin">Clean Code</h3>
+      {/* Principles */}
+      <section className="mb-20">
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Principles
+        </h2>
+        <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+          {principles.map((principle) => (
+            <div key={principle.title} className="bg-background p-6">
+              <div className="mb-3 flex items-center gap-3">
+                <FontAwesomeIcon
+                  icon={principle.icon}
+                  className="h-4 w-4 text-accent"
+                />
+                <h3 className="text-base font-medium text-text">
+                  {principle.title}
+                </h3>
+              </div>
+              <p className="text-sm leading-relaxed text-muted">
+                {principle.body}
+              </p>
             </div>
-            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
-              I believe in writing code that&apos;s not just functional, but also maintainable, readable, and scalable. Good code is like a well-written story—it should be easy to understand and a pleasure to work with.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <FontAwesomeIcon icon={faLightbulb} className="h-6 w-6 text-text/70" />
-              <h3 className="text-xl sm:text-2xl font-thin">Continuous Learning</h3>
-            </div>
-            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
-              Technology is always evolving, and so am I. I&apos;m constantly exploring new tools, frameworks, and methodologies to stay at the forefront of web development.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <FontAwesomeIcon icon={faRocket} className="h-6 w-6 text-text/70" />
-              <h3 className="text-xl sm:text-2xl font-thin">User-Centric Design</h3>
-            </div>
-            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
-              Every line of code I write is with the end user in mind. I strive to create applications that are not just powerful, but also intuitive and enjoyable to use.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <FontAwesomeIcon icon={faGraduationCap} className="h-6 w-6 text-text/70" />
-              <h3 className="text-xl sm:text-2xl font-thin">Knowledge Sharing</h3>
-            </div>
-            <p className="text-base sm:text-lg font-thin text-text/70 leading-relaxed">
-              I believe in the power of community and knowledge sharing. Whether through code reviews, documentation, or mentoring, I&apos;m always looking to help others grow.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Interests Section */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Beyond the Code</h2>
-        <div className="space-y-6 text-base sm:text-lg font-thin text-text/80 leading-relaxed">
-          <p>
-            When I&apos;m not coding, you&apos;ll find me exploring new technologies or diving into the latest developments in web development. I&apos;m particularly interested in performance optimization and creating seamless user experiences.
-          </p>
-          <p>
-            I&apos;m always excited to connect with fellow developers, share knowledge, and collaborate on interesting projects. Feel free to reach out if you&apos;d like to discuss technology, potential collaborations, or just chat about the latest trends in web development.
-          </p>
+          ))}
         </div>
       </section>
 
       {/* Education */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight">Education</h2>
-        <div>
-          <h3 className="mb-2 text-xl sm:text-2xl font-thin">
-            Bachelor of Arts in Computer Science and Mathematics
-          </h3>
-          <p className="text-base sm:text-lg font-thin text-text/70">
-            Williams College &bull; {formatDate(new Date("2017-09"))} -{" "}
-            {formatDate(new Date("2022-06"))}
+      <section>
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Education
+        </h2>
+        <div className="border-l border-border pl-6 sm:pl-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            {formatDate(new Date("2017-09"))} — {formatDate(new Date("2022-06"))}
           </p>
+          <h3 className="mt-2 text-lg font-medium text-text">
+            B.A. in Computer Science &amp; Mathematics
+          </h3>
+          <p className="mt-0.5 text-sm text-muted">Williams College</p>
         </div>
       </section>
-    </div>
+    </PageShell>
   );
 }

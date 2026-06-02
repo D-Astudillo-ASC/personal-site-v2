@@ -1,63 +1,76 @@
 import Link from "next/link";
 import { Metadata } from "next";
-import Breadcrumbs from "@/components/Breadcrumbs";
+import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
+import { getAllPosts } from "@/lib/posts";
+import { formatDate } from "@/utils/date";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Writing",
   description:
-    "Notes on software engineering, performance, Next.js/TypeScript, and building reliable products.",
-  keywords: [
-    "Daniel Astudillo Blog",
-    "Software Engineering Blog",
-    "React Blog",
-    "Next.js Blog",
-    "TypeScript Blog",
-    "Career Advice",
-    "Web Development Blog",
-    "Full Stack Blog"
-  ],
+    "Daniel Astudillo writes about performance engineering, distributed systems, and the trade-offs behind real production systems — query optimization, real-time pipelines, and CRDT sync.",
   alternates: {
     canonical: "https://danielastudillo.io/blog",
   },
   openGraph: {
-    title: "Blog",
+    title: "Writing — Daniel Astudillo",
     description:
-      "Notes on software engineering, performance, Next.js/TypeScript, and building reliable products.",
+      "Notes on performance, distributed systems, and the engineering trade-offs behind real production work.",
     url: "https://danielastudillo.io/blog",
   },
 };
 
-export default function BlogIndex() {
-  // In a real setup, you would use import.meta.glob or fs to read all post folders and extract frontmatter.
-  // For now, just link to the sample post.
+export default async function BlogIndex() {
+  const posts = await getAllPosts();
+
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-16 pt-32">
-      <Breadcrumbs />
-      <h1 className="mb-4 text-2xl sm:text-3xl md:text-4xl font-thin">Blog</h1>
-      <p className="mb-8 text-lg font-thin text-text/70 leading-relaxed">
-        Short write-ups on what I’m building, what I’m learning, and the engineering
-        tradeoffs behind it.
-      </p>
-      <div className="space-y-12">
-        <article className="border-b border-border/20 pb-8">
-          <h2 className="text-2xl font-medium mb-2">
-            <Link href="/blog/welcome-to-my-blog" className="hover:underline text-text">
-              Welcome to My Blog
-            </Link>
-          </h2>
-          <div className="text-sm text-text/50 mb-2">2025-07-22</div>
-          <p className="text-lg font-thin text-text/70 mb-2">An introduction to my new blog, what to expect, and why I&apos;m starting to write about my journey as a software engineer.</p>
-          <Link href="/blog/welcome-to-my-blog" className="text-text/70 hover:text-text underline text-base font-thin">Read more →</Link>
-        </article>
-      </div>
-      <div className="mt-16 text-center">
-        <Link
-          href="/"
-          className="inline-block text-lg font-thin px-6 py-2 rounded border border-border/50 text-text/70 hover:text-text transition-standard cursor-pointer hover-scale"
-        >
-          Back to Home
-        </Link>
-      </div>
-    </div>
+    <PageShell maxWidth="2xl">
+      <PageHeader
+        label="Writing"
+        title="Notes & deep dives"
+        description="What I'm building, what I'm learning, and the engineering trade-offs behind it — performance, distributed systems, and the parts of the job that don't fit in a commit message."
+        className="mb-16"
+      />
+
+      {posts.length === 0 ? (
+        <p className="font-mono text-sm text-muted">
+          First post landing soon.
+        </p>
+      ) : (
+        <div className="divide-y divide-border border-y border-border">
+          {posts.map((post) => (
+            <article key={post.slug} className="group py-8">
+              <Link href={`/blog/${post.slug}`} className="block">
+                <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+                  <time dateTime={post.date}>
+                    {formatDate(new Date(post.date))}
+                  </time>
+                  <span className="text-muted/40">/</span>
+                  <span>{post.readingTime}</span>
+                </div>
+                <h2 className="mt-3 text-2xl font-medium text-text transition-fast group-hover:text-accent">
+                  {post.title}
+                </h2>
+                <p className="mt-2 text-base leading-relaxed text-muted">
+                  {post.excerpt}
+                </p>
+                {post.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded bg-text/5 px-2 py-0.5 font-mono text-[11px] text-muted/80 ring-1 ring-border"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </Link>
+            </article>
+          ))}
+        </div>
+      )}
+    </PageShell>
   );
-} 
+}

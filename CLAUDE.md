@@ -31,18 +31,17 @@ app/                    # Next.js App Router — all routes
   page.tsx              # Home (Hero, Introduction, FeaturedProjects)
   about/                # About page
   blog/
-    [slug]/             # Dynamic MDX blog posts
-    content/            # MDX source files (one dir per post)
+    [slug]/             # Dynamic MDX blog posts (layout, OG image, JSON-LD)
+    content/            # MDX source — one dir per post (content.mdx)
   projects/             # Projects listing
   contact/              # Contact form
-  amp/                  # AMP variant
   api/
     contact/            # Contact form handler (Nodemailer)
     test-email/         # Email delivery smoke test
-components/             # Shared UI components (Server + Client)
-data/                   # Static data layer (experience, projects, posts)
-types/                  # Shared TypeScript types
-lib/                    # Shared utilities (fontawesome icons, font store)
+components/
+  blog/                 # ArticleHeader, FlowDiagram, CodeBlock, TOC, etc.
+data/                   # Static data layer (experience, projects)
+lib/                    # posts.ts, rehype-pretty-code.mjs, og-card, font store
 utils/                  # Pure utility functions (date, experience, font)
 hooks/                  # Client-side hooks (useObfuscatedContent)
 services/               # Side-effectful services (emailService)
@@ -50,7 +49,18 @@ constants/              # App-wide constants (contact, navigation)
 public/                 # Static assets (images, fonts, favicon, OG image)
 docs/                   # Internal project docs (ADRs, audit reports)
 scripts/                # Dev tooling (shai-hulud security scan)
+mdx-components.tsx      # MDX element overrides (headings, code, tables)
 ```
+
+### Blog / MDX
+
+- Posts live in `app/blog/content/<slug>/content.mdx` with an exported `metadata` object (not frontmatter).
+- **remark-gfm** — tables, task lists, strikethrough.
+- **rehype-slug** + **rehype-pretty-code** (Shiki) — heading ids, syntax highlighting, line highlights via fence meta (e.g. ` ```typescript {2-4}`).
+- Custom MDX components: `FlowDiagram`, `CodeBlock` (copy + language label), `HeadingLink` (# anchor on hover).
+- TOC extracted at build time (`extractHeadings` in `lib/posts.ts`) — sticky right rail on `lg+`, collapsible on mobile.
+- Case study disclaimer on every post (`BlogDisclaimer`). No employer/product names in blog copy.
+- Slug redirects for renamed posts live in `next.config.ts` (`redirects`).
 
 ### Key Architectural Decisions
 
@@ -348,3 +358,9 @@ Apply the relevant subsection to your API paradigm. Skip the others.
 - PR descriptions: explain the *why*, link to the relevant issue, and call out areas of risk or uncertainty for reviewers.
 - Merge strategy: follow the project's existing convention (squash, merge commit, or rebase). If none, prefer squash for feature PRs to maintain a clean main-branch history.
 - Tag releases: use semantic versioning (`v1.2.3`) for any deployable or publishable artifact.
+
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->

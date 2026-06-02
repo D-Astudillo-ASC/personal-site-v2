@@ -1,0 +1,184 @@
+export const metadata = {
+  title: "Bridging .NET and Spring across a message broker",
+  description:
+    "How a real-time domain-event pipeline connected a .NET AMQPS producer to a Spring Boot JMS consumer through ActiveMQ Artemis — 100K+ events/day, 99.99% uptime, sub-200ms latency.",
+  date: "2026-04-09",
+  excerpt:
+    "Two stacks, one broker, zero custom translation layer. AMQP on the producer side, JMS on the consumer side, and idempotency everywhere in between.",
+  tags: [
+    "Distributed Systems",
+    "Messaging",
+    "ActiveMQ",
+    "AMQP",
+    "JMS",
+    ".NET",
+    "Spring Boot",
+  ],
+};
+
+# Bridging .NET and Spring across a message broker
+
+## TL;DR
+
+| Constraint | Choice |
+| --- | --- |
+| Producer | **.NET** — eligibility / validation service |
+| Consumer | **Spring Boot** — fulfillment / ledger service |
+| Broker | **ActiveMQ Artemis** (Dockerized), multi-protocol |
+| Wire | **AMQPS** (.NET) → destination ← **Jakarta JMS** (Java) |
+| Volume | **100K+ events/day** |
+| Latency | **Sub-200ms** (happy path) |
+| Uptime | **99.99%** |
+
+The business problem: **real-time cross-service handoff** — when an upstream service commits a domain event, a downstream service must apply it immediately so balances and fulfillment stay consistent. Two mature codebases, two ecosystems, one latency budget.
+
+The trap is **HTTP callbacks with hand-rolled retries**. The better answer: let a broker own delivery semantics, and make consumers **idempotent by design**.
+
+---
+
+## Why not HTTP?
+
+| Concern | HTTP callback | Message broker |
+| --- | --- | --- |
+| Delivery guarantee | At-most-once unless you build retries | **At-least-once** by default |
+| Backpressure | Timeouts, cascading failures | Queue buffering |
+| Cross-stack contract | Custom REST + auth on both sides | Destination + message contract |
+| Poison messages | Ad-hoc error handling | **Dead-letter queues** |
+| Ops visibility | Per-integration logging | Queue depth, DLQ depth, lag |
+
+HTTP fits synchronous request/response. This flow needed **durable, asynchronous handoff** — a fact that happened; process it fast, but without blocking the caller.
+
+---
+
+## Architecture
+
+<FlowDiagram>
+  <FlowDiagram.Step title=".NET producer" caption="AMQPS · TLS 1.2+" highlight />
+  <FlowDiagram.Connector label="application/x-amqp · durable send" />
+  <FlowDiagram.Step title="ActiveMQ Artemis" caption="multi-protocol · shared destination" />
+  <FlowDiagram.Connector label="Jakarta JMS · CLIENT_ACK" />
+  <FlowDiagram.Step title="Spring consumer" caption="@JmsListener · idempotent handler" />
+</FlowDiagram>
+
+**ActiveMQ Artemis** speaks multiple protocols on one broker. .NET publishes with **AMQP 1.0** over **TLS**. Java consumes with **Jakarta JMS** — idiomatic Spring, no .NET types on the classpath.
+
+No polyglot translation microservice. Both sides agree on **payload shape** and **metadata**, not shared libraries.
+
+---
+
+## Producer (.NET / AMQPS)
+
+Connection lifecycle: one **long-lived connection**, pooled **sessions**, cached **senders** per destination. TLS with broker CA pinned in config — not `TrustServerCertificate=true` in prod.
+
+```csharp
+await using var connection = await factory.CreateConnectionAsync(cancellationToken);
+await connection.StartAsync(cancellationToken);
+
+await using var session = await connection.CreateSessionAsync(
+    Session.AcknowledgementMode.AutoAck, cancellationToken);
+
+var sender = await session.CreateSenderAsync("events.domain.v1", cancellationToken);
+
+var message = new Message(body)
+{
+    MessageId = evt.Id,
+    CorrelationId = evt.CorrelationId,
+    ApplicationProperties =
+    {
+        ["eventType"] = evt.Type,
+        ["eventId"] = evt.Id,
+        ["schemaVersion"] = "1",
+    },
+};
+await sender.SendAsync(message, cancellationToken);
+```
+
+Producer invariants:
+
+- **`eventId` is UUID v4** — consumer dedup key, not business id alone
+- **Payload is JSON** with `schemaVersion` — forward-compatible evolution
+- **Send is fire-and-forget** from caller's perspective — no blocking on downstream commit
+
+---
+
+## Consumer (Spring / JMS)
+
+```java
+@JmsListener(
+    destination = "events.domain.v1",
+    containerFactory = "artemisListenerFactory")
+public void onMessage(Message msg) throws JMSException {
+    String eventId = msg.getStringProperty("eventId");
+    if (idempotencyStore.seen(eventId)) {
+        msg.acknowledge();
+        return;
+    }
+
+    DomainEvent evt = mapper.read(msg);
+    ledgerService.apply(evt);           // transactional side effect
+    idempotencyStore.record(eventId);   // same DB transaction
+    msg.acknowledge();                  // CLIENT_ACK after commit
+}
+```
+
+### Idempotency store schema
+
+```sql
+CREATE TABLE processed_events (
+  event_id     UUID PRIMARY KEY,
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_processed_events_at ON processed_events (processed_at);
+```
+
+Retention job prunes rows older than N days — dedup window only needs to exceed max redelivery horizon.
+
+### Ack mode matters
+
+| Mode | Behavior | Use here? |
+| --- | --- | --- |
+| AUTO_ACK | Broker acks on delivery | No — crash after delivery, before commit = lost work |
+| CLIENT_ACK | Ack after handler succeeds | **Yes** |
+| DUPS_OK | At-least-once, possible dup before ack | No — we dedup explicitly |
+
+**Never acknowledge before durable state is written.** Ack after DB commit in the same unit of work.
+
+---
+
+## Dead-letter path
+
+Poison messages (schema mismatch, bad business state) must not infinite-retry:
+
+```xml
+<!-- broker address-settings (illustrative) -->
+<address-setting match="events.#">
+  <dead-letter-address>DLQ.events</dead-letter-address>
+  <max-delivery-attempts>5</max-delivery-attempts>
+  <redelivery-delay>1000</redelivery-delay>
+  <redelivery-delay-multiplier>2.0</redelivery-delay-multiplier>
+</address-setting>
+```
+
+Alert on **DLQ depth > 0** — not on individual retries. Correlation ID in logs links producer span → consumer span.
+
+---
+
+## Operations that kept 99.99%
+
+- **Dockerized Artemis** — same `broker.xml` + address settings in dev/stage/prod
+- **Queue depth dashboards** — consumer lag is the early warning, not error rate alone
+- **Correlation IDs** — `correlationId` propagated from HTTP ingress through message properties
+- **Consumer concurrency** — `concurrency` tuned to partition count; avoid single-thread bottleneck at 100K+/day
+
+Container restarts, network blips, and consumer redeploys are normal. The design assumes **retries**, not perfection.
+
+---
+
+## Lessons
+
+1. **Brokers buy you semantics** — at-least-once, backpressure, DLQ — that HTTP callbacks reinvent poorly.
+2. **Protocol bridging is a feature** — Artemis let .NET speak AMQP and Java speak JMS to the same destination.
+3. **Idempotency keys belong in the message** — store them in the same transaction as side effects.
+4. **Measure end-to-end** — producer send time means nothing if consumer queue depth grows unbounded.
+
+Cross-stack integration doesn't require a third stack in the middle. It requires a **clear contract**, a **broker that speaks both languages**, and consumers that behave correctly when messages duplicate.

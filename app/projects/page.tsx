@@ -1,36 +1,20 @@
 import { projects } from "@/data/projects";
-import dynamic from 'next/dynamic';
 import { Metadata } from "next";
-import Breadcrumbs from "@/components/Breadcrumbs";
-
-const ProjectCard = dynamic(() => import('@/components/projects/ProjectCard'));
+import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
+import ProjectCard from "@/components/projects/ProjectCard";
 
 export const metadata: Metadata = {
-  title: "Projects | Daniel Astudillo - Software Engineer",
+  title: "Projects",
   description:
-    "A selection of work across payments, platforms, and modern web apps — built with React/TypeScript, Next.js, Node.js, Java/Spring Boot, and .NET.",
-  keywords: [
-    "Daniel Astudillo Projects",
-    "Visa Card Eligibility Service Project",
-    "Visa Digital Benefits Platform Project",
-    "Software Engineer Portfolio",
-    "Software Developer Portfolio",
-    "React Projects",
-    "TypeScript Projects",
-    "Spring Boot Projects",
-    ".NET Core Projects",
-    "Next.js Projects",
-    "Payment Systems Projects",
-    "Full Stack Developer Projects",
-    "Web Development Portfolio"
-  ],
+    "Selected work by Daniel Astudillo — high-performance financial systems, real-time pipelines, and full-stack products built with React/TypeScript, .NET Core, Spring Boot, and PostgreSQL.",
   alternates: {
     canonical: "https://danielastudillo.io/projects",
   },
   openGraph: {
-    title: "Projects | Daniel Astudillo - Software Engineer",
+    title: "Projects — Daniel Astudillo",
     description:
-      "A selection of work across payments, platforms, and modern web apps.",
+      "High-performance financial systems, real-time pipelines, and full-stack products.",
     url: "https://danielastudillo.io/projects",
     type: "website",
   },
@@ -43,8 +27,10 @@ export default function Projects() {
     "@type": "CollectionPage",
     "@id": "https://danielastudillo.io/projects",
     "url": "https://danielastudillo.io/projects",
-    "name": "Projects | Daniel Astudillo - Software Engineer",
-    "description": "A selection of work across payments, platforms, and modern web apps — built with React/TypeScript, Next.js, Node.js, Java/Spring Boot, and .NET.",
+    "name": "Projects — Daniel Astudillo",
+    "description": "Selected work by Daniel Astudillo — high-performance financial systems, real-time pipelines, and full-stack products built with React/TypeScript, .NET Core, Spring Boot, and PostgreSQL.",
+    "isPartOf": { "@id": "https://danielastudillo.io/#website" },
+    "author": { "@id": "https://danielastudillo.io/#person" },
     "mainEntity": {
       "@type": "ItemList",
       "numberOfItems": projects.length,
@@ -83,18 +69,22 @@ export default function Projects() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageSchema) }}
       />
-      <div className="container mx-auto px-4 py-16 pt-27">
-        <Breadcrumbs />
-        <h1 className="mb-3 text-2xl sm:text-3xl md:text-4xl font-thin">Projects</h1>
-        <p className="mb-8 text-lg font-thin text-text/70 leading-relaxed max-w-3xl">
-          A few things I’ve built across payments, platforms, and product experiences.
-        </p>
+      <PageShell>
+        <PageHeader
+          label="Projects"
+          title="Selected work"
+          description="Systems I've built across payments, financial data, and real-time products — with the constraints they solved and the results they shipped."
+        />
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+          {projects.map((project, index) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              priority={index === 0}
+            />
           ))}
         </div>
-      </div>
+      </PageShell>
     </>
   );
 }

@@ -1,0 +1,195 @@
+export const metadata = {
+  title: "Building a collaborative editor with CRDTs",
+  description:
+    "From last-write-wins string sync to Yjs binary updates, append-only Postgres persistence, and object-storage snapshots — how a production-style collaborative editor handles concurrency, reconnects, and durability.",
+  date: "2026-03-21",
+  excerpt:
+    "Real-time collaboration is a relay problem, not a referee problem. Yjs CRDTs, an append-only update log, and snapshot + tail replay for fast joins.",
+  tags: ["Real-time", "CRDT", "Yjs", "Node.js", "PostgreSQL"],
+};
+
+# Building a collaborative editor with CRDTs
+
+## TL;DR
+
+I built a **multi-user code editor** (Monaco + React) where concurrent edits must converge without a central "winner." The stack:
+
+- **Yjs** for conflict-free replicated text (`Y.Text` + **y-monaco** binding)
+- **Socket.IO** relay — binary `yjs-update` frames, not full-document overwrites
+- **Neon Postgres** append-only **`document_updates`** log with monotonic sequence numbers
+- **Object storage snapshots** (default: every **50 updates** or **30 seconds**) for fast reconnects
+- **Clerk JWT** verified on both HTTP and the WebSocket handshake
+
+The first implementation was last-write-wins. It worked in demos and failed under two cursors. The production-shaped version trades storage complexity for **correctness you don't have to think about**.
+
+---
+
+## Why not "send the whole document"?
+
+<FlowDiagram>
+  <FlowDiagram.Step title="Client A" caption="full string overwrite" />
+  <FlowDiagram.Connector label="broadcast entire buffer" />
+  <FlowDiagram.Step title="Relay server" caption="last write wins" highlight />
+  <FlowDiagram.Connector />
+  <FlowDiagram.Step title="Client B" caption="lost / duplicated chars" />
+</FlowDiagram>
+
+Two users type at once and you get **lost characters, duplicated text, or forked state**. The server becomes a referee: whoever writes last wins, and "last" depends on network timing.
+
+**Operational Transformation (OT)** can solve this — Google Docs famously uses OT variants — but OT requires transforming each operation against concurrent ops you haven't seen, often with a central ordering authority. It's powerful and notoriously easy to get subtly wrong.
+
+**CRDTs (Conflict-free Replicated Data Types)** take a different bet: design the data so concurrent operations **commute**. Apply them in any order on any replica; everyone converge to the same document. The server stops adjudicating and starts **relaying**.
+
+---
+
+## Yjs: CRDTs without implementing CRDTs from scratch
+
+I used **Yjs** rather than hand-rolling a text CRDT. Yjs provides:
+
+- A replicated **`Y.Doc`** with shared types (`Y.Text`, maps, arrays)
+- **Binary update encoding** — compact deltas via lib0 varints, not JSON patches over full strings
+- **State vector** — per-client clock; `encodeStateAsUpdate(doc, remoteStateVector)` sends only missing ops
+- **y-monaco** — binds Monaco's model to `Y.Text` so keystrokes become CRDT ops automatically
+- **y-protocols awareness** — cursor/selection presence as ephemeral metadata
+
+The mental shift: **stop thinking in buffer indices.** Indices shift on every edit. CRDT text assigns each insert a **stable, totally ordered ID** (Lamport-style clock + client id). Concurrent inserts at the "same" spot get distinct IDs; both survive; every replica merges to the same order.
+
+The server never parses character positions. It persists and forwards **opaque binary updates**.
+
+Incremental sync on reconnect:
+
+```typescript
+const stateVector = Y.encodeStateVector(localDoc);
+const diff = Y.encodeStateAsUpdate(remoteDoc, stateVector);
+// diff is only bytes the remote hasn't seen
+```
+
+---
+
+## Architecture
+
+<FlowDiagram>
+  <FlowDiagram.Step title="Client" caption="React · Monaco · y-monaco" highlight />
+  <FlowDiagram.Connector label="Socket.IO · binary frames" />
+  <FlowDiagram.Step title="Node relay" caption="JWT · append log · fan-out" />
+  <FlowDiagram.Fork caption="durability">
+    <FlowDiagram.Step title="Postgres" caption="append-only log" />
+    <FlowDiagram.Step title="Object storage" caption="periodic snapshots" />
+  </FlowDiagram.Fork>
+</FlowDiagram>
+
+### Join flow: snapshot + tail replay
+
+When a client joins a document, the server sends **`doc-init`**:
+
+1. Latest **snapshot bytes** from object storage (if any), plus `snapshotSeq`
+2. All **`document_updates` with `seq > snapshotSeq`** — the tail since that snapshot
+
+```sql
+-- append (transactional)
+INSERT INTO document_updates (document_id, seq, update_bytes)
+SELECT $1, COALESCE(MAX(seq), 0) + 1, $2
+FROM document_updates
+WHERE document_id = $1
+FOR UPDATE;
+
+-- tail fetch
+SELECT seq, update_bytes FROM document_updates
+WHERE document_id = $1 AND seq > $2
+ORDER BY seq ASC;
+```
+
+A new client rebuilds state by applying snapshot + tail — not replaying from seq 0 every time. If snapshot download fails, the server **falls back to full replay** rather than sending broken partial state.
+
+This is event-sourcing 101: **compact checkpoint + log tail**.
+
+### Edit flow: relay, don't rewrite
+
+On `yjs-update`:
+
+```typescript
+const seq = await appendUpdate({ documentId, updateBytes: update });
+Y.applyUpdate(inMemoryCache.doc, Buffer.from(update), "remote");
+socket.to(documentId).emit("yjs-update", { documentId, seq, update });
+maybeWriteSnapshot(inMemoryCache); // every N updates or T seconds
+```
+
+Critical details:
+
+- **Persist before fan-out** — the log is source of truth; reconnects depend on it.
+- **In-memory Y.Doc cache** — snapshotting reads from cache, not by replaying the entire log on every edit.
+- **Binary payloads** — a keystroke is tens of bytes, not a full file JSON.
+- **`FOR UPDATE` on seq allocation** — prevents duplicate sequence numbers under concurrent writers to same doc.
+
+The codebase still contains the **previous implementation**, commented in place: it replaced the entire `Y.Text` contents and broadcast `document-updated` with the whole string. That comment block is the best documentation of *why* the change mattered.
+
+---
+
+## Presence is ephemeral; document state is not
+
+**Awareness** (remote cursors, selections) rides on `awareness-update` events via the Yjs awareness protocol. It is **not persisted** — when you join, the server asks existing clients to **`awareness-request`** so you see their cursors immediately.
+
+Document content and chat history **are persisted** (Postgres). Separating ephemeral presence from durable state keeps the storage model honest.
+
+| Data | Durability | Transport |
+| --- | --- | --- |
+| `Y.Text` updates | Postgres append log + snapshots | `yjs-update` |
+| Awareness (cursors) | None (in-memory only) | `awareness-update` |
+| Chat messages | Postgres rows | REST + WS notify |
+
+---
+
+## Durability vs latency
+
+| Concern | Approach |
+| --- | --- |
+| **Local responsiveness** | Apply edits to local `Y.Doc` immediately (optimistic); network confirms propagation |
+| **Durability** | Append every update to Postgres in a transaction with row lock on seq |
+| **Join latency** | Snapshots to object storage; replay only the tail |
+| **Server restart** | Rebuild in-memory cache from snapshot + tail on first access |
+
+Snapshot policy (configurable via env):
+
+- `SNAPSHOT_EVERY_N_UPDATES` — default **50**
+- `SNAPSHOT_EVERY_MS` — default **30_000**
+
+After successful snapshot write at `snapshotSeq`, optional prune:
+
+```sql
+DELETE FROM document_updates
+WHERE document_id = $1 AND seq <= $2;
+```
+
+Trades storage for simpler replay bounds — only safe **after** snapshot object is verified readable.
+
+---
+
+## Everything else a "portfolio editor" still needs
+
+Real-time text sync is the core, but production-shaped software has boundaries:
+
+- **Auth** — Clerk session JWT verified on REST and Socket.IO handshake; document membership enforced in Postgres (`document_members` roles: owner / editor / viewer).
+- **Sharing** — people picker (Clerk Backend `getUserList` when configured, Postgres fallback), share links, access requests, notification inbox.
+- **Rate limiting** — Redis sliding-window limiters (chat, AI, code execution, search) — atomic Lua scripts, fail-closed on sensitive paths.
+- **Deploy** — frontend on Vercel; WebSocket server on Fly.io with **`min_machines_running = 1`** so live sessions aren't torn down on scale-to-zero.
+
+The editor is a **learning project that grew up** — not a Google Docs competitor, but intentionally built with the same class of problems: concurrency, persistence, auth, and ops.
+
+---
+
+## What I'd tell my past self
+
+1. **Ship the naive version first** — you'll feel why CRDTs exist.
+2. **Don't benchmark vibes** — track update processing time server-side if you want numbers; design for local-first UX regardless.
+3. **The server is a relay + log**, not a source of truth for merge logic. If you're implementing OT/CRDT merge rules in Node, you're probably fighting your library.
+4. **Snapshot + tail** matters the day someone opens a 10MB document with 50k edits. CRDT correctness without join performance still feels broken.
+
+CRDTs feel like overkill until two cursors collide and **nothing breaks**. After that, they feel like the only sane default for live editing.
+
+---
+
+## Further reading
+
+- [Yjs documentation](https://docs.yjs.dev/) — CRDT primitives and provider ecosystem
+- [y-monaco](https://github.com/yjs/y-monaco) — Monaco binding
+- Shapiro et al., *A comprehensive study of Convergent and Commutative Replicated Data Types* — the theory behind "apply in any order, converge always"

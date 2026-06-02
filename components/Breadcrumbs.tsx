@@ -21,13 +21,11 @@ export default function Breadcrumbs() {
     segments.forEach((segment, index) => {
       currentPath += `/${segment}`;
 
-      // Convert segment to readable label
-      let label = segment.charAt(0).toUpperCase() + segment.slice(1);
-
-      // Handle special cases
-      if (segment === "welcome-to-my-blog") {
-        label = "Welcome to My Blog";
-      }
+      // Convert slug-style segments into a readable, title-cased label
+      const label = segment
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
 
       breadcrumbs.push({
         label,
@@ -39,7 +37,10 @@ export default function Breadcrumbs() {
     return breadcrumbs;
   }, [pathname]);
 
-  const breadcrumbs = useMemo(() => generateBreadcrumbs(), [generateBreadcrumbs]);
+  const breadcrumbs = useMemo(
+    () => generateBreadcrumbs(),
+    [generateBreadcrumbs],
+  );
 
   // Don't show breadcrumbs on home page
   if (breadcrumbs.length <= 1) {
@@ -62,36 +63,25 @@ export default function Breadcrumbs() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbListSchema),
+        }}
       />
       <nav
-        className="flex items-center space-x-2 text-sm font-thin text-text/60 mb-8"
+        className="mb-10 flex items-center font-mono text-[11px] uppercase tracking-[0.14em] text-muted"
         aria-label="Breadcrumb"
       >
         {breadcrumbs.map((breadcrumb, index) => (
           <div key={breadcrumb.href} className="flex items-center">
-            {index > 0 && (
-              <svg
-                className="h-4 w-4 mx-2 text-text/40"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
+            {index > 0 && <span className="mx-2 text-muted/40">/</span>}
             {breadcrumb.current ? (
-              <span className="text-text/80 font-medium" aria-current="page">
+              <span className="text-text" aria-current="page">
                 {breadcrumb.label}
               </span>
             ) : (
               <Link
                 href={breadcrumb.href}
-                className="hover:text-primary transition-colors"
+                className="transition-fast hover:text-accent"
               >
                 {breadcrumb.label}
               </Link>

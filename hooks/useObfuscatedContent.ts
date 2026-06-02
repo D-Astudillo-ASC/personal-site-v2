@@ -27,7 +27,8 @@ export function useObfuscatedContent({
     const hasFakeContent = Array.from(elements).some(
       (element) =>
         element.textContent?.includes(fakeContent) ||
-        (element instanceof HTMLAnchorElement && element.href.includes(fakeContent)),
+        (element instanceof HTMLAnchorElement &&
+          element.href.includes(fakeContent)),
     );
 
     // Only process if fake content is found
@@ -40,7 +41,10 @@ export function useObfuscatedContent({
       if (element.textContent?.includes(fakeContent)) {
         // Replace text content
         if (element.textContent) {
-          element.textContent = element.textContent.replace(fakeContent, realContent);
+          element.textContent = element.textContent.replace(
+            fakeContent,
+            realContent,
+          );
         }
 
         // Replace href if it's a link

@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 31536000, // 1 year
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    qualities: [30, 75],
+    qualities: [30, 40, 60, 75],
   },
 
   // Enable compression
@@ -154,6 +154,21 @@ const nextConfig: NextConfig = {
   // See: https://community.vercel.com/t/http-forward-to-https/6219
   // See: https://vercel.com/docs/projects/domains/deploying-and-redirecting
 
+  async redirects() {
+    return [
+      {
+        source: "/blog/cutting-a-bigquery-api-from-21s-to-under-2s",
+        destination: "/blog/cutting-a-data-api-from-21s-to-250ms",
+        permanent: true,
+      },
+      {
+        source: "/blog/building-data-studio-microfrontend-platform",
+        destination: "/blog/building-a-microfrontend-data-platform",
+        permanent: true,
+      },
+    ];
+  },
+
   // Configure logging for better debugging
   logging: {
     fetches: {
@@ -249,12 +264,20 @@ const nextConfig: NextConfig = {
           },
         ]),
       {
-        // Cache favicon files
-        source: "/favicon-dark.ico",
+        source: "/favicon-dark.svg",
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=86400", // 24 hours
+            value: "public, max-age=86400",
+          },
+        ],
+      },
+      {
+        source: "/favicon-light.svg",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400",
           },
         ],
       },
@@ -297,21 +320,13 @@ const nextConfig: NextConfig = {
 // Wrap with MDX
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
-  // TODO: Explore remark and rehype plugins.
-  //   options: {
-  //     remarkPlugins: [
-  //       // Without options
-  //       'remark-gfm',
-  //       // With options
-  //       ['remark-toc', { heading: 'The Table' }],
-  //     ],
-  //     rehypePlugins: [
-  //       // Without options
-  //       'rehype-slug',
-  //       // With options
-  //       ['rehype-katex', { strict: true, throwOnError: true }],
-  //     ],
-  //   },
+  options: {
+    remarkPlugins: ["remark-gfm"],
+    rehypePlugins: [
+      "rehype-slug",
+      resolve(process.cwd(), "lib/rehype-pretty-code.mjs"),
+    ],
+  },
 });
 
 let finalConfig: NextConfig = withMDX(nextConfig);

@@ -1,80 +1,80 @@
+const SITE_URL = "https://danielastudillo.io";
+
+const SOCIAL_PROFILES = [
+  "https://linkedin.com/in/daniel-m-astudillo",
+  "https://github.com/D-Astudillo-ASC",
+  "https://leetcode.com/dtm99",
+];
+
 export default function StructuredData() {
-  const structuredData = {
+  const person = {
     "@context": "https://schema.org",
     "@type": "Person",
+    "@id": `${SITE_URL}/#person`,
     name: "Daniel Astudillo",
-    alternateName: [
-      "Daniel M. Astudillo",
-      "Daniel Astudillo Software Engineer",
-      "danielastudillo",
-      "daniel astudillo",
-      "Daniel Astudillo Full-Stack Developer",
-      "Daniel Astudillo React Developer",
-      "Daniel Astudillo TypeScript Developer",
-    ],
-    jobTitle: "Software Engineer",
-    description:
-      "Daniel Astudillo is a Software Engineer with 3+ years experience building scalable applications at Visa and Wayfair. Expert in React, TypeScript, Node.js, Spring Boot, and .NET Core.",
-    url: "https://danielastudillo.io",
-    email: "daniel.astudillo404@gmail.com",
+    alternateName: "Daniel M. Astudillo",
     givenName: "Daniel",
     familyName: "Astudillo",
-    additionalName: "M.",
-    honorificPrefix: "",
-    honorificSuffix: "",
+    jobTitle: "Software Engineer II",
+    description:
+      "Daniel Astudillo is a software engineer based in New York City, building high-performance data platforms and full-stack applications at S&P Global. He works across .NET, TypeScript, and distributed systems with a focus on performance and reliability.",
+    url: SITE_URL,
+    image: `${SITE_URL}/images/og-image.png`,
     knowsAbout: [
+      "Software Engineering",
+      "Distributed Systems",
+      "Performance Optimization",
       "React",
       "TypeScript",
+      "Next.js",
       "Node.js",
-      "Spring Boot",
       ".NET Core",
+      "C#",
+      "Spring Boot",
       "Java",
-      "JavaScript",
-      "Full Stack Development",
-      "Payment Systems",
-      "Recommendation Engines",
-      "Software Engineering",
-      "Web Development",
-      "Frontend Development",
-      "Backend Development",
+      "PostgreSQL",
+      "Google BigQuery",
+      "gRPC",
+      "Real-time Systems",
     ],
-    sameAs: [
-      "https://linkedin.com/in/daniel-m-astudillo",
-      "https://github.com/D-Astudillo-ASC",
-      "https://leetcode.com/dtm99",
-    ],
-    worksFor: [
-      {
-        "@type": "Organization",
-        name: "Visa, Inc.",
-        jobTitle: "Software Engineer",
-      },
-      {
-        "@type": "Organization",
-        name: "Wayfair, Inc.",
-        jobTitle: "Software Engineer Intern",
-      },
-    ],
-    alumniOf: {
+    sameAs: SOCIAL_PROFILES,
+    worksFor: {
       "@type": "Organization",
+      name: "S&P Global Inc.",
+      url: "https://www.spglobal.com",
+    },
+    homeLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "New York",
+        addressRegion: "NY",
+        addressCountry: "US",
+      },
+    },
+    workLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "New York",
+        addressRegion: "NY",
+        addressCountry: "US",
+      },
+    },
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
       name: "Williams College",
       description: "Bachelor of Arts in Computer Science and Mathematics",
-    },
-    author: {
-      "@type": "Person",
-      name: "Daniel Astudillo",
-      url: "https://danielastudillo.io",
     },
     hasOccupation: {
       "@type": "Occupation",
       name: "Software Engineer",
-      description:
-        "Full-stack software engineer specializing in full-stack web development.",
-    },
-    makesOffer: {
-      "@type": "Offer",
-      description: "Software engineering services and technical consulting",
-      category: "Software Development",
+      occupationLocation: {
+        "@type": "City",
+        name: "New York, NY",
+      },
+      skills:
+        "Full-stack development, distributed systems, performance optimization, .NET, TypeScript, data engineering",
     },
   };
 
@@ -84,18 +84,34 @@ export default function StructuredData() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "What technologies does Daniel Astudillo specialize in?",
+        name: "Who is Daniel Astudillo?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Daniel specializes in React, TypeScript, Next.js, Spring Boot, .NET Core, Java, Python, and full-stack development. He has experience with payment systems, recommendation engines, and building scalable applications.",
+          text: "Daniel Astudillo is a software engineer based in New York City. He currently works at S&P Global building data platforms and full-stack applications, and previously built payment and benefit systems at Visa.",
         },
       },
       {
         "@type": "Question",
-        name: "What companies has Daniel Astudillo worked for?",
+        name: "What technologies does Daniel Astudillo work with?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Daniel has worked at Visa, Inc. as a Software Engineer and Wayfair, Inc. as a Software Engineer Intern. He has experience building systems that process 20M+ monthly API requests and improving recommendation engines by 20%.",
+          text: "Daniel works across the stack with React, TypeScript, and Next.js on the frontend, and .NET Core, C#, Spring Boot, and Java on the backend. He has deep experience with PostgreSQL, BigQuery, gRPC, and distributed messaging systems.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Where is Daniel Astudillo based?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Daniel is based in New York City, where he works as a software engineer at S&P Global.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What has Daniel Astudillo built?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Daniel has taken a data API from a 21-second worst case to roughly 200–300ms (Storage Write API, then PostgreSQL), built a real-time event pipeline processing 100K+ daily events at 99.99% uptime, and modernized payment systems serving 20M+ monthly requests. He writes about this work on his blog.",
         },
       },
       {
@@ -103,62 +119,30 @@ export default function StructuredData() {
         name: "What is Daniel Astudillo's educational background?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Daniel graduated from Williams College with a Bachelor of Arts in Computer Science and Mathematics. He has been programming since 2015 and has 3+ years of professional experience.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Is Daniel Astudillo available for hire?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes, Daniel is currently open to new opportunities. He's seeking challenging problems in fintech, data pipelines, and creating intuitive user experiences. You can contact him through his website or LinkedIn.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "What types of projects has Daniel Astudillo worked on?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Daniel has worked on Visa Card Eligibility Service, Visa Digital Benefits Platform, sales recommendation engines, payment processing systems, and modern web applications. He specializes in full-stack development and has led legacy migrations reducing technical debt by 10+ years.",
+          text: "Daniel graduated from Williams College with a Bachelor of Arts in Computer Science and Mathematics.",
         },
       },
     ],
   };
 
-  // WebSite schema for better site understanding and potential search box
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Daniel Astudillo Portfolio",
-    url: "https://danielastudillo.io",
+    "@id": `${SITE_URL}/#website`,
+    name: "Daniel Astudillo",
+    url: SITE_URL,
     description:
-      "Portfolio website of Daniel Astudillo, Software Engineer with experience at Visa and Wayfair. Expert in React, TypeScript, Spring Boot, and .NET Core.",
-    author: {
-      "@type": "Person",
-      name: "Daniel Astudillo",
-      url: "https://danielastudillo.io",
-    },
-    publisher: {
-      "@type": "Person",
-      name: "Daniel Astudillo",
-    },
+      "The personal site and engineering blog of Daniel Astudillo, a software engineer in New York City writing about performance, distributed systems, and building things that hold up in production.",
+    author: { "@id": `${SITE_URL}/#person` },
+    publisher: { "@id": `${SITE_URL}/#person` },
     inLanguage: "en-US",
-    // TODO: Add search action in the future for search engine optimization of blog posts.
-    // potentialAction: {
-    //   "@type": "SearchAction",
-    //   target: {
-    //     "@type": "EntryPoint",
-    //     urlTemplate: "https://danielastudillo.io/blog?q={search_term_string}",
-    //   },
-    //   "query-input": "required name=search_term_string",
-    // },
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(person) }}
       />
       <script
         type="application/ld+json"

@@ -8,47 +8,40 @@ export default function NavbarLinksDesktop() {
   const pathname = usePathname();
 
   return (
-    <ul className="hidden md:flex items-center space-x-8">
+    <ul className="hidden md:flex items-center gap-6">
       {navLinks.map((link) => {
         const isActive = pathname === link.href;
         return (
           <li key={link.href}>
             <Link
               href={link.href}
-              className={`
-                block py-2 text-lg font-thin transition-colors duration-200 cursor-pointer
-                relative
-                hover:text-gray-700 dark:hover:text-gray-300
-                after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0
-                after:transition-all after:duration-300
-                hover:after:w-full hover:after:bg-gray-700 dark:hover:after:bg-gray-300
-                ${isActive ? "font-bold after:w-full after:bg-current" : ""}
-              `}
+              className={`relative pb-1 text-sm font-medium transition-fast ${
+                isActive ? "text-text" : "text-muted hover:text-text"
+              }`}
+              aria-current={isActive ? "page" : undefined}
             >
-              <span className="relative z-10">{link.label}</span>
+              {link.label}
+              {isActive ? (
+                <span
+                  className="absolute inset-x-0 -bottom-px h-px bg-accent"
+                  aria-hidden="true"
+                />
+              ) : null}
             </Link>
           </li>
         );
       })}
-      {/* Resume Button */}
       <li>
         <a
           href="/Daniel-Astudillo-Resume.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className={`
-            block py-2 text-lg font-thin transition-colors duration-200 cursor-pointer
-            relative
-            hover:text-gray-700 dark:hover:text-gray-300
-            after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0
-            after:transition-all after:duration-300
-            hover:after:w-full hover:after:bg-gray-700 dark:hover:after:bg-gray-300
-          `}
+          className="text-sm font-medium text-muted hover:text-text transition-fast"
         >
-          <span className="relative z-10">Resume</span>
+          Resume
         </a>
       </li>
-      <li className="flex items-center space-x-4 pl-4 border-l border-border/50">
+      <li className="flex items-center gap-3 pl-4 border-l border-border">
         <ClientToggles />
       </li>
     </ul>

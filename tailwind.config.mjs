@@ -1,7 +1,7 @@
-import type { Config } from 'tailwindcss';
 import typography from "@tailwindcss/typography";
 
-const config: Config = {
+/** @type {import("tailwindcss").Config} */
+const config = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -20,26 +20,34 @@ const config: Config = {
         "scale-in": "scale-in 0.2s ease-out forwards",
       },
       transitionDuration: {
-        "fast": "150ms",
-        "normal": "200ms",
-        "slow": "300ms",
-        "slower": "500ms",
+        fast: "150ms",
+        normal: "200ms",
+        slow: "300ms",
+        slower: "500ms",
       },
       transitionTimingFunction: {
-        "smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
-        "bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+        bounce: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
       },
       colors: {
         border: "var(--border-color)",
         text: "var(--text-color)",
         background: "var(--background-color)",
+        surface: "var(--surface-color)",
+        muted: "var(--muted-color)",
+        accent: "var(--accent-color)",
+        primary: "var(--accent-color)",
       },
       fontFamily: {
-        helvetica: ["Helvetica Neue", "Arial", "sans-serif"],
-        mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+        sans: ["var(--font-geist)", "system-ui", "sans-serif"],
+        display: ["var(--font-instrument-serif)", "Georgia", "serif"],
+        mono: ["var(--font-jetbrains-mono)", "Menlo", "Monaco", "monospace"],
+        helvetica: ["var(--font-geist)", "system-ui", "sans-serif"],
+        code: ["var(--font-jetbrains-mono)", "Menlo", "Monaco", "monospace"],
       },
     },
   },
   plugins: [typography],
 };
+
 export default config;

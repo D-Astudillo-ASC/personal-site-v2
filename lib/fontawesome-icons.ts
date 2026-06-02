@@ -15,6 +15,10 @@ import {
   faBars,
   faXmark,
   faExternalLink,
+  faBolt,
+  faShieldHalved,
+  faChartLine,
+  faCopy,
 } from "@fortawesome/free-solid-svg-icons";
 import { faSun, faMoon } from "@fortawesome/free-regular-svg-icons";
 
@@ -35,4 +39,8 @@ export {
   faBars,
   faXmark,
   faExternalLink,
+  faBolt,
+  faShieldHalved,
+  faChartLine,
+  faCopy,
 };

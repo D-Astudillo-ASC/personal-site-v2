@@ -1,0 +1,172 @@
+export const metadata = {
+  title: "Cutting a data API from 21s to ~250ms",
+  description:
+    "BigQuery Storage Write API over gRPC, then PostgreSQL + EF Core for OLTP — two architectural moves that took an interactive API from 21-second tails to ~200–300ms.",
+  date: "2026-05-18",
+  excerpt:
+    "Warehouse DML on the request path was the bug. Stage 1 fixed writes; stage 2 fixed reads. Neither stage was query tuning.",
+  tags: ["Performance", "BigQuery", "gRPC", "PostgreSQL", ".NET"],
+};
+
+# Cutting a data API from 21s to ~250ms
+
+## TL;DR
+
+| Phase | Change | Latency (hot paths) |
+| --- | --- | --- |
+| Baseline | BigQuery DML (`INSERT` / `MERGE` / `UPDATE`) over REST | **~21–30s** tail under load |
+| Stage 1 | **Storage Write API v2** over **gRPC** (append rows, not SQL jobs) | **under 2s** |
+| Stage 2 | **PostgreSQL + EF Core** OLTP; warehouse for enrichment only | **~200–300ms** |
+
+Interactive UI operations — list views, keyed lookups, validation saves — were backed by a warehouse used as an OLTP store. This post walks through measurement, the two migrations, and what we refused to optimize.
+
+---
+
+## Symptoms: tail latency, not averages
+
+Internal users filed tickets on paths that should feel instant. Mean latency looked acceptable on cached routes; **p95/p99 sat at 21–30s** on write-heavy and full-list reads.
+
+Root causes after instrumentation:
+
+| Signal | Interpretation |
+| --- | --- |
+| Every DML = query job | BigQuery schedules, plans, executes — even for single-row writes |
+| DML quota contention | Concurrent mutations throttle under load |
+| Columnar engine on keyed reads | OLTP access pattern on analytical storage |
+
+Structured benchmarks on `INSERT`/`MERGE`/`UPDATE`/`DELETE` over REST confirmed: Capacitor-backed storage + job semantics ≠ row store semantics. Not "bad SQL" — **wrong system for synchronous UI**.
+
+---
+
+## Before
+
+<FlowDiagram>
+  <FlowDiagram.Step title=".NET API" caption="REST client → BigQuery jobs" />
+  <FlowDiagram.Connector label="each request schedules SQL job" />
+  <FlowDiagram.Step title="BigQuery" caption="DML + SELECT on same store" />
+  <FlowDiagram.Connector />
+  <FlowDiagram.Step title="Web client" caption="blocks on warehouse latency" />
+</FlowDiagram>
+
+---
+
+## Stage 1: Storage Write API (gRPC)
+
+Replace hot-path DML with **AppendRows** on a committed write stream:
+
+```csharp
+var client = await BigQueryWriteClient.CreateAsync();
+var stream = await client.CreateWriteStreamAsync(new CreateWriteStreamRequest
+{
+    Parent = tableReference,
+    WriteStream = new WriteStream { Type = WriteStream.Types.Type.Committed },
+});
+
+await using var append = client.AppendRows();
+await append.WriteAsync(new AppendRowsRequest
+{
+    WriteStream = stream.Name,
+    ProtoRows = new ProtoRows
+    {
+        WriterSchema = protoSchema,
+        SerializedRows = { rowBatch.Select(r => r.ToByteString()) },
+    },
+});
+```
+
+Why this beats DML REST:
+
+| DML over REST | Storage Write API v2 |
+| --- | --- |
+| SQL parse + plan per call | Predefined proto schema |
+| Query job slot | Streaming append |
+| DML concurrency limits | Write stream throughput |
+| High per-op overhead | Amortized stream session |
+
+**Measured result:** hot write paths **under 2s** (~60% vs baseline). Still too slow for UI — reads remained on BigQuery.
+
+Stream lifecycle matters: create stream → append batches → finalize. Reusing streams avoids per-request stream creation cost (we pooled streams per table partition in practice).
+
+---
+
+## Stage 2: PostgreSQL OLTP + hybrid reads
+
+Writes improved; **reads still hit the warehouse**. UI needed:
+
+- Keyed lookups (`WHERE id = @id`, `WHERE parent_id IN (...)`)
+- Small bounded result sets (nav counts, picker lists)
+- Transactional updates with row-level consistency
+
+### Schema + index strategy
+
+Model only what the UI queried — not a warehouse-wide mirror:
+
+```sql
+CREATE TABLE records (
+  id          UUID PRIMARY KEY,
+  tenant_id   UUID NOT NULL,
+  status      SMALLINT NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX ix_records_tenant_status ON records (tenant_id, status);
+```
+
+EF Core migrations versioned alongside API routes. Partial indexes on hot filters where cardinality justified them.
+
+### Cutover mechanics
+
+Route-by-route — no big bang:
+
+1. **Backfill** — batch copy from warehouse with row-count + checksum parity
+2. **Shadow read** — API handler queries Postgres + warehouse, compares hashes in logs (not user-visible)
+3. **Flip read** — feature flag per route; monitor p95/error rate
+4. **Flip write** — dual-write window, then warehouse write off
+5. **Enrichment only** — hierarchy/analytics stay async off hot path
+
+Shadow read handler shape:
+
+```csharp
+var pgRow = await _pg.Records.FindAsync(id);
+var bqRow = await _bqEnrichment.FetchAsync(id); // async, optional
+if (_shadowMode) _comparer.LogDelta(pgRow, bqRow);
+return Map(pgRow, bqRow); // UI reads Postgres only
+```
+
+### After
+
+<FlowDiagram>
+  <FlowDiagram.Step title=".NET API" caption="EF Core · OLTP routes" highlight />
+  <FlowDiagram.Connector label="indexed keyed access" />
+  <FlowDiagram.Step title="PostgreSQL" caption="primary read/write" />
+  <FlowDiagram.Connector label="async enrichment · off hot path" />
+  <FlowDiagram.Step title="BigQuery" caption="warehouse · hierarchy joins" />
+</FlowDiagram>
+
+**Measured result:** hot reads **200–300ms** p95, variance collapsed.
+
+---
+
+## What we refused to do
+
+- Index-tune warehouse DML into sub-second (wrong tool)
+- Big-bang schema migration (rollback must be per-route)
+- Drop warehouse entirely (enrichment still valuable)
+
+---
+
+## Adjacent production constraints
+
+Latency isn't valid in isolation:
+
+- **Multi-pod cache** — centralized Redis Next.js cache handler; without it, pods serve divergent cached pages
+- **Gateway + API test coverage** — regressions on migrated routes caught in CI
+- **Multi-step workflows** — approval state machines require correctness gates; fast wrong writes are worse than slow right ones
+
+---
+
+## Lessons
+
+1. **Profile p99**, not mean — UI trust follows worst-case.
+2. **Write API ≠ read database** — stage 1 and 2 solve different bottlenecks; order mattered.
+3. **Hybrid architecture is valid** — OLTP for interaction, warehouse for analytical enrichment.
+4. **Ask "should this request touch this system?"** before "how do I tune this query?"

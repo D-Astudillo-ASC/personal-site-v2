@@ -10,8 +10,9 @@ export const navLinks = [
     ariaLabel: "Daniel Astudillo Projects",
   },
   {
-    label: "Blog",
+    label: "Writing",
     href: "/blog",
+    ariaLabel: "Daniel Astudillo Writing",
   },
   { href: "/contact", label: "Contact", ariaLabel: "Daniel Astudillo Contact" },
 ] as const;

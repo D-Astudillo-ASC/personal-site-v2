@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-import NoSSR from "./NoSSR";
 
 interface ObfuscatedContentProps {
   content: string;
@@ -10,7 +9,7 @@ interface ObfuscatedContentProps {
   className?: string;
   children?: React.ReactNode;
   placeholder?: string;
-  fakeContent?: string; // Fake content for initial render
+  fakeContent?: string;
   onClick?: (decodedContent: string) => void;
   onContextMenu?: (e: React.MouseEvent) => void;
 }
@@ -29,16 +28,12 @@ export default function ObfuscatedContent({
   const isClient = typeof window !== "undefined";
   const decodedContent = isClient ? content : "";
   const displayContent = isClient
-    ? (children?.toString() || decodedContent)
-    : (fakeContent || placeholder);
+    ? children?.toString() || decodedContent
+    : fakeContent || placeholder;
 
-  // On the server (and before hydration), render placeholder/fake content to reduce scraping.
+  // SSR + pre-hydration: placeholder only — real content after mount.
   if (!isClient) {
-    return (
-      <NoSSR>
-        <span className={className}>{displayContent}</span>
-      </NoSSR>
-    );
+    return <span className={className}>{displayContent}</span>;
   }
 
   const handleClick = (e: React.MouseEvent) => {
@@ -56,63 +51,54 @@ export default function ObfuscatedContent({
     }
   };
 
-  // Render different elements based on type
   switch (type) {
     case "email":
       return (
-        <NoSSR>
-          <a
-            href={`mailto:${decodedContent}`}
-            className={className}
-            onClick={handleClick}
-            onContextMenu={handleContextMenu}
-          >
-            {displayContent}
-          </a>
-        </NoSSR>
+        <a
+          href={`mailto:${decodedContent}`}
+          className={className}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+        >
+          {displayContent}
+        </a>
       );
 
     case "phone":
       return (
-        <NoSSR>
-          <a
-            href={`tel:${decodedContent}`}
-            className={className}
-            onClick={handleClick}
-            onContextMenu={handleContextMenu}
-          >
-            {displayContent}
-          </a>
-        </NoSSR>
+        <a
+          href={`tel:${decodedContent}`}
+          className={className}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+        >
+          {displayContent}
+        </a>
       );
 
     case "link":
       return (
-        <NoSSR>
-          <a
-            href={href || decodedContent}
-            className={className}
-            onClick={handleClick}
-            onContextMenu={handleContextMenu}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {displayContent}
-          </a>
-        </NoSSR>
+        <a
+          href={href || decodedContent}
+          className={className}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {displayContent}
+        </a>
       );
 
     default:
       return (
-        <NoSSR>
-          <span
-            className={className}
-            onClick={handleClick}
-            onContextMenu={handleContextMenu}
-          >
-            {displayContent}
-          </span>
-        </NoSSR>
+        <span
+          className={className}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+        >
+          {displayContent}
+        </span>
       );
   }
 }

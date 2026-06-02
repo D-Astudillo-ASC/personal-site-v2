@@ -1,0 +1,246 @@
+export const metadata = {
+  title: "Building a microfrontend platform for data products",
+  description:
+    "Module Federation shell, Fastify BFFs, Auth0 Organizations + Custom Token Exchange, and CI contract gates — how to let multiple UI teams deploy independently without breaking a shared runtime.",
+  date: "2026-05-31",
+  excerpt:
+    "Federation type stubs, Auth0 CTE for downscoped tokens, and CI merge blockers for cache headers, CSP, and remote export drift.",
+  tags: [
+    "Architecture",
+    "Micro-frontends",
+    "Module Federation",
+    "Auth0",
+    "Platform",
+  ],
+};
+
+# Building a microfrontend platform for data products
+
+## TL;DR
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Shell | **Rspack** + **Module Federation** | Independent deploys per team; shared runtime without monolith repo |
+| Edge | **Fastify BFFs** | Token exchange, aggregation, cache policy at platform boundary |
+| Contracts | **Shared MFE type stubs** | Shell compiles against stable remote `exposes`; drift fails CI |
+| Identity | **Auth0 Organizations** + **Custom Token Exchange (RFC 8693)** | Org-scoped access + least-privilege tokens per remote |
+| Quality | CI on **Cache-Control**, **CSP**, **stub compliance** | Platform invariants enforced at merge, not in prod console |
+
+After moving a hot API from **21s to ~250ms**, the next bottleneck was frontend coordination: **N product UIs, one authenticated session, zero cross-team deploy coupling**. This post covers the platform shell pattern — host + federated remotes + BFF seam — without tying it to any single product name.
+
+---
+
+## Problem framing
+
+Several UI teams need:
+
+- One login, one navigation chrome, one entitlement model
+- Independent release cadence (remote deploy ≠ shell deploy)
+- No iframe penalty (shared React runtime, shared design tokens)
+
+Rejected:
+
+- **Monolith** — deploy coupling scales with team count
+- **Iframe mosaic** — duplicated auth, poor UX, no shared component tree
+
+Target invariant: **`shellVersion` compatible with `remoteEntry@semver`**, verified in CI before merge.
+
+---
+
+## Architecture
+
+<FlowDiagram>
+  <FlowDiagram.Step
+    title="Platform shell (host)"
+    caption="Rspack · Module Federation · Auth0 session"
+    highlight
+  />
+  <FlowDiagram.Fork caption="dynamic import · remoteEntry.js">
+    <FlowDiagram.Step title="Remote A" caption="React MFE · admin domain" />
+    <FlowDiagram.Step title="Remote B" caption="React MFE · read-heavy domain" />
+  </FlowDiagram.Fork>
+  <FlowDiagram.Step title="Fastify BFF" caption="CTE · aggregate · Cache-Control" />
+  <FlowDiagram.Fork caption="Bearer token · audience-scoped">
+    <FlowDiagram.Step title="OLTP API" caption=".NET · keyed reads/writes" />
+    <FlowDiagram.Step title="Analytics API" caption="column store" />
+    <FlowDiagram.Step title="Redis" caption="shared cache handler" />
+  </FlowDiagram.Fork>
+</FlowDiagram>
+
+The shell owns **orchestration only** — layout, nav, session bootstrap, remote loader. Remotes own domain UX. BFFs exist where platform policy must run before traffic hits domain APIs.
+
+---
+
+## Federation manifest: shared singletons
+
+The failure mode that hurts most in prod is **two Reacts** — hooks throw, context breaks, remotes mount in isolation.
+
+Host `module federation` config (shape):
+
+```typescript
+new ModuleFederationPlugin({
+  name: "shell",
+  remotes: {
+    remoteA: "remoteA@[remoteAUrl]/remoteEntry.js",
+    remoteB: "remoteB@[remoteBUrl]/remoteEntry.js",
+  },
+  shared: {
+    react: { singleton: true, requiredVersion: "^19.0.0", eager: true },
+    "react-dom": { singleton: true, requiredVersion: "^19.0.0", eager: true },
+    "react-router-dom": { singleton: true, requiredVersion: "^6.0.0" },
+  },
+});
+```
+
+`singleton: true` is non-negotiable for React. `eager: true` on the shell avoids async shared-module races during first remote load.
+
+---
+
+## Type stubs: federation as an API contract
+
+The shell never imports remote source. It imports a **stub module** checked into a shared package:
+
+```typescript
+// @platform/mfe-contracts — consumed by shell at compile time
+export interface RemoteAExpose {
+  mount(el: HTMLElement, ctx: PlatformContext): () => void;
+}
+
+export type PlatformContext = {
+  orgId: string;
+  accessToken: string; // audience scoped to remote A
+  apiBaseUrl: string;
+};
+```
+
+CI runs `tsc --noEmit` against stubs + remote's declared `exposes`. If a remote removes or renames an export, the pipeline fails **before** a user loads a blank panel.
+
+| Failure mode | Detection |
+| --- | --- |
+| Export rename | Stub compile failure |
+| React duplication | Runtime warning + federation shared config review |
+| Stale remote chunk | `Cache-Control` lint on `remoteEntry.js` + hashed asset names |
+| CSP block | Shell CSP diff in CI |
+
+---
+
+## Fastify BFF: policy, not pass-through
+
+BFF routes exist when at least one of these is true:
+
+1. Token must be **downscoped** before reaching a remote or API
+2. **N backend calls** should collapse to one browser round-trip
+3. **Cache-Control** must be uniform across remotes (multi-pod shell + Redis cache handler)
+
+```typescript
+app.get("/api/platform/session", async (req, reply) => {
+  const claims = await verifyJwt(req.headers.authorization);
+  reply.header("Cache-Control", "private, no-store");
+
+  return {
+    sub: claims.sub,
+    orgId: claims.org_id,
+    entitlements: await resolveEntitlements(claims.org_id),
+  };
+});
+```
+
+BFFs that only proxy JSON without adding policy get deleted — they add latency and another failure domain.
+
+---
+
+## Auth0 Organizations + Custom Token Exchange
+
+Enterprise tenants need **org-scoped authorization**, not just authentication.
+
+### Organizations (onboarding)
+
+- Invite → accept → `org_id` claim on identity
+- Shell reads org context once at bootstrap; remotes receive `PlatformContext`
+- BFF rejects requests where resource `orgId !== token.org_id`
+
+### Custom Token Exchange (RFC 8693)
+
+Problem with a single fat access token: every remote sees every scope. Problem with per-remote OAuth: N login flows.
+
+CTE flow:
+
+1. User completes Auth0 login → **subject token** (`sub`, `org_id`, base scopes)
+2. Shell/BFF POSTs to Auth0 `/oauth/token` with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`
+3. Auth0 returns **downscoped access token** — narrowed `audience`, `scope`, shorter `exp`
+4. Remote passes that token to its API; API validates `aud` + `org_id` independently
+
+Request shape (illustrative):
+
+```http
+POST /oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:token-exchange
+&subject_token=<user_access_token>
+&subject_token_type=urn:ietf:params:oauth:token-type:access_token
+&audience=https://api.internal/remote-a
+&scope=read:records write:records
+```
+
+Response carries a token Remote A's API trusts — Remote B never sees it.
+
+Three flows implemented:
+
+| Flow | Token purpose |
+| --- | --- |
+| Remote bootstrap | Browser gets audience-scoped token for remote API |
+| BFF → domain API | BFF exchanges user context for service token; secrets stay server-side |
+| Org invite acceptance | Entitlements materialized before any `remoteEntry` loads |
+
+---
+
+## Remote B: why federation was worth the overhead
+
+One remote is **read-heavy with admin/write split APIs** — dual OpenAPI surfaces, generated clients (Orval) for each. Backend moved from document store to **column-oriented OLAP** when filter/join patterns outgrew document indexes.
+
+That remote deploys independently: shell bump does not require remote bump if stub contract unchanged. Federation ROI is positive only when **release independence is real** — if teams always ship together, use a monorepo.
+
+---
+
+## CI merge blockers
+
+Platform maturity = failing builds, not wiki pages:
+
+1. **Stub compliance** — `exposes` match `@platform/mfe-contracts`
+2. **Cache-Control** on `remoteEntry.js` — `no-cache` or short `max-age` + immutable hashed chunks
+3. **CSP diff** — no new `script-src` without shell allowlist update
+
+Example CSP invariant the shell enforces:
+
+```http
+Content-Security-Policy: script-src 'self' https://cdn.internal;
+                         connect-src 'self' https://api.internal;
+```
+
+Remotes cannot merge if their asset host isn't allowlisted — prevents prod-only script blocks.
+
+Success metric: **zero silent stub breaks** during incremental remote rollouts — not raw deploy count.
+
+---
+
+## What we skipped
+
+- Federation for code that could ship as a package inside one remote
+- Global client store across remotes (URL + shell context only)
+- Runtime federation without stub compilation in CI
+- BFF proxy on every CRUD route
+
+---
+
+## Open problems
+
+1. **Remote chunk observability** — RUM for `remoteEntry` load failures and export mismatches
+2. **Org-scoped canaries** — route subset of tenants to `remote@canary` before full promotion
+3. **Federated design system remote** — stricter semver than product remotes
+
+---
+
+## Takeaway
+
+Latency work optimizes milliseconds on the hot path. Platform work optimizes **contract safety across team boundaries** — federation stubs, Auth0 CTE for token shape, CI for cache/CSP invariants. The cost is real; the alternative is monolith deploy queues or iframe isolation.

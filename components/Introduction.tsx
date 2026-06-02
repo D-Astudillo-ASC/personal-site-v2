@@ -1,113 +1,85 @@
 import Link from "next/link";
 
-interface IntroductionProps {
-  isOpenToWork?: boolean;
-}
-
-export default function Introduction({
-  isOpenToWork = true,
-}: IntroductionProps) {
+export default function Introduction() {
   return (
-    <div className="space-y-8">
-      <div className="space-y-6">
-        <p className="text-lg font-thin text-text/80 leading-relaxed">
-          I&apos;m <strong className="font-medium text-text">Daniel Astudillo</strong>, a Software Engineer with experience building systems that
-          millions of people depend on. At{" "}
+    <div className="space-y-10">
+      <p className="font-display text-2xl italic leading-snug text-text sm:text-3xl">
+        Backend-first full-stack engineer — I make data paths fast and platforms
+        maintainable.
+      </p>
+
+      <div className="space-y-5 text-base leading-relaxed text-muted">
+        <p>
+          I&apos;m Daniel, based in New York. I target senior full-stack and
+          backend roles where the work is APIs, data stores, and the systems
+          around them — subscription platforms, payment rails, market data. Most
+          of my experience is there: .NET and Spring Boot services at{" "}
           <Link
             href="/about"
-            className="font-medium text-text hover:text-primary transition-colors"
+            className="text-text transition-fast hover:text-accent"
           >
             Visa
           </Link>
-          , I worked on critical financial services processing{" "}
-          <span className="font-medium text-text">
-            20M+ monthly API requests
-          </span>
-          , led legacy migrations that reduced technical debt by{" "}
-          <span className="font-medium text-text">10+ years</span>, and
-          architected modern payment platforms. At{" "}
+          , a self-directed stretch building realtime and CRDT systems, and
+          data infrastructure plus frontend platform work at{" "}
           <Link
             href="/about"
-            className="font-medium text-text hover:text-primary transition-colors"
+            className="text-text transition-fast hover:text-accent"
           >
-            Wayfair
+            S&amp;P Global
           </Link>
-          , I revolutionized sales recommendation engines with{" "}
-          <span className="font-medium text-text">
-            20% accuracy improvements
-          </span>{" "}
-          and achieved{" "}
-          <span className="font-medium text-text">100% test coverage</span> on
-          mission-critical systems.
+          .
         </p>
-
-        <p className="text-lg font-thin text-text/80 leading-relaxed">
-          I build and ship end-to-end — from{" "}
-          <Link
-            href="/projects"
-            className="font-medium text-text hover:text-primary transition-colors"
-          >
-            React
-          </Link>
-          ,{" "}
-          <Link
-            href="/projects"
-            className="font-medium text-text hover:text-primary transition-colors"
-          >
-            Next.js
-          </Link>
-          , and{" "}
-          <Link
-            href="/projects"
-            className="font-medium text-text hover:text-primary transition-colors"
-          >
-            TypeScript
-          </Link>{" "}
-          frontends to{" "}
-          <Link
-            href="/projects"
-            className="font-medium text-text hover:text-primary transition-colors"
-          >
-            Spring Boot
-          </Link>
-          ,{" "}
-          <Link
-            href="/projects"
-            className="font-medium text-text hover:text-primary transition-colors"
-          >
-            .NET Core
-          </Link>
-          , and{" "}
-          <Link
-            href="/projects"
-            className="font-medium text-text hover:text-primary transition-colors"
-          >
-            Python
-          </Link>{" "}
-          backends.
+        <p>
+          I&apos;m strongest on the backend — schema design, migrations, gRPC,
+          message pipelines — but I routinely own the full path when it
+          matters: Next.js frontends, Auth0, multi-pod caching, microfrontend
+          shells. The pattern is the same: find the bottleneck, pick the right
+          tool, ship with tests and measurable latency.
         </p>
       </div>
 
-      {isOpenToWork && (
-        <div className="pt-2 border-t border-border/20">
-          <p className="text-lg font-thin text-text/80 leading-relaxed">
-            I&apos;m currently seeking opportunities to work on challenging
-            problems that matter — whether that&apos;s building the next
-            generation of financial technology, optimizing data pipelines that
-            power millions of decisions, or creating intuitive experiences that
-            people love to use. I thrive in environments that value innovation,
-            technical excellence, and the kind of impact that changes how people
-            interact with technology.
-            <Link
-              href="/contact"
-              className="font-medium text-text hover:text-primary transition-colors"
-            >
-              Let&apos;s discuss how we can work together
-            </Link>
-            .
-          </p>
-        </div>
-      )}
+      <article className="rounded-lg border border-border bg-surface p-6 sm:p-8">
+        <p className="font-mono text-[11px] tracking-[0.14em] uppercase text-accent">
+          Case study
+        </p>
+        <p className="mt-3 font-display text-3xl italic text-text sm:text-4xl">
+          21s → &lt;2s → ~250ms
+        </p>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
+          A Data-as-a-Service API was running BigQuery DML on the hot path —
+          20–30 second queries under load. Storage Write API over gRPC got
+          responses under 2 seconds. Moving the read path to PostgreSQL + EF Core
+          brought hot queries down to roughly 200–300ms. Three architectural
+          decisions, not query tuning.
+        </p>
+        <Link
+          href="/blog/cutting-a-data-api-from-21s-to-250ms"
+          className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-text transition-fast hover:text-accent"
+        >
+          Read the full write-up
+          <span aria-hidden="true">→</span>
+        </Link>
+      </article>
+
+      <p className="text-base leading-relaxed text-muted">
+        On my own time I ship end-to-end — auth, realtime sync, deploy pipelines
+        — including a{" "}
+        <Link
+          href="/projects"
+          className="text-text transition-fast hover:text-accent"
+        >
+          collaborative editor
+        </Link>{" "}
+        with Yjs CRDTs, durable Postgres persistence, and production-style
+        sharing and rate limiting.{" "}
+        <Link
+          href="/about"
+          className="text-text transition-fast hover:text-accent"
+        >
+          Full background →
+        </Link>
+      </p>
     </div>
   );
 }

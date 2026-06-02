@@ -1,26 +1,74 @@
 @import "tailwindcss";
+@config "../tailwind.config.mjs";
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
+
+html[data-mobile-menu-open] .site-header {
+  z-index: 100001;
+}
+
+/* ─── Design Tokens ─────────────────────────────────────────────────────── */
 
 :root {
-  --shadow-top: 0 -4px 16px 0 rgba(0, 0, 0, 0.12); /* positive y offset */
-  --shadow-bottom: 0 4px 16px 0 rgba(0, 0, 0, 0.12); /* negative y offset for footer if needed */
+  /* Light mode */
+  --background-color: #f9f8f5;
+  --surface-color: #f0ede6;
+  --text-color: #1a1a1a;
+  --muted-color: #6b6b6b;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --accent-color: #d97706;
+
+  --shadow-top: 0 -4px 16px 0 rgba(0, 0, 0, 0.06);
+  --shadow-bottom: 0 4px 16px 0 rgba(0, 0, 0, 0.06);
+
+  /* Legacy — referenced in tailwind config */
   --font-monospace:
-    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    var(--font-jetbrains-mono), Menlo, Monaco, Consolas, monospace;
 }
 
+.dark {
+  /* Dark mode */
+  --background-color: #0c0c0c;
+  --surface-color: #151515;
+  --text-color: #f2f0ec;
+  --muted-color: #8a8a8a;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-color: #f59e0b;
+}
+
+/* ─── Font Assignments ───────────────────────────────────────────────────── */
+
+/* Default body font: Geist (the "helvetica" toggle target after redesign) */
 body,
 [data-font="helvetica"] {
-  font-family: var(--font-helvetica-neue), Arial, sans-serif;
-}
-[data-font="monospace"] {
-  font-family: var(--font-monospace);
+  font-family: var(--font-geist), system-ui, sans-serif;
 }
 
+/* Monospace toggle: JetBrains Mono */
+[data-font="monospace"] {
+  font-family: var(--font-jetbrains-mono), Menlo, Monaco, Consolas, monospace;
+}
+
+/* ─── Base Styles ───────────────────────────────────────────────────────── */
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+main {
+  flex: 1;
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────── */
+
 @layer utilities {
-  /* Standardized animations */
   @keyframes fade-in {
     from {
       opacity: 0;
@@ -52,7 +100,7 @@ body,
     }
   }
 
-  /* Standardized transition utilities */
+  /* Transition utilities */
   .transition-standard {
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -103,33 +151,90 @@ body,
     animation: fade-in 0.3s ease-out forwards;
   }
 
-  /* Mobile font weight improvements */
-  /* TODO: Do more research on this */
-  @media (max-width: 768px) {
-    .font-thin {
-      font-weight: 300 !important; /* Light instead of Thin on mobile */
-    }
-
-    .font-extralight {
-      font-weight: 400 !important; /* Normal instead of Extra Light on mobile */
-    }
+  .hero-enter {
+    animation: slide-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
   }
 
-  /* Even more readable on very small screens */
-  @media (max-width: 480px) {
-    .font-thin {
-      font-weight: 400 !important; /* Normal weight on very small screens */
-    }
-
-    .font-extralight {
-      font-weight: 500 !important; /* Medium weight on very small screens */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-enter {
+      animation: none;
+      opacity: 1;
+      transform: none;
     }
   }
 
   .shadow-top {
     box-shadow: var(--shadow-top);
   }
+
   .shadow-bottom {
     box-shadow: var(--shadow-bottom);
   }
+}
+
+/* ─── Blog: layout (article + right-rail TOC) ──────────────────────────── */
+
+@media (min-width: 1024px) {
+  .blog-post-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .blog-toc-rail {
+    justify-self: end;
+    width: 13rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .blog-toc-rail {
+    width: 14.5rem;
+  }
+}
+
+/* ─── Blog: Shiki syntax highlighting (rehype-pretty-code) ─────────────── */
+
+html:not(.dark) .code-block span[style*="--shiki-light"] {
+  color: var(--shiki-light) !important;
+}
+
+.dark .code-block span[style*="--shiki-dark"] {
+  color: var(--shiki-dark) !important;
+}
+
+html:not(.dark) .code-block-pre code {
+  background-color: #f6f8fa;
+}
+
+.dark .code-block-pre code {
+  background-color: #1c2128;
+}
+
+.code-block-pre code {
+  display: grid;
+  min-width: 100%;
+  padding: 0.75rem 0 0.875rem;
+  font-family: var(--font-monospace);
+}
+
+.code-block-pre code .line,
+.code-block-pre code [data-line] {
+  display: block;
+  padding: 0 1rem;
+  border-left: 2px solid transparent;
+}
+
+.code-block-pre code .line--highlighted,
+.code-block-pre code [data-line].line--highlighted {
+  background-color: color-mix(in srgb, var(--accent-color) 12%, transparent);
+  border-left-color: var(--accent-color);
+}
+
+.code-block-pre code .chars--highlighted {
+  border-radius: 0.125rem;
+  background-color: color-mix(in srgb, var(--accent-color) 20%, transparent);
+  box-decoration-break: clone;
 }

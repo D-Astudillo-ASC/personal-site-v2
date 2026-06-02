@@ -1,15 +1,11 @@
 import NavbarLinksDesktop from "./NavbarLinksDesktop";
 import MobileMenu from "./MobileMenu";
-// import ClientOnly from "./ClientOnly";
-import { navLinks } from "@/constants/navigation";
 
 export default function Navbar() {
   return (
-    <nav className="relative">
+    <nav className="relative flex items-center">
       <NavbarLinksDesktop />
-      <div className="md:hidden">
-        <MobileMenu navLinks={navLinks} />
-      </div>
+      <MobileMenu />
     </nav>
   );
 }

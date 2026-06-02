@@ -59,8 +59,12 @@ const FormInput = memo(
     label: string;
     type?: string;
     value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => void;
+    onBlur?: (
+      e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => void;
     error?: string;
     placeholder?: string;
     required?: boolean;
@@ -78,15 +82,12 @@ const FormInput = memo(
     return (
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <label
-            htmlFor={id}
-            className="block text-sm font-light text-text/70"
-          >
+          <label htmlFor={id} className="block text-sm font-medium text-muted">
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
           {maxLength && (
-            <span className="text-xs font-thin text-text/40">
+            <span className="text-xs text-muted/70">
               {value.length}/{maxLength}
             </span>
           )}
@@ -102,17 +103,18 @@ const FormInput = memo(
           placeholder={placeholder}
           aria-invalid={error ? "true" : "false"}
           aria-describedby={error ? `${id}-error` : undefined}
-          className={`w-full px-4 py-3 bg-background/50 border rounded-lg text-text font-thin placeholder:text-text/30 focus:outline-none focus:ring-2 focus:ring-text/20 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${error
+          className={`w-full rounded-lg border bg-background px-4 py-3 text-text placeholder:text-muted/50 transition-fast focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+            error
               ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
-              : "border-border/30 focus:border-text/50 focus:bg-background/80"
-            } ${isTextarea ? "resize-none" : ""}`}
+              : "border-border focus:border-accent/50"
+          } ${isTextarea ? "resize-none" : ""}`}
           {...inputProps}
         />
         {error && (
           <p
             id={`${id}-error`}
             role="alert"
-            className="text-sm font-thin text-red-600 dark:text-red-400 flex items-center gap-1 mt-1"
+            className="mt-1 flex items-center gap-1 text-sm text-red-600 dark:text-red-400"
           >
             <FontAwesomeIcon icon={faExclamationTriangle} className="h-3 w-3" />
             {error}
@@ -149,22 +151,28 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
       switch (name) {
         case "name":
           if (!value.trim()) return "Name is required";
-          if (value.trim().length < 2) return "Name must be at least 2 characters";
+          if (value.trim().length < 2)
+            return "Name must be at least 2 characters";
           if (value.length > 100) return "Name is too long";
           return undefined;
         case "email":
           if (!value.trim()) return "Email is required";
-          if (!EMAIL_REGEX.test(value.trim())) return "Please enter a valid email address";
+          if (!EMAIL_REGEX.test(value.trim()))
+            return "Please enter a valid email address";
           return undefined;
         case "subject":
           if (!value.trim()) return "Subject is required";
-          if (value.trim().length < 3) return "Subject must be at least 3 characters";
-          if (value.length > 200) return "Subject is too long (max 200 characters)";
+          if (value.trim().length < 3)
+            return "Subject must be at least 3 characters";
+          if (value.length > 200)
+            return "Subject is too long (max 200 characters)";
           return undefined;
         case "message":
           if (!value.trim()) return "Message is required";
-          if (value.trim().length < 10) return "Message must be at least 10 characters";
-          if (value.length > 2000) return "Message is too long (max 2000 characters)";
+          if (value.trim().length < 10)
+            return "Message must be at least 10 characters";
+          if (value.length > 2000)
+            return "Message is too long (max 2000 characters)";
           return undefined;
         default:
           return undefined;
@@ -216,7 +224,6 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
     [validateField],
   );
 
-
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -266,7 +273,7 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
         if (response.ok) {
           setStatus({
             type: "success",
-            message: result.message || "Message sent successfully!",
+            message: result.message || "Got it — I'll reply soon.",
           });
           // Reset form on success
           setFormData({
@@ -288,7 +295,8 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
         } else {
           setStatus({
             type: "error",
-            message: result.error || "Failed to send message. Please try again.",
+            message:
+              result.error || "Failed to send message. Please try again.",
           });
         }
       } catch (error) {
@@ -338,84 +346,86 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+    <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
       {/* Contact Information */}
       <section className="space-y-8">
-        <h2 className="text-3xl font-extralight mb-8">Contact Information</h2>
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Contact information
+        </h2>
 
         {/* Email */}
-        <div className="flex items-start gap-4 p-6 rounded-lg border border-border/30 bg-background/50 hover:bg-background/80 transition-slow hover-lift">
-          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-text/10 flex items-center justify-center">
+        <div className="flex items-start gap-4 rounded-lg border border-border bg-surface p-6 transition-fast hover:border-text/15">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-text/5">
             <FontAwesomeIcon
               icon={faEnvelope}
-              className="h-5 w-5 text-text/70"
+              className="h-4 w-4 text-accent"
             />
           </div>
           <div>
-            <h3 className="text-xl font-light mb-1">Email</h3>
+            <h3 className="mb-1 text-base font-medium text-text">Email</h3>
             <ObfuscatedContent
               content="daniel.astudillo404@gmail.com"
               type="email"
               fakeContent="contact@danielastudillo.io"
-              className="text-lg font-thin text-text/70 mb-2 hover:text-text transition-standard"
+              className="mb-2 text-sm text-muted transition-fast hover:text-accent"
             >
               daniel.astudillo404@gmail.com
             </ObfuscatedContent>
-            <p className="text-sm font-thin text-text/50">
-              I typically respond in ≤ 2 hours
+            <p className="text-sm text-muted/80">
+              Usually a reply within a couple of hours.
             </p>
           </div>
         </div>
 
         {/* LinkedIn */}
-        <div className="flex items-start gap-4 p-6 rounded-lg border border-border/30 bg-background/50 hover:bg-background/80 transition-slow hover-lift">
-          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-text/10 flex items-center justify-center">
+        <div className="flex items-start gap-4 rounded-lg border border-border bg-surface p-6 transition-fast hover:border-text/15">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-text/5">
             <FontAwesomeIcon
               icon={faLinkedinBrand}
-              className="h-5 w-5 text-text/70"
+              className="h-4 w-4 text-accent"
             />
           </div>
           <div>
-            <h3 className="text-xl font-light mb-1">LinkedIn</h3>
+            <h3 className="mb-1 text-base font-medium text-text">LinkedIn</h3>
             <a
               href="https://linkedin.com/in/daniel-m-astudillo"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-lg font-thin text-text/70 hover:text-text transition-standard"
+              className="mb-2 block text-sm text-muted transition-fast hover:text-accent"
             >
               linkedin.com/in/daniel-m-astudillo
             </a>
-            <p className="text-sm font-thin text-text/50">
-              Connect for professional opportunities
+            <p className="text-sm text-muted/80">
+              Connect or send a direct message.
             </p>
           </div>
         </div>
 
         {/* Location */}
-        <div className="flex items-start gap-4 p-6 rounded-lg border border-border/30 bg-background/50 hover:bg-background/80 transition-slow hover-lift">
-          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-text/10 flex items-center justify-center">
+        <div className="flex items-start gap-4 rounded-lg border border-border bg-surface p-6 transition-fast hover:border-text/15">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-text/5">
             <FontAwesomeIcon
               icon={faMapMarkerAlt}
-              className="h-5 w-5 text-text/70"
+              className="h-4 w-4 text-accent"
             />
           </div>
           <div>
-            <h3 className="text-xl font-light mb-1">Location</h3>
-            <p className="text-lg font-thin text-text/70 mb-2">
-              NYC Metropolitan Area
-            </p>
-            {isOpenToWork && (
-              <p className="text-sm font-thin text-text/50">
+            <h3 className="mb-1 text-base font-medium text-text">Location</h3>
+            <p className="mb-2 text-sm text-muted">NYC Metropolitan Area</p>
+            {isOpenToWork ? (
+              <p className="text-sm text-muted/80">
                 Open to onsite, hybrid, and remote opportunities.
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
 
       {/* Contact Form */}
       <section className="space-y-8">
-        <h2 className="text-3xl font-extralight mb-8">Send a Message</h2>
+        <h2 className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          Send a message
+        </h2>
 
         {/* Status Messages */}
         {status.type === "success" && (
@@ -427,7 +437,7 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
               icon={faCheck}
               className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0"
             />
-            <p className="text-green-800 dark:text-green-200 font-thin">
+            <p className="text-green-800 dark:text-green-200">
               {status.message}
             </p>
           </div>
@@ -442,7 +452,7 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
               icon={faExclamationTriangle}
               className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0"
             />
-            <p className="text-red-800 dark:text-red-200 font-thin">
+            <p className="text-red-800 dark:text-red-200">
               {status.message}
             </p>
           </div>
@@ -512,7 +522,7 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.message}
-            placeholder="Tell me about your project, opportunity, or just say hello!"
+            placeholder="Tell me what you're building, or just say hello."
             required
             disabled={status.type === "loading"}
             rows={6}
@@ -540,7 +550,7 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
             <button
               type="submit"
               disabled={!isFormValid || status.type === "loading"}
-              className="px-8 py-4 bg-text text-background text-lg font-thin rounded-lg border border-border/50 hover:bg-text/90 transition-all duration-200 hover-scale focus:outline-none focus:ring-2 focus:ring-text/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-text disabled:hover:scale-100"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-8 py-3.5 text-sm font-medium text-stone-900 transition-fast hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status.type === "loading" ? (
                 <span className="flex items-center gap-2">
@@ -548,11 +558,19 @@ export default function ContactForm({ isOpenToWork }: ContactFormProps) {
                   Sending...
                 </span>
               ) : (
-                "Send Message"
+                "Send message"
               )}
             </button>
-            <p className="text-xs font-thin text-text/40">
-              Press <kbd className="px-1.5 py-0.5 bg-background/50 border border-border/30 rounded text-[10px]">⌘</kbd> + <kbd className="px-1.5 py-0.5 bg-background/50 border border-border/30 rounded text-[10px]">Enter</kbd> to send
+            <p className="text-xs text-muted/70">
+              Press{" "}
+              <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px]">
+                ⌘
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px]">
+                Enter
+              </kbd>{" "}
+              to send
             </p>
           </div>
         </form>

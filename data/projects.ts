@@ -18,6 +18,7 @@ export const projects: Project[] = [
     ],
     imageUrl: "/images/projects/vces.avif",
     liveUrl: "https://developer.visa.com/capabilities/vces",
+    highlight: "20M+ API requests / month",
     featured: true,
   },
   {
@@ -35,6 +36,7 @@ export const projects: Project[] = [
     ],
     imageUrl: "/images/projects/vdbp.avif",
     liveUrl: "https://developer.visa.com/capabilities/vdbp",
+    highlight: "Real-time benefit orchestration",
     featured: true,
   },
   {
@@ -58,6 +60,44 @@ export const projects: Project[] = [
     liveUrl: "https://secure.checkout.visa.com",
   },
   {
+    id: "realtime-collab-editor",
+    title: "Real-Time Collaborative Editor",
+    description:
+      "Monaco + Yjs CRDT editor over Socket.IO — binary update deltas, not full-document sync. Durable append-only update log in Neon Postgres with object-storage snapshots (every 50 edits or 30s), Clerk JWT auth on HTTP and WebSocket, Google Docs–style sharing, Postgres notification inbox, Redis rate limiting, Gemini AI assistant, and Docker-sandboxed code execution. Deployed Vercel + Fly.io.",
+    technologies: [
+      "React 19",
+      "Yjs",
+      "Monaco",
+      "Node.js",
+      "Socket.IO",
+      "PostgreSQL",
+      "Clerk",
+      "Redis",
+      "Fly.io",
+    ],
+    imageUrl: "/images/projects/personal-site-v2.avif",
+    githubUrl: "https://github.com/D-Astudillo-ASC",
+    highlight: "CRDT sync + durable update log",
+    featured: true,
+  },
+  {
+    id: "genai-contract-assistant",
+    title: "GenAI Contract Assistant",
+    description:
+      "A full-stack GenAI chatbot for automated contract redlining at Visa, reducing manual legal review time by 30%. Built a retrieval-augmented generation (RAG) pipeline achieving 99% retrieval accuracy — advanced from prototype to a company-supported initiative.",
+    technologies: [
+      "Python",
+      "Django",
+      "Flask",
+      "LangChain",
+      "OpenAI API",
+      "RAG",
+    ],
+    imageUrl: "/images/projects/vces.avif",
+    highlight: "30% faster legal review",
+    featured: true,
+  },
+  {
     id: "personal-site-v2",
     title: "Personal Website v2",
     description:
@@ -72,7 +112,7 @@ export const projects: Project[] = [
     imageUrl: "/images/projects/personal-site-v2.avif",
     liveUrl: "https://danielastudillo.io",
     githubUrl: "https://github.com/D-Astudillo-ASC/personal-site-v2",
-    featured: true,
+    highlight: "Standalone · Core Web Vitals–first",
   },
   {
     id: "personal-site",
