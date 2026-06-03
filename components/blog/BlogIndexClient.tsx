@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import BlogSearchInput from "@/components/blog/BlogSearchInput";
 import { START_HERE_SLUG_SET } from "@/constants/blog";
 import {
+  filterPostsBySearch,
   filterPostsByTags,
   getActiveTagsFromSearchParams,
+  getSearchQueryFromSearchParams,
   getUniqueTags,
   type PostMeta,
 } from "@/lib/post-meta";
@@ -32,6 +35,16 @@ function formatActiveTags(tags: string[]): string {
   return `${tags.slice(0, -1).join(", ")}, or ${tags.at(-1)}`;
 }
 
+function buildBlogIndexQuery(tags: string[], query: string): string {
+  const params = new URLSearchParams();
+  const trimmed = query.trim();
+  if (trimmed) params.set("q", trimmed);
+  for (const tag of tags) {
+    params.append("tag", tag);
+  }
+  return params.toString();
+}
+
 export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,49 +55,56 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
     [searchParams],
   );
 
+  const searchQuery = useMemo(
+    () => getSearchQueryFromSearchParams(searchParams),
+    [searchParams],
+  );
+
   const allTags = useMemo(() => getUniqueTags(posts), [posts]);
 
   const hasFilters = activeTags.length > 0;
+  const hasSearch = searchQuery.length > 0;
+  const hasTopicFilters = hasFilters || hasSearch;
 
-  const catalogPosts = useMemo(
+  const listSource = useMemo(
     () =>
-      hasFilters
+      hasTopicFilters
         ? posts
         : posts.filter((post) => !START_HERE_SLUG_SET.has(post.slug)),
-    [posts, hasFilters],
+    [posts, hasTopicFilters],
   );
 
   const filteredPosts = useMemo(
-    () => filterPostsByTags(catalogPosts, activeTags),
-    [catalogPosts, activeTags],
+    () =>
+      filterPostsByTags(filterPostsBySearch(listSource, searchQuery), activeTags),
+    [listSource, searchQuery, activeTags],
   );
 
-  const replaceTags = useCallback(
-    (tags: string[]) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("tag");
-      for (const tag of tags) {
-        params.append("tag", tag);
-      }
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
+  const replaceQuery = useCallback(
+    (tags: string[], query: string) => {
+      const next = buildBlogIndexQuery(tags, query);
+      router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false });
     },
-    [pathname, router, searchParams],
+    [pathname, router],
   );
 
-  const clearTags = useCallback(() => replaceTags([]), [replaceTags]);
+  const clearTopicFilters = useCallback(
+    () => replaceQuery([], ""),
+    [replaceQuery],
+  );
 
   const toggleTag = useCallback(
     (tag: string) => {
       if (activeTags.includes(tag)) {
-        replaceTags(activeTags.filter((t) => t !== tag));
+        replaceQuery(
+          activeTags.filter((t) => t !== tag),
+          searchQuery,
+        );
       } else {
-        replaceTags([...activeTags, tag]);
+        replaceQuery([...activeTags, tag], searchQuery);
       }
     },
-    [activeTags, replaceTags],
+    [activeTags, replaceQuery, searchQuery],
   );
 
   if (posts.length === 0) {
@@ -95,6 +115,13 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
 
   return (
     <>
+      <BlogSearchInput
+        key={searchQuery}
+        initialQuery={searchQuery}
+        onApply={(query) => replaceQuery(activeTags, query)}
+        onClear={() => replaceQuery(activeTags, "")}
+      />
+
       <div className="mb-10">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <div>
@@ -106,9 +133,9 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
             </p>
           </div>
           <p className="font-mono text-[11px] text-muted/80" aria-live="polite">
-            {!hasFilters
-              ? `${catalogPosts.length} posts`
-              : `${filteredPosts.length} of ${catalogPosts.length} posts`}
+            {hasTopicFilters
+              ? `${filteredPosts.length} of ${listSource.length} posts`
+              : `${listSource.length} posts`}
           </p>
         </div>
         <div
@@ -120,9 +147,9 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
             type="button"
             aria-pressed={!hasFilters}
             className={tagButtonClass(!hasFilters)}
-            onClick={clearTags}
+            onClick={() => replaceQuery([], searchQuery)}
           >
-            All
+            All tags
           </button>
           {allTags.map((tag) => {
             const isActive = activeTags.includes(tag);
@@ -139,13 +166,13 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
             );
           })}
         </div>
-        {hasFilters ? (
+        {hasTopicFilters ? (
           <button
             type="button"
             className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-muted underline decoration-border underline-offset-4 transition-fast hover:text-accent"
-            onClick={clearTags}
+            onClick={clearTopicFilters}
           >
-            Clear filters
+            Clear search and tags
           </button>
         ) : null}
       </div>
@@ -153,16 +180,34 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
       {filteredPosts.length === 0 ? (
         <div className="rounded-lg border border-border bg-surface/40 px-6 py-10 text-center">
           <p className="text-sm text-muted">
-            No posts tagged{" "}
-            <span className="font-mono text-text/90">
-              {formatActiveTags(activeTags)}
-            </span>
-            .
+            {hasSearch ? (
+              <>
+                No posts match &ldquo;{searchQuery}&rdquo;
+                {hasFilters ? (
+                  <>
+                    {" "}
+                    with tag{" "}
+                    <span className="font-mono text-text/90">
+                      {formatActiveTags(activeTags)}
+                    </span>
+                  </>
+                ) : null}
+                .
+              </>
+            ) : (
+              <>
+                No posts tagged{" "}
+                <span className="font-mono text-text/90">
+                  {formatActiveTags(activeTags)}
+                </span>
+                .
+              </>
+            )}
           </p>
           <button
             type="button"
             className="mt-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent underline decoration-accent/40 underline-offset-4 transition-fast hover:text-text"
-            onClick={clearTags}
+            onClick={clearTopicFilters}
           >
             Show all posts
           </button>

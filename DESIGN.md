@@ -263,7 +263,8 @@ At `lg+`, article body and TOC share a two-column grid (`blog-post-layout`). TOC
 - Index uses `PageHeader` (`max-w-2xl`): label “Writing”, title “Notes & deep dives”.
 - **Start here** (`BlogStartHere`): accent-tinted panel (`border-accent/25`, `bg-accent/5`) — three pillar essays in editorial order (numbered circles, display-italic titles). Config: `constants/blog.ts` → `START_HERE_SLUGS`.
 - **How to read this** (`BlogReadingGuide`): neutral surface panel — four themed series with pill links to every essay in that spine. Same config file (`BLOG_SERIES`); chip labels are human-readable, not slug fragments.
-- **Catalog list** (`BlogIndexClient`): tag filters (OR semantics via `?tag=`). When no tags are active, pillar slugs are **excluded** from the main list so they are not duplicated under Start here; filtering by tag can surface them again.
+- **Catalog list** (`BlogIndexClient`): client-side **search** (`?q=`) on title, excerpt, description, and tags; tag filters (OR semantics via `?tag=`). When no search or tags are active, pillar slugs are **excluded** from the main list so they are not duplicated under Start here; search or tag filters can surface pillars again.
+- **Start here thumbnails**: optional `PILLAR_COVERS` in `constants/blog.ts` (or MDX `cover`) — small `next/image` preview on `sm+` breakpoints.
 - Post rows: `divide-y divide-border border-y` — date + reading time in mono overline, title `text-2xl font-medium`, excerpt in muted body.
 - Homepage writing rows: same divider pattern; titles use `font-display text-2xl italic` with accent hover (stronger editorial feel than the index).
 

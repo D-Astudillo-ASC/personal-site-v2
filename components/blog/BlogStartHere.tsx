@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { PostMeta } from "@/lib/post-meta";
 import { formatDate } from "@/utils/date";
@@ -41,6 +42,17 @@ export default function BlogStartHere({ posts }: BlogStartHereProps) {
               >
                 {index + 1}
               </span>
+              {post.cover ? (
+                <span className="relative hidden h-20 w-32 shrink-0 overflow-hidden rounded-lg ring-1 ring-accent/25 sm:block">
+                  <Image
+                    src={post.cover}
+                    alt=""
+                    fill
+                    sizes="128px"
+                    className="object-cover transition-slower group-hover:scale-[1.03]"
+                  />
+                </span>
+              ) : null}
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
                   <time dateTime={post.date}>

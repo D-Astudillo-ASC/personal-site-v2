@@ -30,6 +30,14 @@ export const START_HERE_SLUGS = [
 
 export const START_HERE_SLUG_SET = new Set<string>(START_HERE_SLUGS);
 
+/** Optional card/OG art for pillar essays (paths under /public). */
+export const PILLAR_COVERS: Partial<
+  Record<(typeof START_HERE_SLUGS)[number], string>
+> = {
+  "cutting-a-data-api-from-21s-to-250ms": "/images/projects/vdbp.avif",
+  "building-a-crdt-collaborative-editor": "/images/projects/personal-site-v2.avif",
+};
+
 export const BLOG_SERIES: readonly BlogSeries[] = [
   {
     id: "mobile-platform",

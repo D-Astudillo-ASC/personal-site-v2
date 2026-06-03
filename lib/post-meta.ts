@@ -18,6 +18,13 @@ export interface PostMeta {
   featured: boolean;
 }
 
+/** Parse `?q=...` from the blog index URL. */
+export function getSearchQueryFromSearchParams(
+  searchParams: URLSearchParams,
+): string {
+  return searchParams.get("q")?.trim() ?? "";
+}
+
 /** Parse `?tag=a&tag=b` from the blog index URL. */
 export function getActiveTagsFromSearchParams(
   searchParams: URLSearchParams,
@@ -25,6 +32,22 @@ export function getActiveTagsFromSearchParams(
   return [...new Set(searchParams.getAll("tag").filter(Boolean))].sort((a, b) =>
     a.localeCompare(b),
   );
+}
+
+/** Case-insensitive match on title, excerpt, description, and tags. */
+export function filterPostsBySearch(
+  posts: PostMeta[],
+  query: string,
+): PostMeta[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return posts;
+
+  return posts.filter((post) => {
+    if (post.title.toLowerCase().includes(q)) return true;
+    if (post.excerpt.toLowerCase().includes(q)) return true;
+    if (post.description.toLowerCase().includes(q)) return true;
+    return post.tags.some((tag) => tag.toLowerCase().includes(q));
+  });
 }
 
 /** Posts that include at least one of the selected tags (OR). */

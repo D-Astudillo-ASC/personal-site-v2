@@ -8,6 +8,7 @@ export { getUniqueTags } from "@/lib/post-meta";
 import type { PostMeta, TocHeading } from "@/lib/post-meta";
 import {
   getSeriesForSlug,
+  PILLAR_COVERS,
   START_HERE_SLUG_SET,
   START_HERE_SLUGS,
   type BlogSeries,
@@ -122,6 +123,9 @@ export async function getPostMeta(slug: string): Promise<PostMeta | null> {
     const dateModified =
       typeof m.dateModified === "string" ? m.dateModified : date;
 
+    const coverFromMeta = typeof m.cover === "string" ? m.cover : undefined;
+    const pillarCover = PILLAR_COVERS[slug as keyof typeof PILLAR_COVERS];
+
     return {
       slug,
       title,
@@ -129,7 +133,7 @@ export async function getPostMeta(slug: string): Promise<PostMeta | null> {
       dateModified,
       description,
       excerpt: (typeof m.excerpt === "string" && m.excerpt) || description,
-      cover: typeof m.cover === "string" ? m.cover : undefined,
+      cover: coverFromMeta ?? pillarCover,
       tags: Array.isArray(m.tags) ? (m.tags as string[]) : [],
       readingTime: estimateReadingTime(slug),
       featured: START_HERE_SLUG_SET.has(slug),
