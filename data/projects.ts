@@ -2,28 +2,6 @@ import { Project } from "@/types/project";
 
 export const projects: Project[] = [
   {
-    id: "spg-daas-data-studio",
-    title: "S&P Global DaaS & Data Studio",
-    description:
-      "Current role: cut interactive API tails from ~21s to ~200–300ms (BigQuery Storage Write API + gRPC, then PostgreSQL + EF Core), modernized the DaaS frontend on Next.js 16, and architected Data Studio — a Module Federation shell with Fastify BFFs, Auth0 org onboarding, and CI contract gates across remotes.",
-    cardDescription:
-      "21s→~250ms API path, Next.js 16 modernization, and a federated Data Studio platform — measured outcomes, not slideware.",
-    technologies: [
-      "Next.js",
-      "React 19",
-      ".NET",
-      "PostgreSQL",
-      "BigQuery",
-      "gRPC",
-      "Module Federation",
-    ],
-    imageUrl: "/images/projects/vdbp.avif",
-    liveUrl: "https://www.spglobal.com",
-    blogSlug: "cutting-a-data-api-from-21s-to-250ms",
-    highlight: "21s → ~250ms · MFE shell",
-    featured: true,
-  },
-  {
     id: "visa-vces",
     title: "Visa Card Eligibility Service",
     description:
@@ -43,24 +21,6 @@ export const projects: Project[] = [
     blogSlug: "bridging-amqps-and-jms-for-real-time-events",
     highlight: "High-volume production API",
     featured: true,
-  },
-  {
-    id: "spg-data-studio-mfe",
-    title: "Data Studio Microfrontend Platform",
-    description:
-      "Module Federation host, Fastify BFFs, Auth0 Custom Token Exchange, shared MFE type stubs, and CI merge gates for cache headers, CSP, and remote export drift — enabling independent deploys across product UI teams.",
-    cardDescription:
-      "Federation shell + BFF seam — typed contracts and CI gates so remotes ship without breaking the runtime.",
-    technologies: [
-      "Module Federation",
-      "Fastify",
-      "Auth0",
-      "TypeScript",
-      "Rspack",
-    ],
-    imageUrl: "/images/projects/vdbp.avif",
-    blogSlug: "building-a-microfrontend-data-platform",
-    highlight: "Federation + BFF contracts",
   },
   {
     id: "realtime-collab-editor",
