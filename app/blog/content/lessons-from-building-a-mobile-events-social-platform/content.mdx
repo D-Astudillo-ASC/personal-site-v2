@@ -1,0 +1,326 @@
+export const metadata = {
+  title: "Lessons from building a mobile events social platform",
+  description:
+    "Expo Router, Firebase split-brain messaging, Zod as schema source of truth, why I skipped an API gateway, and what a frozen social-mobile codebase taught me about shipping IRL-first software.",
+  date: "2025-10-20",
+  dateModified: "2026-06-03",
+  excerpt:
+    "A React Native events-first social app — navigation traps, Firestore + RTDB messaging, WebRTC calling, Firebase security lessons, and the distribution playbook for TestFlight.",
+  tags: ["React Native", "Expo", "Firebase", "Mobile", "Architecture"],
+};
+
+# Lessons from building a mobile events social platform
+
+## TL;DR
+
+I spent a long cycle on a **mobile social product** aimed at one job: turn digital discovery into **in-person connection** at real-world events — stories, feeds, DMs, event creation, interest-based matching, and business verification flows. The stack:
+
+| Layer | Choice | Lesson |
+| --- | --- | --- |
+| Client | **React Native + Expo** (Expo Router) | File-based routing is fast until you nest a second `NavigationContainer` |
+| Backend | **Firebase** (Firestore, RTDB, Cloud Functions, FCM) | Split stores by latency class — don't put typing indicators in Firestore |
+| Contracts | **Zod on the server**, typed view models on the client | One canonical schema; UI types derive, never fork |
+| Edge | **Callable Cloud Functions** | Skipped a paid API gateway — abstraction belongs in the app |
+| Trust | **App Check** + security rules | Cheap insurance against scraped API keys |
+| AI (experimental) | **Gemini BFF + GPU vLLM** (two spikes) | Managed SSE first; self-hosted path needs OpenAI-style streaming, not phone WebSockets |
+
+The product never shipped publicly; the frozen codebase and its docs are still a useful textbook. This post is the **architecture spine** — companion posts cover security, TestFlight, and the two AI backend experiments.
+
+**Companion posts:** [Firebase security](/blog/securing-firebase-for-a-social-mobile-app) · [TestFlight](/blog/shipping-an-expo-app-through-testflight) · [Gemini BFF + SSE](/blog/building-a-gemini-ai-backend-with-sse) · [GPU vLLM pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse)
+
+---
+
+## Problem framing
+
+Most social apps optimize for time-on-app. The design bet here was inverted: **content exists to pull people into the same room**. That implies:
+
+- **Events** are first-class (structured time, place, host, price) — not just geotagged posts
+- **Lightweight activities** ("who's up for…") coexist with formal events without duplicating storage models blindly
+- **Chat** must feel instant enough that coordinating a meetup doesn't bounce to SMS
+- **Discovery** needs location and interest signals without turning the feed into a surveillance product
+
+The failure mode isn't "slow screens." It's **schema drift** between mobile, Cloud Functions, and admin tools — then messaging that works in the simulator and flakes under real concurrent writers.
+
+---
+
+## System shape
+
+<FlowDiagram>
+  <FlowDiagram.Step title="Expo app" caption="Router · gestures · lazy media" highlight />
+  <FlowDiagram.Connector label="Firebase SDK + App Check" />
+  <FlowDiagram.Fork caption="data plane">
+    <FlowDiagram.Step title="Firestore" caption="messages · events · profiles" />
+    <FlowDiagram.Step title="Realtime DB" caption="typing · presence" />
+    <FlowDiagram.Step title="Cloud Storage" caption="media · flyers" />
+  </FlowDiagram.Fork>
+  <FlowDiagram.Connector />
+  <FlowDiagram.Step title="Cloud Functions" caption="FCM · triggers · Places proxy" />
+</FlowDiagram>
+
+Callable functions handle privileged work (push fan-out, Places proxying, verification hooks). The client never talks to Google Places with a raw key — that boundary saved both billing surprises and key rotation pain.
+
+---
+
+## Navigation: Expo Router plus a state layer
+
+Expo Router already owns a `NavigationContainer`. The painful bug was **nesting another one** inside a custom root navigator — runtime error, obvious in hindsight, expensive while migrating tab flows.
+
+The stable pattern:
+
+```
+Root layout (Expo Router Stack)
+├── NavigationProvider (app navigation state)
+├── (auth) — onboarding screens
+├── (tabs) — home · live · post · reels · settings
+└── modals — camera · messages · create-event
+```
+
+**Takeaway:** treat Router as the single navigation authority. Custom providers track tab index and deep-link intent; they don't re-wrap the tree.
+
+Gesture composition (camera dismiss, story viewer) had to stay **orthogonal** to route transitions — otherwise every swipe fought the stack animator. Instagram-style pan-to-dismiss only works when the gesture handler owns the animation channel for that subtree.
+
+---
+
+## Two social primitives: activity vs event
+
+Early on, **Activity** (spontaneous, lightweight) and **Event** (structured, Firebase-backed) diverged — same product language, different field names (`latitude` vs `lat`, nested `user` vs flat `host`). Forms sent shapes the backend validator rejected; list screens showed empty cards with valid IDs.
+
+The fix was boring and correct:
+
+1. **Canonical schema on the server** (Zod) — ISO datetimes, `lat`/`long`, `host.displayName`, price enum
+2. **`FirebaseEvent`** — TypeScript type that matches storage exactly
+3. **`Event` view model** — computed fields only (`dayAndDate`, `distance`, `friendsAttending`, `attending`)
+
+```typescript
+// View model extends storage — never the other way around
+type Event = FirebaseEvent & {
+  dayAndDate: string;
+  time: string;
+  distance?: string;
+  attending: boolean;
+  totalAttending: number;
+};
+```
+
+**Rule:** if a field isn't written to Firestore, it doesn't live on the wire type. Derive at read time.
+
+---
+
+## Messaging: split Firestore and Realtime Database
+
+DMs used **Firestore** for persistence: conversations, message documents, read receipts, batch writes for send pipeline. **Typing indicators** went to **Realtime Database** — ephemeral, high-churn, wrong cost profile for document writes.
+
+| Concern | Store | Why |
+| --- | --- | --- |
+| Message history | Firestore | Queryable, offline-friendly, security rules per collection |
+| Typing / presence | RTDB | Low-latency fan-out, TTL-friendly |
+| Push delivery | Cloud Functions on `onCreate` | Server resolves FCM tokens, increments unread |
+
+Client send path: optimistic temp ID → batch write message + conversation metadata → Cloud Function notifies recipient → badge service updates tab icon.
+
+Security rules and RTDB rules were deployed as separate artifacts — a common miss is locking Firestore while leaving RTDB world-readable.
+
+Beyond send/receive, the production messaging layer included **reactions, edit, soft delete, reply threading, attachment metadata, and an offline queue** with optimistic temp IDs. Pagination used `startAfter` cursors on ordered message queries — unbounded `get()` on a hot conversation is how you discover Firestore bill shock.
+
+---
+
+## Push notifications as data model
+
+Notifications weren't a side feature; they **extended the conversation document**:
+
+- `participants[]`
+- `unreadCounts` map per user
+- `lastMessage` / `lastMessageTime` for inbox sorting
+- FCM token arrays on user profiles (multi-device)
+
+The trigger on message create: load sender display name, exclude sender from recipients, fan out FCM, atomically bump unread counts. Callable functions for "mark read" and custom admin pushes kept client logic thin.
+
+**Lesson:** design the inbox schema for notification state first. Retrofitting unread counts onto a chat prototype always races the first production group thread.
+
+---
+
+## Why I did not add an API gateway
+
+I modeled cost for **Google Cloud API Gateway + Cloud Functions** vs **direct callable functions**. At realistic invocation volumes, the gateway multiplied cost **roughly 5–8×** while duplicating what Firebase already provides: HTTPS endpoints, auth context on `onCall`, built-in logging, auto scale.
+
+What was actually missing:
+
+- Client-side **retry + error normalization**
+- **Request deduplication** on hot reads
+- **Rate limits** in functions (App Check + per-UID throttles)
+
+Those belong in a typed `ApiClient` module and function middleware — not another hop in us-east1.
+
+---
+
+## Google Places behind callable functions
+
+Event creation needs location autocomplete. The anti-pattern is embedding a Places API key in the React Native bundle. The project implemented **callable functions** that accept only `{ query }` or `{ placeId }`, attach the key server-side, and return sanitized results.
+
+```typescript
+export const placesAutocomplete = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "User must be authenticated");
+  }
+  const { query } = request.data as { query: string };
+  // server attaches GOOGLE_PLACES_API_KEY from env
+});
+```
+
+At MVP scale, Places spend stayed in the **single-digit dollars per month** band with Google Cloud credits — but only while autocomplete ran through the proxy. A leaked key in a decompiled IPA is a different cost class entirely.
+
+---
+
+## WebRTC audio and video (experimental surface)
+
+The codebase documented a full **Instagram-style calling stack**: `WebRTCService` for peer media, `CallingService` for 1:1 signaling over Firebase, `GroupCallingService` with an SFU-shaped design for up to eight participants, plus `IncomingCallModal` and minimized call UI.
+
+<FlowDiagram>
+  <FlowDiagram.Step title="Caller" caption="getUserMedia · offer" />
+  <FlowDiagram.Connector label="Firebase signaling" />
+  <FlowDiagram.Step title="Callee" caption="answer · ICE" highlight />
+  <FlowDiagram.Connector label="P2P or SFU media" />
+  <FlowDiagram.Step title="CallScreen" caption="mute · video · duration" />
+</FlowDiagram>
+
+This never reached the same maturity as text chat. The lesson: **calling is a second product** — entitlements, background audio, CallKit-adjacent UX, and NAT traversal debugging. Budget it separately from “we have DMs.”
+
+---
+
+## Performance work that survived profiling
+
+Metro got an aggressive config: filesystem cache, inline requires, parallel workers, modern image formats (WebP/AVIF). On the component side:
+
+- **`expo-image`** with memory-disk cache policy for feeds
+- **Lazy** story and chat surfaces
+- **FlatList** tuning: `getItemLayout`, `removeClippedSubviews`, bounded window — non-negotiable for mixed image/text rows
+
+The wins were rarely "faster JavaScript." They were **fewer layout passes** and **not decoding 4K flyers into a 80pt thumbnail**.
+
+---
+
+## App Check and abuse-shaped cost
+
+Firebase's free tier is generous until someone scripts your project ID. **App Check** (DeviceCheck / Play Integrity → App Check token on each request) was the right trade: half a day of integration, material reduction in anonymous quota burn.
+
+Pair with:
+
+- No secrets in the client beyond public config
+- Places and other paid APIs only on the server
+- Security rules tested against denied paths, not just happy paths
+
+A separate security audit on that codebase found worse problems than missing App Check: **public Storage reads** and **any-authenticated-user profile reads**. Those are P0 regardless of attestation. See [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app).
+
+---
+
+## Economics from MVP to scale
+
+The investor-facing cost model from project docs (Firebase + Places, not gateway markup):
+
+| Scale | Firebase (standard engagement) | Notes |
+| --- | --- | --- |
+| ~2k MAU | ~$0 (free tier) | Reads/writes/functions within monthly grants |
+| 10k MAU | ~$0.05 / month | Still dominated by free tier |
+| 200k MAU | ~$1–3 / month Firebase | Places autocomplete becomes the line item to watch |
+
+Matching was phased: **rule-based** filters first (interests, distance, event attendance), custom ML later. Business verification was modeled as **manual review hours**, not GPU hours — the right constraint for a pre-revenue social product.
+
+---
+
+## AI matching (experimental)
+
+I ran **two parallel AI experiments** for chat and match copy — not one production path:
+
+| Experiment | Stack | Transport lesson |
+| --- | --- | --- |
+| **A — managed API** | Fastify BFF + **Gemini 1.5 Flash** + Redis cache | **Real SSE** on `POST /api/chat/message/stream` ([write-up](/blog/building-a-gemini-ai-backend-with-sse)) |
+| **B — self-hosted** | **vLLM** + Llama-2 13B GPTQ on a GPU pod | Custom **WebSocket** + batch `generate()` with cosmetic chunks — I should have reused SSE or [vLLM’s OpenAI-compatible streaming](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) ([write-up](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse)) |
+
+The mobile client never wired either backend; both were backend spikes. The engineering lesson wasn't prompt quality — it was **ops and transport**:
+
+- vLLM wants a HuggingFace repo id or a snapshot directory with `config.json`, not a half-downloaded cache parent folder
+- **WebSocket on the phone for token output** was the wrong default; vLLM’s 2026 **Realtime** WebSocket (`/v1/realtime`) targets incremental **audio** streams, not the chat pattern I needed
+- Health endpoints save hours when the GPU box sits behind RunPod port mapping
+
+Treat inference as **optional infrastructure**: the social graph still has to work when the model is down.
+
+---
+
+## TestFlight-shaped reality
+
+Mobile "done" isn't feature-complete — it's **export compliance + entitlement review + crash-free sessions on device**. The distribution docs cover `expo-doctor`, `audit:ios`, EAS local vs cloud builds, Transporter IPA validation, `UIBackgroundModes` fixes, and App Store Connect metadata — see [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight).
+
+I wrote the operational playbook as a standalone post: [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight).
+
+---
+
+## Companion deep dives
+
+This post is the **architecture spine**. These companions carry audit-level detail without turning one URL into a book:
+
+| Topic | Post |
+| --- | --- |
+| Storage/Firestore/RTDB rules, App Check, P0 fixes | [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) |
+| `expo-doctor`, Transporter, plist modes, ASC paperwork | [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight) |
+| Gemini BFF, hybrid matching, SSE streaming (experiment A) | [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) |
+| vLLM GPU pod, GPTQ paths, WebSocket vs SSE hindsight (experiment B) | [Self-hosting Llama-2 13B GPTQ on GPU](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse) |
+
+**Not yet blogged** (still only in internal docs): web phone-auth + reCAPTCHA Enterprise, VisionCamera capture pipeline, navigation audit before/after metrics, WebRTC group SFU implementation notes.
+
+---
+
+## What the frozen codebase is for
+
+I froze the repo as a **reference implementation** — not a launch candidate. It documents:
+
+- A complete Expo Router + Firebase vertical slice
+- Messaging and notification patterns that scale to group chat
+- Schema-alignment discipline between TypeScript clients and Zod validators
+- Explicit **non-decisions** (no API gateway) with arithmetic attached
+
+If you're building event-first social software, steal the boundaries: **one wire schema, two databases by latency class, one navigation root.**
+
+---
+
+## Direct message send: atomic batch write
+
+`MessageService` commits message insert and conversation metadata in one Firestore batch — temp client ids for optimistic UI, undefined fields stripped before write (Firestore rejects `undefined` values):
+
+```typescript
+const batch = writeBatch(db);
+const messageRef = doc(collection(db, 'messages'));
+batch.set(messageRef, filteredMessageData);
+batch.update(conversationRef, {
+  lastMessage: content,
+  lastMessageTime: Timestamp.now(),
+  lastMessageSenderId: senderId,
+  updatedAt: Timestamp.now(),
+});
+await batch.commit();
+```
+
+Unread counts intentionally defer to a Cloud Function trigger so the client hot path stays two writes, not N participant updates.
+
+---
+
+## Schema alignment discipline
+
+TypeScript interfaces in the app, Zod validators on callable functions, and Firestore rules must agree on field names — drift on `participants` vs `memberIds` caused “message sent but conversation list empty” bugs that looked like networking failures in the UI.
+
+---
+
+## Closing thought
+
+Firebase bought speed until schema drift became the bill—typed wire formats and rules tested in the emulator are how you pay it down without rewriting the product.
+
+---
+
+## Related reading (other systems)
+
+| Post | Contrast |
+| --- | --- |
+| [Cutting a data API from 21s to ~250ms](/blog/cutting-a-data-api-from-21s-to-250ms) | Warehouse vs OLTP — enterprise data plane |
+| [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Real-time with **CRDT** consistency, not Firebase fan-out |
+| [Bridging AMQPS and JMS for real-time events](/blog/bridging-amqps-and-jms-for-real-time-events) | Broker-backed enterprise events vs mobile push |
+
+**External:** [Expo Router](https://docs.expo.dev/router/introduction/) · [Firebase Firestore](https://firebase.google.com/docs/firestore) · [Firebase Realtime Database](https://firebase.google.com/docs/database)

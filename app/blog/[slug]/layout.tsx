@@ -3,12 +3,16 @@ import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import ArticleHeader from "@/components/blog/ArticleHeader";
 import BlogDisclaimer from "@/components/blog/BlogDisclaimer";
+import BlogSeriesNav from "@/components/blog/BlogSeriesNav";
 import MobileTableOfContents from "@/components/blog/MobileTableOfContents";
 import TableOfContents from "@/components/blog/TableOfContents";
+import { seriesUsesCaseStudyDisclaimer } from "@/constants/blog";
 import {
   extractHeadings,
   getAdjacentPosts,
   getPostMeta,
+  getSeriesForSlug,
+  getSeriesNeighbors,
 } from "@/lib/posts";
 import { notFound } from "next/navigation";
 
@@ -24,8 +28,14 @@ export default async function BlogPostLayout({
   if (!post) notFound();
 
   const headings = extractHeadings(slug);
-  const { newer, older } = await getAdjacentPosts(slug);
+  const [{ newer, older }, seriesNeighbors] = await Promise.all([
+    getAdjacentPosts(slug),
+    getSeriesNeighbors(slug),
+  ]);
   const hasBothNeighbors = Boolean(newer && older);
+  const series = getSeriesForSlug(slug);
+  const showDisclaimer =
+    series !== undefined && seriesUsesCaseStudyDisclaimer(series.id);
 
   return (
     <PageShell maxWidth="6xl">
@@ -33,7 +43,7 @@ export default async function BlogPostLayout({
         <article className="min-w-0">
           <ArticleHeader post={post} />
           <MobileTableOfContents headings={headings} />
-          <BlogDisclaimer />
+          {showDisclaimer ? <BlogDisclaimer /> : null}
           <div className="blog-prose max-w-none">{children}</div>
         </article>
 
@@ -44,9 +54,16 @@ export default async function BlogPostLayout({
         ) : null}
       </div>
 
+      {seriesNeighbors ? (
+        <BlogSeriesNav
+          series={seriesNeighbors.series}
+          posts={seriesNeighbors.posts}
+        />
+      ) : null}
+
       {(newer || older) && (
         <nav
-          aria-label="More writing"
+          aria-label="More writing by date"
           className={`mt-20 overflow-hidden rounded-lg border border-border bg-border ${
             hasBothNeighbors ? "grid grid-cols-1 gap-px sm:grid-cols-2" : ""
           }`}

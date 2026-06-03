@@ -68,6 +68,13 @@ export const metadata: Metadata = {
   // Note: canonical URLs are set per-page, not in root layout
   // Each page should set its own canonical URL in its metadata
   // This prevents Google from treating all pages as redirects to the homepage
+  alternates: {
+    types: {
+      "application/rss+xml": [
+        { url: "/feed.xml", title: "Daniel Astudillo — Writing (RSS)" },
+      ],
+    },
+  },
   verification: {
     google:
       "google-site-verification=meze9z3hYiB2JgJvuX2cIUCJGlj8oY3YlKIxDh23_g4", // Add your Google Search Console verification code

@@ -1,0 +1,212 @@
+export const metadata = {
+  title: "Building a Gemini AI backend with SSE, hybrid matching, and Redis caching",
+  description:
+    "Experiment one of two: a Fastify BFF for a social mobile app — Gemini 1.5 Flash, real Server-Sent Events streaming, deterministic match scoring, and LLM-written match blurbs. Separate from the self-hosted GPU pod.",
+  date: "2025-12-10",
+  excerpt:
+    "Managed APIs first: Firebase context, hybrid interest/purpose/location scoring, Redis prompt cache, and POST /message/stream with true Gemini token streaming — not the GPU WebSocket experiment.",
+  tags: ["Gemini", "Fastify", "SSE", "AI", "Node.js"],
+};
+
+# Building a Gemini AI backend with SSE, hybrid matching, and Redis caching
+
+## TL;DR
+
+This is **experiment A** in a two-part AI arc for a social mobile product. I built a **Node + Fastify** service that:
+
+- Powers an in-app **AI assistant** with **Firebase-backed** profile and conversation context
+- Runs **hybrid matchmaking** (deterministic scoring + **Gemini** explanations)
+- Exposes **`POST /api/chat/message/stream`** with **real** [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) and [`generateContentStream`](https://ai.google.dev/gemini-api/docs/text-generation#streaming)
+
+**Experiment B** — self-hosted **Llama-2 13B GPTQ** on a GPU pod over WebSocket — is a [separate post](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse). The mobile client in that product never wired either backend to production UI; both were **backend spikes** I used to learn transport and cost trade-offs.
+
+**Product context:** [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform).
+
+---
+
+## Two experiments, one product question
+
+| | Experiment A (this post) | Experiment B ([GPU pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse)) |
+| --- | --- | --- |
+| **Inference** | Google **Gemini 1.5 Flash** (managed API) | **Llama-2 13B GPTQ** via **vLLM** on a GPU pod |
+| **Transport** | HTTP + **SSE** (`text/event-stream`) | **WebSocket** `/ws` (+ HTTP `/generate` for debugging) |
+| **Runtime** | Fastify on port **3001** | FastAPI + uvicorn on RunPod-mapped port |
+| **Goal** | Ship fast, cache prompts, stream tokens to clients | Own weights, control per-token cost, learn self-hosting |
+| **Mobile wired?** | No — SSE route exists, client uses mocks | No — `/ws` and `/generate` unused |
+
+I ran them in parallel on purpose: managed API velocity versus GPU economics and control. The mistake would be treating them as one “AI service” in documentation or in the client.
+
+---
+
+## Service layout
+
+The app boots **helmet**, **CORS**, and **rate limiting** (100 requests/minute, Redis-backed when `REDIS_URL` is set), then mounts:
+
+| Prefix | Responsibility |
+| --- | --- |
+| `/api/chat` | Assistant messages (sync + **SSE stream**) |
+| `/api/matching` | User and event match discovery |
+| `/api/health` | Liveness |
+
+Global `authMiddleware` expects `Authorization: Bearer …` (JWT validation left as TODO; dev mode accepts a test token). Health routes skip auth.
+
+---
+
+## Gemini layer: cache, moderation hooks, streaming
+
+`GeminiService` wraps `@google/generative-ai` with defaults tuned for cost and latency:
+
+- Model: **`gemini-1.5-flash`**
+- Generation config: `temperature` 0.7, `topP` 0.8, `topK` 40, `maxOutputTokens` up to 2048 (call sites often cap lower)
+
+**Redis caching** keys responses as `gemini:${cacheKey}` with a one-hour TTL. Chat uses `chat:${conversationId}:${hash(message)}` so repeated phrasing in the same thread hits cache — useful for dev, risky in prod if you need fresh answers (invalidation strategy would be required).
+
+**Non-streaming** path: `generateContent` → single string.
+
+**Streaming** path — the one that matters for UX:
+
+```typescript
+const result = await selectedModel.generateContentStream(prompt);
+for await (const chunk of result.stream) {
+  const chunkText = chunk.text();
+  onChunk(chunkText);
+}
+```
+
+That is **true token streaming** from Google’s API: time-to-first-token improves as soon as the model emits partial text. This is the behavior described in Google’s [text generation streaming docs](https://ai.google.dev/gemini-api/docs/text-generation#streaming) for the current Gemini SDK generation.
+
+---
+
+## Chat agent: context assembly before the model sees text
+
+`ChatbotAgent` loads **user profile** and the last **five messages** from Firebase, then builds a single prompt:
+
+- Profile: display name, interests, app purpose, location, bio
+- Last three turns rendered as `User:` / `Assistant:` lines
+- Instruction block: helpful social assistant, **under ~100 words**, networking tone
+
+Sync flow (`POST /api/chat/message`):
+
+1. Build prompt
+2. `generateResponse` with cache key
+3. Persist assistant reply to Firebase (`senderId: 'assistant'`, message type text)
+4. Return JSON metadata including `model: 'gemini-1.5-flash'`
+
+Streaming flow delegates chunks to the controller — no Firebase write in the streaming handler in the codebase I froze (a gap if you want durable transcripts during stream).
+
+---
+
+## SSE endpoint: how the wire format works
+
+`ChatController` implements streaming the way [MDN documents SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events): response headers `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`, then **UTF-8 lines** of the form `data: …` terminated by a blank line.
+
+```typescript
+await chatbotAgent.processStreamingMessage(body, (chunk: string) => {
+  reply.raw.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+});
+reply.raw.write('data: [DONE]\n\n');
+reply.raw.end();
+```
+
+**Why SSE fits this experiment**
+
+Per MDN, SSE is a **one-way** server → client channel over HTTP. Each chat turn is: client sends one POST body, server streams many events. That matches LLM UX without a bidirectional socket.
+
+Browsers expose this via `EventSource`; React Native clients typically use `fetch` with a readable stream or libraries that parse SSE frames. Caveat from MDN: on HTTP/1.1, browsers cap concurrent connections per host (~6), which can hurt if you open many SSE tabs — less of an issue for a single chat stream per user, and HTTP/2 multiplexing changes the picture.
+
+**Contrast with experiment B:** the GPU pod used WebSocket for the same *shape* of traffic (one prompt, many chunks) — I [regret that choice](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse) for inference output; I got SSE right here first.
+
+---
+
+## Matchmaking: algorithms first, Gemini for prose
+
+`MatchingService` is deliberately **not** “embed everyone and let the model sort.” It is explainable scoring:
+
+| Signal | Weight (user matches) | Mechanism |
+| --- | --- | --- |
+| Interests | 50% | Substring overlap between interest tags |
+| App purpose | 30% | Same |
+| Location | 20% | Exact string match (naive; geocoding would be next) |
+
+Threshold: score **> 0.1**, sort descending, take top **N** (default 5). Event matches bias **70%** interest / **30%** location against attendees.
+
+`MatchmakerAgent` then calls Gemini **per match** to generate a 1–2 sentence explanation (temperature **0.8**, max **100** tokens), with template fallback if the API fails. That split keeps ranking **auditable** and uses the LLM only for language — a pattern teams increasingly prefer over end-to-end neural rankers when you need debugging and fairness reviews.
+
+Endpoints:
+
+- `POST /api/matching/users` — body with `userId`, optional `preferences`, `context`
+- `POST /api/matching/events` — event payload + `userId`
+- `GET /api/matching/suggestions/:userId` — convenience wrapper
+
+---
+
+## What shipped vs what stayed in the repo
+
+**In the Fastify service (complete and callable):**
+
+- Full Fastify service with Zod validation
+- Gemini sync + stream + Redis cache
+- Matching math + explanation generation
+- SSE chat route **implemented and callable**
+
+**Not wired in the mobile client:**
+
+- No `EventSource` or `message/stream` usage (the in-app AI tab used mock conversations)
+- No production JWT auth — middleware stub only
+
+So experiment A is “**I built the right transport for managed streaming**,” not “**the app shipped it**.” That distinction matters for technical readers: transport correctness and product integration are separate milestones.
+
+---
+
+## What I would do next (experiment A)
+
+1. **Wire the mobile client** to `/message/stream` first — managed Gemini is the fast path to users.
+2. **Persist streaming deltas** — buffer chunks server-side, single Firebase write on `[DONE]`.
+3. **Tighten cache keys** — include model version and system-prompt hash in `cacheKey`.
+4. **Promote JWT auth** — replace dev `test-token` gate before any public deploy.
+5. **Optional: BFF proxies experiment B** — if the GPU pod returns tokens via [OpenAI-compatible streaming](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html), re-emit SSE to the phone so both backends share one client protocol.
+
+---
+
+## Playbook takeaway
+
+If you are “playing with AI” on a product team, start with **experiment A**: managed API, deterministic core logic, LLM for language-only surfaces, **SSE for streams**. Add **experiment B** when you have a dollar model and care about residency. Do not expose WebSocket to the phone for token streaming unless you truly need bidirectional frames — [my GPU post](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse) explains why.
+
+---
+
+## Hybrid matching before the LLM runs
+
+Deterministic scoring runs first — the BFF never asks Gemini to rank users it could filter in code. Weights in `MatchingService`:
+
+| Signal | Weight | Mechanism |
+| --- | --- | --- |
+| Shared interests | 0.5 | Substring overlap on tag arrays |
+| App purpose | 0.3 | Same overlap on purpose tags |
+| Location | 0.2 | Normalized distance / region match |
+
+Matches below **0.1** total score are dropped before sort; the top five survive. That threshold prevented “0.03 compatibility” noise from reaching the mobile UI during early testing.
+
+---
+
+## Redis cache on non-streaming paths
+
+`GeminiService` checks `gemini:${cacheKey}` before calling the API and stores responses with **3600s TTL** on hit. Streaming chat uses a separate code path; cache keys for chat include conversation id and prompt hash so a reused opener does not replay stale answers across threads.
+
+---
+
+## Closing thought
+
+Stream tokens over SSE from a BFF you control; let Gemini or vLLM be implementation details behind that edge. If the phone can use `fetch` and `EventSource`, you keep one client protocol for both experiments.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Self-hosting Llama-2 13B GPTQ (experiment B)](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse) | Paired GPU spike — WebSocket regret, vLLM paths, fake streaming |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Product context for chat, matching, and why AI stayed optional |
+| [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | Rules and App Check before any AI endpoint touches prod data |
+| [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Where **bidirectional** WebSockets are the right tool (not LLM token streams) |
+
+**External:** [Gemini text generation (streaming)](https://ai.google.dev/gemini-api/docs/text-generation#streaming) · [MDN: Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)

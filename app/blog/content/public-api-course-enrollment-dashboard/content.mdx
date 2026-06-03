@@ -1,0 +1,146 @@
+export const metadata = {
+  title: "Building a course roster dashboard over a third-party public API",
+  description:
+    "TypeScript Express BFF plus React UI — published courses, active enrollments, parallel user hydration, and lessons on API-native filters versus application-tier filtering.",
+  date: "2025-09-20",
+  dateModified: "2026-06-03",
+  excerpt:
+    "A small full-stack exercise: join courses, enrollments, and users from a creator-platform Public API, with retries, rate spacing, and a nested CRA client that taught me to treat setup docs as part of the API surface.",
+  tags: ["TypeScript", "React", "Express", "API design"],
+};
+
+# Building a course roster dashboard over a third-party public API
+
+## TL;DR
+
+I built an **Express BFF + React** dashboard that calls a **creator-platform Public API** and lists **published courses** with each course’s **name**, **heading**, and **active enrollments** (student **name + email**).
+
+| Layer | Responsibility |
+| --- | --- |
+| BFF service | `GET /courses`, filter `is_published`, fan out enrollments + users |
+| `GET /api/courses` | Aggregated `CourseWithStudents[]` for the UI |
+| React | Horizontal course cards; **no** client-side published filter |
+| Tests | Jest on filtering, retries, and error paths |
+
+This post is about **integration design** and **developer experience** — not a product launch.
+
+---
+
+## The spec
+
+Minimum bar:
+
+- Fetch **published** courses in a school
+- For each: **name**, **heading**, list of **actively enrolled** students with **name** and **email**
+
+---
+
+## Data flow
+
+```text
+Browser → GET /api/courses (Express BFF)
+              → GET /courses (upstream)
+              → filter is_published (application tier)
+              → per course: enrollments → parallel user lookups
+              → merge → JSON to React
+```
+
+The controversial filter runs **after** listing all courses:
+
+```typescript
+const publishedCourses = response.courses.filter(
+  (course) => course.is_published,
+);
+```
+
+Architecturally that is **BFF-tier** filtering, not React filtering. The better design — when the upstream API documents it — is a **query parameter** on `GET /courses` so draft rows never cross the wire. [Microsoft’s API design guidance on filtering collections](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design#filtering-and-pagination) describes the same principle: push predicates to the origin when possible.
+
+### The lesson that stuck
+
+The biggest surprise at the time: **filtering and sorting belong on the API**, not in the React layer. With ~**75 test courses** in the environment, client-side `filter()` felt fine — but that mindset does not scale. Pulling only `is_published=true` rows upstream saves bandwidth, keeps pagination honest, and avoids leaking draft metadata to the browser. Years later that sounds obvious; in the exercise it was the main architectural correction.
+
+---
+
+## BFF hardening
+
+| Concern | Approach |
+| --- | --- |
+| Transient 5xx / 429 | Retries with backoff |
+| Rate limits | Spacing between upstream calls |
+| Browser attack surface | Helmet + CORS on Express |
+| Wide course lists | Summary stats + horizontal scroll affordances |
+
+### Upstream client mechanics (what the service actually does)
+
+The BFF wraps the Public API with a dedicated service class (typed fetch layer, not hand-rolled `axios` in routes):
+
+| Constant | Value | Effect |
+| --- | --- | --- |
+| `API_TIMEOUT` | 10 s | `AbortController` abort → `408` on hung sockets |
+| `MAX_RETRIES` | 3 | Retries on network errors, **5xx**, and **429** |
+| `RETRY_DELAY` | 1 s base | Exponential backoff + jitter, capped at **30 s** |
+| Rate spacing | 50 ms minimum | Doubles toward **1 s** after burst (`requestCount > 10`) |
+
+Retry decision (simplified):
+
+```typescript
+private shouldRetry(error: unknown): boolean {
+  if (isNetworkError(error)) return true;
+  if (error instanceof ApiError) {
+    return error.status >= 500 || error.status === 429;
+  }
+  return false;
+}
+```
+
+### Enrollment fan-out: parallel users, sequential courses
+
+`getPublishedCoursesWithStudents()` is a **two-level** fan-out:
+
+1. List all courses → filter `is_published` in the BFF (the lesson from ~75 test rows).
+2. For **each** published course, `GET …/enrollments`, dedupe `user_id`, then **`Promise.allSettled`** on per-user `GET …/users/:id`.
+
+Partial failure is intentional: a rejected user lookup logs a warning and drops that enrollment instead of failing the whole dashboard. Empty enrollments short-circuit without user calls.
+
+The outer loop is **sequential per course** — fine for a school-sized roster, but a production variant would batch courses or cap concurrency to protect upstream rate limits.
+
+### HTTP contract to the React app
+
+`GET /api/courses` returns an envelope the UI can assert in tests:
+
+```json
+{
+  "success": true,
+  "data": [{ "course": { … }, "students": [ … ] }],
+  "meta": { "total_courses": 12, "total_students": 84 }
+}
+```
+
+`/api/courses/summary` flattens the same aggregation for lighter clients. Both routes share the same service method — duplication is only at the JSON shape layer.
+
+---
+
+## Runnable path vs correct JSON
+
+A monorepo README that says `npm install && npm run dev` at the root is misleading when:
+
+- Create React App lives in **`src/client/`** with its own `package.json`
+- **`REACT_APP_API_URL`** must exist where CRA reads env vars (`src/client/.env`)
+
+You can pass **server unit tests** and still fail to boot the UI — which means **setup documentation is part of the contract**, same as response shape.
+
+---
+
+## Closing thought
+
+Correct aggregation with a broken onboarding path is half a system. On third-party APIs, use documented query filters first, then aggregate — and document every install directory the way you document every route.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| First MERN app | [First MERN stack deploy](/blog/first-mern-stack-production-deploy) |
+| Team MERN capstone | [Exam workflow capstone](/blog/team-mern-exam-workflow-capstone) |
+| Express production best practices | [Express security best practices](https://expressjs.com/en/advanced/best-practice-security.html) |

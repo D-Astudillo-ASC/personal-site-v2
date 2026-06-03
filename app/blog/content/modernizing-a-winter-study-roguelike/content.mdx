@@ -1,0 +1,249 @@
+export const metadata = {
+  title: "Modernizing a winter-study roguelike with Vite and ROT.js",
+  description:
+    "Weed Strike (2018): manual ROT.js render loops versus React’s automatic re-rendering — plus a 2025 Vite 7 toolchain, ESLint 9, and deploy gates.",
+  date: "2025-07-19",
+  dateModified: "2026-06-03",
+  excerpt:
+    "Before React reconciled the DOM for you, this game called game.render() after every turn — display.clear(), redraw the map, repeat. That lesson survived a Vite 7 refresh.",
+  tags: ["JavaScript", "Vite", "ROT.js", "Games", "Rendering"],
+};
+
+# Modernizing a winter-study roguelike with Vite and ROT.js
+
+## TL;DR
+
+[Roguelike-Game-Winter-Study-2018](https://github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018) (**Weed Strike**, Williams Winter Study **2018**) is a **ROT.js** dungeon crawler in plain JavaScript. In **2025** I refreshed the **toolchain** (Vite 7, ESLint 9, `deploy:check`) without rewriting the core lesson:
+
+> **State changes do not paint the screen. You paint the screen.**
+
+Play: [roguelike-game-winter-study-2018.vercel.app](https://roguelike-game-winter-study-2018.vercel.app)
+
+**Winter Study 2018:** solo — design, implementation, and tuning were 100% mine.
+
+---
+
+## Monster AI — pathfinding without melting the frame
+
+`PlayMode` spawns a mix of entity types mapped to three AI classes:
+
+| Class | Behavior |
+| --- | --- |
+| **SmartAI** | Longer detection/chase, line-of-sight, **stuck detection** via position history, shuffled move priorities around walls |
+| **BalancedAI** | Mid-range chase; direct move with LOS, else obstacle-aware fallback |
+| **SimpleAI** | Short range; probabilistic chase + diagonal wander |
+
+Chase logic uses **local heuristics** (`moveDirectlyToPlayer`, `moveAroundObstacles`, `moveSmartRandomly`) — not full grid search every frame.
+
+I experimented with **ROT.js A\*** in `BaseAI.js`. The implementation is still there, commented, with:
+
+```javascript
+// DISABLED: A* pathfinding is too expensive
+// Use simple movement instead
+```
+
+Recomputing A\* toward the player **whenever the player moved** made the game feel **laggy** — the right trade-off for a turn-based ASCII display was cheaper heuristics plus SmartAI’s stuck counter, not optimal paths.
+
+### SmartAI parameters (from `SmartAI.js`)
+
+| Config | Default | Behavior |
+| --- | --- | --- |
+| `detectionRange` | **19** | When to start chasing (tuned down from 20) |
+| `chaseDistance` | **17** | How far pursuit continues (down from 30) |
+| Position history | last **5** tiles | Stuck if ≤ **2** unique cells in history |
+| `stuckCounter` | > **2** | Switches to shuffled escape moves, then resets |
+
+When line-of-sight fails, `moveAroundObstaclesSmart()` builds a **priority list** (toward player, perpendicular, orthogonal, diagonal), **Fisher–Yates shuffles** it, and tries each candidate with `moveToPosition`. If all fail, it falls back to `moveRandomly()`.
+
+```javascript
+if (uniquePositions.size <= 2 && this.lastPositions.length >= 3) {
+  this.stuckCounter++;
+} else {
+  this.stuckCounter = 0;
+}
+```
+
+That is cheaper than A\* every turn and reads better in playtests than monsters orbiting a corner forever.
+
+---
+
+## Corner cases marked in source
+
+The 2025 refresh left inline anchors where a bigger team would use tickets:
+
+| Location | Note |
+| --- | --- |
+| `js_src/utils/isMobileUI.js` | `TODO: Sync this with CSS definitions.` |
+| `js_src/systems/Game.js` | `TODO: Organize this into a class...` (responsive display recreation) |
+| `js_src/world/Map.js` | Debug paths for **entity placement** and **coordinate sync** |
+| `js_src/entities/ai/BaseAI.js` | Disabled A\* block documenting perf cost |
+
+---
+
+## What React taught me to forget
+
+In **React 19**, you update state (`setState`, hooks) and the runtime schedules a **re-render** — a virtual tree diff reaches the DOM (see [React docs — render and commit](https://react.dev/learn/render-and-commit)).
+
+In **2018 ROT.js**, nothing schedules draws for you:
+
+| Step | Who owns it |
+| --- | --- |
+| Mutate game state (`tryWalk`, scheduler, HP) | Your entities + `DATASTORE` |
+| Decide the frame is stale | **You** (input handler, turn engine, mode switch) |
+| Clear the canvas | `display.clear()` on each `Display` |
+| Draw tiles, entities, messages | Mode `render()` methods |
+| Show the result | Browser already has the canvas from prior frames |
+
+If you forget `game.render()` after moving the player, the model updates and the screen **lies**. That is the same class of bug as stale UI in React — except there is no reconciler to bail you out.
+
+---
+
+## Three displays, one orchestrator
+
+`Game.js` mounts **three** [ROT.Display](https://ondras.github.io/rot.js/manual/#display) instances:
+
+| Display | Purpose |
+| --- | --- |
+| `main` | Dungeon map + entities (camera-scrolled) |
+| `avatar` | Player stats strip (play mode only) |
+| `message` | Log / status line |
+
+Central orchestration:
+
+```javascript
+render: function () {
+  this.renderMain();
+  this.renderAvatar();
+  this.renderMessage();
+},
+```
+
+`renderMain` always **clears** before delegating:
+
+```javascript
+if (this.curMode && this.display.main.o) {
+  this.display.main.o.clear();
+  this.curMode.render(this.display.main.o);
+}
+```
+
+`PlayMode.render` clears again at mode scope, then draws the map:
+
+```javascript
+render(display) {
+  display.clear();
+  const map = DATASTORE.MAPS[this.state.mapId];
+  if (map) {
+    map.render(display, this.state.cameraX, this.state.cameraY);
+  }
+  // ...
+}
+```
+
+So a frame is: **clear → draw terrain → draw entities → draw UI chrome** — classic immediate-mode game loop thinking.
+
+---
+
+## When `render()` fires (manual contract)
+
+After a successful player step, `PlayMode` updates the turn clock and **explicitly** paints:
+
+```javascript
+if (avatar.tryWalk && avatar.tryWalk(movement.dx, movement.dy)) {
+  this.moveCameraToAvatar();
+  TIME_ENGINE.playerTookTurn();
+  this.lastTurnTime = now;
+
+  // Render once after complete turn
+  this.game.render();
+}
+```
+
+Same pattern on death:
+
+```javascript
+Message.clear();
+this.game.render();
+this.game.switchModes("lose");
+```
+
+Mode switches call `this.render()` after swapping `curMode` so startup / win / lose screens appear without a separate subscription system.
+
+**Contrast with React:** you would store `{ x, y, hp }` in state and trust a child `<Dungeon />` to re-run. Here, **input code must remember the paint call** — that discipline is what I reference in interviews when explaining why React’s batching and concurrent features matter.
+
+---
+
+## Resize: recreate displays, then render
+
+On window resize, the game recalculates character-cell dimensions (mobile portrait vs landscape vs desktop), **removes old DOM nodes**, instantiates new `Display` objects, and calls `this.render()`. That is closer to **remounting** a canvas component than tweaking CSS — another place React’s “same component, new props” abstraction hides cost.
+
+---
+
+## Game systems (still plain JS)
+
+ROT.js handles tile glyphs and input; the repo adds:
+
+- **Scheduler / turn engine** — player turn signals monster turns
+- **Entity factory** — avatar + monster AI variants
+- **Mode registry** — startup, play, pause, win, lose
+- **Persistence** — JSON save/restore hooks on `Game`
+
+The **2025 modernization** did not port this to React on purpose. The pedagogical value is the **imperative render graph**.
+
+---
+
+## 2025 toolchain refresh
+
+The **July 2025** refresh (about two days of focused migration work) covered:
+
+| Theme | Examples |
+| --- | --- |
+| Vite migration | ES modules, `Game.init` entrypoint, PostCSS, legacy plugin |
+| Architecture | `EntityFactory`, `DataStore`, scheduler, mode registry |
+| UX | Mobile layout + joystick, message fade, `dev:host` for LAN testing |
+| Combat | Mixin fixes for player damaged/attack events |
+
+| Before | After |
+| --- | --- |
+| Legacy bundler | **Vite 7** + `@vitejs/plugin-legacy` |
+| Ad-hoc quality | **ESLint 9**, **Prettier 3**, `deploy:check` |
+| Laptop-only | `build:prod`, bundle analyzer, Vercel preview |
+
+Scripts worth naming:
+
+- `deploy:check` — lint + format check + production build before ship
+- `build:analyze` — know which polyfills dominate weight
+- `README-DEPLOYMENT.md` — staging ports, optional Docker, Lighthouse hooks
+
+Overkill for a Winter Study demo — appropriate for practicing **release hygiene** on throwaway games.
+
+---
+
+## If I rewrote gameplay in React today
+
+I would not sprinkle `useEffect` on every keypress. Likely patterns:
+
+| Approach | Trade-off |
+| --- | --- |
+| Single `useReducer` + canvas `ref` + manual `draw()` in effect | Keeps ROT.js; React only owns schedule |
+| `requestAnimationFrame` loop | Continuous animation; still manual draw |
+| Pure React DOM grid | Loses ROT.js glyph performance; different game |
+
+The lesson from 2018: **separate simulation state from presentation**, and make presentation an explicit phase — React just automates that phase for web apps.
+
+---
+
+## Closing thought
+
+Winter Study code aged when bundlers did; the idea did not. Calling `game.render()` after every turn is the ancestor of React re-renders — without the safety net. Refresh Vite so the artifact builds; keep the manual render calls so you remember what the framework is doing for you now.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| ROT.js Display | [ROT.js manual — Display](https://ondras.github.io/rot.js/manual/#display) |
+| React render & commit | [React — Render and commit](https://react.dev/learn/render-and-commit) |
+| Repository | [github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018](https://github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018) |
+| Live demo | [roguelike-game-winter-study-2018.vercel.app](https://roguelike-game-winter-study-2018.vercel.app) |

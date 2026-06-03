@@ -1,0 +1,130 @@
+export const metadata = {
+  title: "Building Perpetual Gems: Angular SSR, i18n, and a repair intake API",
+  description:
+    "A multilingual jewelry repair marketing site — Angular 19 standalone components, Tailwind v4, Express lead capture with CSRF, and deployment to Vercel.",
+  date: "2025-08-06",
+  excerpt:
+    "Perpetual Gems at perpetual-gems.vercel.app: eight-locale ngx-translate, repair workflow UX, and a small Express API for secure form posts — Angular SSR without reaching for Next.",
+  tags: ["Angular", "TypeScript", "i18n", "Express", "SSR"],
+};
+
+# Building Perpetual Gems: Angular SSR, i18n, and a repair intake API
+
+## TL;DR
+
+**[Perpetual Gems](https://perpetual-gems.vercel.app/)** is a marketing + lead-capture site for a fictional jewelry repair brand — a portfolio piece to prove I can ship **Angular 19** with the same care I put into React/Next work. Live at [perpetual-gems.vercel.app](https://perpetual-gems.vercel.app/). Stack:
+
+| Layer | Choice |
+| --- | --- |
+| Frontend | **Angular 19**, standalone components, **Tailwind CSS v4**, `@ngx-translate` |
+| SSR | **Angular SSR** (`@angular/ssr`) + Express host in `client` |
+| Backend | **Node + Express** in `server/` — repair intake, **Nodemailer**, **CSRF** |
+| Deploy | **Vercel** (`vercel.json`, postbuild copies browser bundle to `public/`) |
+| i18n | **8 locales** (US/UK English, ES variants, PT variants, FR, IT) with regional pricing copy |
+
+The README still calls the folder `franklin-jewelry/` internally — a rename debt from an earlier brand exercise. The engineering is the point: **trust-heavy local service UX** with real security basics on forms.
+
+---
+
+## Product goals
+
+Jewelry repair is high-trust, low-frequency. The site optimizes for:
+
+1. **Credibility** — gallery, service matrix (rings, chains, stones, restoration), “GIA certified” tone without being cheesy
+2. **Conversion** — “Start repair request” flow with clear steps and insurance language
+3. **Reach** — tourists and diaspora customers via **locale-aware copy and currency formatting**
+4. **Operator notification** — email when a repair form submits
+
+No database in v1 — email is the system of record. That matches “brochure + intake” scope.
+
+---
+
+## Frontend architecture
+
+Angular 19’s **standalone** APIs reduced NgModule ceremony. Layout is componentized (`components/`, services for translation and API calls). **Tailwind v4** via `@tailwindcss/postcss` keeps styling utility-first without pulling React ecosystem tools.
+
+**Internationalization** is not an afterthought:
+
+- Browser language detection on first visit
+- Persistent language cookie (`ngx-cookie-service`)
+- Per-locale JSON under `assets/i18n/`
+- Known debt (documented in README): language code mapping duplicated across `TranslationService`, `app.config.ts`, and the language switcher — needs a single config export
+
+SSR matters for **first paint** on marketing pages and for social previews; the Express integration in Angular 19 is smoother than the Universal boilerplate I used years ago, but Vercel still required an explicit **postbuild** copy into `public/` for static assets.
+
+---
+
+## Backend and security
+
+The `server/` package is a focused Express app:
+
+- **CORS** locked to known origins in production
+- **CSRF** middleware on mutating routes — forms must carry a token
+- **Environment-driven** SMTP (Gmail app password pattern documented)
+- Validation on repair payloads before email send
+
+That is the minimum bar for a public form on the internet in 2025. A pure static site would avoid server cost but would push secrets into serverless functions without structure; the split `client/` + `server/` monorepo keeps concerns clear.
+
+---
+
+## Deployment notes
+
+`package.json` at the root orchestrates:
+
+```json
+"build": "npm run build:server && npm run build:client && npm run postbuild",
+"postbuild": "mkdir -p public && cp -r client/dist/client/browser/* public/"
+```
+
+Vercel serves the static browser output; API routes proxy to the Node server per `vercel.json`. When postbuild broke once in **August 2025**, the symptom was a blank deploy — fixed by copying `client/dist/client/browser/*` into `public/` after the Angular build.
+
+---
+
+## What I'd do in v2
+
+| Item | Why |
+| --- | --- |
+| Centralize locale config | One `languages.ts` consumed by switcher + loader |
+| Repair status portal | Customers expect tracking numbers |
+| Photo upload to object storage | Assessment without shipping |
+| Replace fictional metrics | “1000+ repairs” undermines trust if literal |
+| E2E smoke on Vercel preview | Playwright against `/` + form happy path |
+
+---
+
+## Angular 19 CSRF cookie pattern
+
+The Express server sets a readable `XSRF-TOKEN` cookie on first visit — Angular’s HTTP client mirrors it into the `X-XSRF-TOKEN` header on mutating requests. CORS uses an explicit origin allowlist with `credentials: true`; unknown origins fail closed:
+
+```typescript
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (SERVER.CORS.ORIGIN.includes(origin)) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+```
+
+---
+
+## Repair intake validation
+
+`/repair-requests` rejects missing env vars before touching Nodemailer, validates required body fields server-side, and sends **two** emails — shop notification plus customer confirmation — so a successful HTTP 200 actually means both paths succeeded.
+
+---
+
+## Closing thought
+
+Repair businesses convert on clarity—what you fix, how long it takes, and a form that does not lose leads to CSRF or silent mail failures. Framework choice matters less than translated copy and a server that validates before it sends email.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| Live site | [perpetual-gems.vercel.app](https://perpetual-gems.vercel.app/) |
+| Static template alternative | [Astro + Bun landing](/blog/astro-bun-landing-template-experiment) |
+| Portfolio v1 → v2 | [Gatsby to Next](/blog/portfolio-v1-gatsby-to-next-v2) |

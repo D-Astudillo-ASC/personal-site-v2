@@ -1,0 +1,165 @@
+export const metadata = {
+  title: "Shipping an Expo app through TestFlight",
+  description:
+    "EAS local builds vs prebuild + Xcode, Transporter IPA validation, UIBackgroundModes footguns, privacy policy URLs, and the checklist that separates “works in Expo Go” from “upload accepted.”",
+  date: "2025-11-15",
+  excerpt:
+    "From expo-doctor and audit:ios to App Store Connect metadata — the operational playbook for getting an Expo app from dev build to TestFlight upload.",
+  tags: ["Expo", "React Native", "iOS", "Mobile"],
+};
+
+# Shipping an Expo app through TestFlight
+
+## TL;DR
+
+| Gate | Tool | What it catches |
+| --- | --- | --- |
+| Config health | `expo-doctor` | Plugin mismatches, SDK drift |
+| iOS-specific | `audit:ios` | Permissions, icons, privacy manifest gaps |
+| Native truth | `expo prebuild` + Xcode archive | What Expo Go never exercises |
+| Upload | Transporter + validation script | Invalid `UIBackgroundModes`, signing |
+| Store | App Store Connect | Privacy policy URL, screenshots, export compliance |
+
+**Series:** [Mobile platform architecture](/blog/lessons-from-building-a-mobile-events-social-platform) · [Firebase security](/blog/securing-firebase-for-a-social-mobile-app) (fix before you burn a build slot) · AI experiments ([Gemini SSE](/blog/building-a-gemini-ai-backend-with-sse) · [GPU pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse))
+
+---
+
+## “Works on my phone” is not a release candidate
+
+Expo Go masks an entire class of failures: native modules you have not prebuilt, entitlement gaps, background modes that Apple rejects at upload time, and privacy manifests required for third-party SDKs.
+
+Distribution was **first-class engineering**, not a Friday afternoon task. The playbook clusters into three layers: **validate config**, **produce a signed IPA**, **pass App Store Connect paperwork**.
+
+---
+
+## Layer 1: fail fast before Xcode
+
+**`expo-doctor`** catches dependency and plugin inconsistencies while you are still in JavaScript land.
+
+**`audit:ios`** (project-specific script) walks Info.plist expectations: camera/mic usage strings, photo library access, notification permissions, icon sets.
+
+Honest validation standard: automated scripts cannot prove runtime crashes on device. They **block known-bad uploads** so you do not wait 20 minutes for Transporter to fail on `UIBackgroundModes`.
+
+### UIBackgroundModes footgun
+
+Apple rejects invalid mode strings. A common mistake is `background-processing` vs the exact token Apple expects (`processing` in the valid set for your use case). Fix flow:
+
+1. `expo prebuild` to materialize `ios/`
+2. Inspect `Info.plist` with `plutil` or Xcode
+3. Correct modes in `app.config` / plugin config
+4. Re-prebuild — do not hand-edit generated native projects without tracing back to config
+
+---
+
+## Layer 2: two build paths
+
+### EAS cloud build
+
+Best when CI owns releases. `eas build --platform ios --profile production` with credentials in EAS. Pair with `eas submit` or manual Transporter upload.
+
+### Local Xcode archive (preferred for native debugging)
+
+```bash
+eas build --platform ios --profile production --local
+# or
+npx expo prebuild --platform ios
+# open ios/*.xcworkspace in Xcode → Archive → Distribute
+```
+
+Local builds matter when you need **Xcode Organizer logs** or entitlements debugging that cloud build summaries flatten away.
+
+---
+
+## Layer 3: Transporter validation
+
+Before App Store Connect sees the IPA, run validation:
+
+- Bundle identifier matches provisioning profile
+- Code signing identity is distribution, not development
+- Required device capabilities align with `@react-native-firebase/*` and camera modules
+- No forbidden background modes
+
+A shell script wrapped Transporter CLI checks in the project — treat it as a preflight, not a substitute for TestFlight crash reports.
+
+---
+
+## App Store Connect paperwork engineers forget
+
+| Requirement | Why reviewers care |
+| --- | --- |
+| Privacy policy URL | Must load; social apps get scrutinized |
+| Export compliance | Encryption usage questionnaire |
+| Age rating questionnaire | User-generated content triggers higher scrutiny |
+| Screenshots per device class | 6.7" and 5.5" minimum set |
+| Subtitle + keywords | Discovery, not vanity — 30-char subtitle |
+
+TestFlight readiness review flagged **TypeScript errors in navigation** and **missing privacy URL** as blockers — not performance, not feature count.
+
+---
+
+## Native modules that force prebuild
+
+In this stack:
+
+- **VisionCamera** — HDR photo/video, gesture handlers; not Expo Go compatible
+- **WebRTC calling** — requires native WebRTC stack + background audio entitlements
+- **App Check** — DeviceCheck / Play Integrity need native config plugins
+
+If your pitch deck says “video calls” and your build pipeline stops at Expo Go, you are lying to yourself, not investors.
+
+---
+
+## WebRTC adds distribution complexity
+
+Audio/video calling ([architecture context](/blog/lessons-from-building-a-mobile-events-social-platform) — WebRTC + Firebase signaling) implies:
+
+- Microphone/camera usage descriptions in plist
+- Background audio mode (scrutinized)
+- CallKit integration if you want native incoming-call UX on iOS
+
+Ship calling only after TestFlight proves **plain navigation + chat + camera** stable. Calling multiplies failure modes.
+
+---
+
+## Release checklist (condensed)
+
+1. P0 security rules deployed
+2. `expo-doctor` clean
+3. `audit:ios` clean
+4. Production profile build succeeds locally at least once
+5. Transporter validation passes
+6. Privacy policy live
+7. TestFlight internal group → 24h dogfood → external beta
+
+---
+
+## IPA preflight script
+
+Before Transporter, `validate-ipa.sh` unpacks the archive and fails fast on issues Apple rejects silently:
+
+| Check | What it catches |
+| --- | --- |
+| `plutil -lint Info.plist` | Malformed plist syntax |
+| Required keys (`CFBundleIdentifier`, version, build) | Missing metadata |
+| `UIBackgroundModes` allowlist | Invalid values like `background-processing` typos |
+| `codesign -dv` | Unsigned or broken signature chain |
+
+The script extracted the `.app` bundle, validated background modes against Apple’s enumerated list, and printed version/build for the release notes copy-paste — saving a round trip when EAS produced an IPA with a bad plist merge.
+
+---
+
+## Closing thought
+
+Distribution is a feature: broken entitlements and rejected privacy strings waste the same week as a flaky chat screen. Run an internal TestFlight build before you optimize animations.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Architecture spine — what you are shipping |
+| [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | P0 rules before TestFlight |
+| [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Native rebuild required for App Check — same class of work |
+
+**External:** [Expo: Create a production build](https://docs.expo.dev/build/introduction/) · [Apple: TestFlight beta testing](https://developer.apple.com/testflight/) · [EAS Build](https://docs.expo.dev/build/introduction/)

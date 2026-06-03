@@ -2,7 +2,7 @@ export const metadata = {
   title: "Building a microfrontend platform for data products",
   description:
     "Module Federation shell, Fastify BFFs, Auth0 Organizations + Custom Token Exchange, and CI contract gates — how to let multiple UI teams deploy independently without breaking a shared runtime.",
-  date: "2026-05-31",
+  date: "2026-05-30",
   excerpt:
     "Federation type stubs, Auth0 CTE for downscoped tokens, and CI merge blockers for cache headers, CSP, and remote export drift.",
   tags: [
@@ -26,7 +26,7 @@ export const metadata = {
 | Identity | **Auth0 Organizations** + **Custom Token Exchange (RFC 8693)** | Org-scoped access + least-privilege tokens per remote |
 | Quality | CI on **Cache-Control**, **CSP**, **stub compliance** | Platform invariants enforced at merge, not in prod console |
 
-After moving a hot API from **21s to ~250ms**, the next bottleneck was frontend coordination: **N product UIs, one authenticated session, zero cross-team deploy coupling**. This post covers the platform shell pattern — host + federated remotes + BFF seam — without tying it to any single product name.
+After moving a hot API from [**21s to ~250ms**](/blog/cutting-a-data-api-from-21s-to-250ms), the next bottleneck was frontend coordination: **N product UIs, one authenticated session, zero cross-team deploy coupling**. This post covers the platform shell pattern — host + federated remotes + BFF seam — without tying it to any single product name.
 
 ---
 
@@ -241,6 +241,29 @@ Success metric: **zero silent stub breaks** during incremental remote rollouts �
 
 ---
 
-## Takeaway
+## Auth0 token exchange at the shell boundary
 
-Latency work optimizes milliseconds on the hot path. Platform work optimizes **contract safety across team boundaries** — federation stubs, Auth0 CTE for token shape, CI for cache/CSP invariants. The cost is real; the alternative is monolith deploy queues or iframe isolation.
+The host exchanges the user’s session for a **downscoped** API token before remotes mount. Remotes never see the full Auth0 access token — they receive a CTE token scoped to the data product’s audience. When a remote’s bundle drifted on `@auth0/auth0-spa-js`, the symptom was silent 401s on BFF calls while the shell still looked logged in — fixed by pinning shared auth packages in the host’s `shared` federation config.
+
+---
+
+## Stub compilation in CI
+
+Each remote builds against **compiled stubs** of sibling remotes in CI, not live `remoteEntry.js` fetches. A missing export fails the build with a type error instead of a white screen in production when team B ships before team A updates the contract.
+
+---
+
+## Closing thought
+
+Latency work optimizes milliseconds on the hot path. Platform work optimizes **contract safety across team boundaries** — federation stubs, Auth0 CTE for token shape, CI for cache/CSP invariants. Hosts pay the tax in CI and runtime; remotes pay it in semver. Both sides must treat shared dependencies as a contract, not a suggestion.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Cutting a data API from 21s to ~250ms](/blog/cutting-a-data-api-from-21s-to-250ms) | Prerequisite — why the BFF had to exist on a fast OLTP plane |
+| [Bridging AMQPS and JMS for real-time events](/blog/bridging-amqps-and-jms-for-real-time-events) | Async domain events when the UI does not need to wait |
+
+**External:** [Module Federation concepts](https://module-federation.io/guide/basic/introduction.html) · [Auth0: Token Exchange (RFC 8693)](https://auth0.com/docs/authenticate/protocols/token-exchange) · [Rspack Module Federation plugin](https://module-federation.io/guide/basic/rspack)

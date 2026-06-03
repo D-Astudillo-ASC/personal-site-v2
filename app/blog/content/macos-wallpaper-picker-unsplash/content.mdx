@@ -1,0 +1,178 @@
+export const metadata = {
+  title: "macOS wallpaper picker with SwiftUI and the Unsplash API",
+  description:
+    "A 2022 SwiftUI desktop app — Unsplash random photos, SDWebImageSwiftUI, cache-directory JPEGs, NSWorkspace desktop images, and how you would modernize it in 2026.",
+  date: "2022-01-03",
+  dateModified: "2026-06-03",
+  excerpt:
+    "WallpaperApp: SwiftUI grid, presigned-style downloads to ~/Library/Caches, NSWorkspace.setDesktopImageURL, and a 2026 refresh path with async/await, Photos, and Screen Saver APIs.",
+  tags: ["Swift", "SwiftUI", "macOS", "Unsplash"],
+};
+
+# macOS wallpaper picker with SwiftUI and the Unsplash API
+
+## TL;DR
+
+**WallpaperApp** (January 2022) is a **macOS SwiftUI** utility: fetch **Unsplash** `photos/random`, show a scrollable grid, download the `"full"` asset into a cache folder, and set the **desktop picture** with **`NSWorkspace`**.
+
+| Piece | Role |
+| --- | --- |
+| `UnsplashData` (`ObservableObject`) | `URLSession` + `JSONDecoder` → `[Photo]` |
+| `SDWebImageSwiftUI` | Thumbnail grid (`urls["small"]`) |
+| `URLSession.dataTask` | Full-resolution download on button tap |
+| `FileManager` | `~/Library/Caches/.../WallpaperApp_Images` |
+| AppKit bridge | `NSImage` → JPEG → `setDesktopImageURL` |
+
+This is **desktop integration** practice — not an iOS port. I **never shipped** it to anyone else; it only ran on my machine.
+
+**Deployment target (Xcode):** **macOS 11.1** for the app target; unit/UI test targets still list **10.15** in `project.pbxproj`. UI code is gated with `@available(macOS 11.0, *)` in `ContentView.swift`.
+
+---
+
+## macOS surfaces involved
+
+### Caches directory (not Documents)
+
+Downloads use [FileManager.urls(for:in:)](https://developer.apple.com/documentation/foundation/filemanager/1407693-urls) with `.cachesDirectory` and `.userDomainMask`:
+
+```swift
+guard let downloadsPath = FileManager.default.urls(
+  for: .cachesDirectory, in: .userDomainMask
+).first?.appendingPathComponent("WallpaperApp_Images").path else { return }
+```
+
+Apple’s [File System Programming Guide — Where to Put App Files](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html) recommends **Caches** for re-downloadable data. Wallpaper JPEGs fit that bucket: they can be purged by the system under pressure without breaking user documents.
+
+### NSWorkspace and the desktop image
+
+The supported API to change the wallpaper is [setDesktopImageURL(_:for:options:)](https://developer.apple.com/documentation/appkit/nsworkspace/1527239-setdesktopimageurl) on [NSWorkspace.shared](https://developer.apple.com/documentation/appkit/nsworkspace):
+
+```swift
+try workspace.setDesktopImageURL(self.imgPath!, for: screen, options: [:])
+```
+
+You can read the current image with [desktopImageURL(for:)](https://developer.apple.com/documentation/appkit/nsworkspace/1528728-desktopimageurl) — the app tried to delete the previous file before applying the new one. That often fails while the system still references the path; the code logs and continues, which matches real-world desktop automation.
+
+### SwiftUI + AppKit mixing
+
+- **SwiftUI** for layout (`ScrollView`, `Button`, `WebImage`)
+- **AppKit** for `NSImage`, `NSBitmapImageRep`, cursor (`NSCursor.pointingHand`)
+- **`@StateObject`** for `UnsplashData` lifecycle
+
+[Human Interface Guidelines — macOS](https://developer.apple.com/design/human-interface-guidelines/macos) still apply: pointer feedback on hover, readable footnotes for photo descriptions, plain button style on image tiles.
+
+---
+
+## Unsplash API flow
+
+`UnsplashData` calls the **random photos** endpoint (no search query parameter in this version — refresh pulls another batch of five):
+
+```swift
+let url = "https://api.unsplash.com/photos/random/?count=5&client_id=\(apiKey)"
+```
+
+Tapping a tile uses the `"full"` URL from that JSON; the download is driven entirely from Swift (`URLSession` + `downloadNew`), not a separate search API.
+
+The API key lives in **`Unsplashed-Info.plist`** (bundle resource), not hard-coded in source — good for a student project, but for distribution you would move to **Keychain** or **Xcode build settings** + `.gitignore`.
+
+| Field | Use in UI |
+| --- | --- |
+| `urls["small"]` | Grid thumbnail via SDWebImage |
+| `urls["full"]` | Download target for wallpaper |
+| `description` / `alt_description` | Caption under tile |
+
+Public apps must follow [Unsplash API Guidelines](https://help.unsplash.com/en/articles/2511315-guideline-attribution) (hotlinking, attribution, rate limits). This stayed personal.
+
+---
+
+## Download pipeline (full resolution)
+
+On tap, the app:
+
+1. Resolves `urls["full"]`
+2. `URLSession.shared.dataTask` fetches bytes
+3. Converts to **JPEG** via `NSBitmapImageRep`
+4. Writes `desktop-{id}.jpg` under the cache folder
+5. Calls `setDesktopImageURL`
+
+The conversion step exists because Unsplash returns varied formats; normalizing to JPEG keeps `setDesktopImageURL` predictable.
+
+**Gap in 2022 code:** network completion runs off the main actor; UI state updates to `imgPath` happen inside the callback without `@MainActor` discipline — fine for a toy, worth fixing in a refresh.
+
+---
+
+## Grid model and refresh semantics
+
+`UnsplashData` is an `ObservableObject` that decodes **`[Photo]`** from the random endpoint (`count=5`). Each `Photo` is `Identifiable` with `urls["small"]` for the grid and `urls["full"]` for the wallpaper write.
+
+| Behavior | Implementation detail |
+| --- | --- |
+| Initial load | `loadData()` appends each decoded photo on `DispatchQueue.main.async` |
+| Refresh | `photoArr = []` then `loadData()` — can overlap in-flight tasks if the user spams Refresh |
+| Hover | `NSCursor.pointingHand` push/pop tied to `lastHoveredId` per tile |
+| Layout | Fixed **400×400** `ScrollView`, **360×200** image frames |
+
+The API key loader reads **`Unsplashed-Info.plist`** at runtime (`Bundle.main.path(forResource:)`). Missing plist or key calls `fatalError` — acceptable for a local utility, wrong for anything distributed.
+
+---
+
+## Full-resolution tap path (where bugs hide)
+
+`ImageView.downloadNew` chains four fragile steps:
+
+1. `URLSession` callback on a background queue (not structured concurrency).
+2. `NSImage(data:)` → force-unwrap `cgImage` → **JPEG** via `NSBitmapImageRep`.
+3. Write `desktop-{id}.jpg` under `WallpaperApp_Images` in **Caches**.
+4. `NSWorkspace.shared.setDesktopImageURL` on **`NSScreen.main` only**.
+
+Before applying the new file, the app tries to **delete the previous desktop image URL** from disk. That delete often fails while the system still references the path — the code logs and continues, which matches real desktop automation behavior.
+
+**2026 fixes:** `@MainActor` download + `async throws`, guard unwraps instead of `img!`, loop all `NSScreen.screens`, and call Unsplash’s [download tracking endpoint](https://unsplash.com/documentation#track-a-photo-download) after a successful set.
+
+---
+
+## Migration guide — June 2026 macOS standards
+
+If you are reviving this repo on a current Mac, treat this as a checklist (not a second product):
+
+| Step | Action |
+| --- | --- |
+| 1. Xcode | Open in **Xcode 16+**; set **Minimum Deployments → macOS 13** (or 14) so `MenuBarExtra` and modern SwiftUI APIs are available without `#available` branches. |
+| 2. Secrets | Move `API_KEY` out of `Unsplashed-Info.plist` into **xcconfig** + Keychain, or an `.xcconfig` file in `.gitignore`. |
+| 3. Concurrency | Replace `URLSession.dataTask` in `downloadNew` with `@MainActor` + `async` download; show errors with `alert` instead of `print`. |
+| 4. Wallpaper scope | Loop `NSScreen.screens` and call `setDesktopImageURL` per display; listen for `NSApplication.didChangeScreenParametersNotification`. |
+| 5. Unsplash compliance | On each successful wallpaper set, call the [download tracking endpoint](https://unsplash.com/documentation#track-a-photo-download) for the photo id; show photographer name + link in the UI. |
+| 6. Hardening | Prefer `Task { }` for refresh; cancel in-flight downloads when the user hits Refresh again. |
+| 7. Distribution | Personal use: ad-hoc sign. Mac App Store: enable **App Sandbox**, justify cache + network entitlements. |
+
+Optional product upgrades: **`MenuBarExtra`** picker, **Photos** picker for local files, **App Intents** “set random Unsplash wallpaper.”
+
+---
+
+## Modernizing summary
+
+| Area | 2022 app | 2026 direction |
+| --- | --- | --- |
+| Networking | Callback `URLSession` | **`async/await`** + structured `Task` cancellation |
+| Images | SDWebImageSwiftUI | `AsyncImage` or keep SDWebImage for disk cache |
+| Wallpaper | `NSScreen.main` only | All screens + display-change notifications |
+| SwiftUI | `ObservableObject` | `@Observable` + Swift 6 strict concurrency where enabled |
+| API | Random batch only | Optional **search** endpoint + download tracking |
+
+---
+
+## Closing thought
+
+The durable skill is knowing which framework owns which privilege — SwiftUI does not replace `NSWorkspace` for wallpaper changes, and thumbnails are not the same file you send to the desktop API. A 2026 pass is mostly concurrency, multi-display wallpaper, and Unsplash compliance — not reinventing the grid.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| NSWorkspace | [NSWorkspace — Apple Documentation](https://developer.apple.com/documentation/appkit/nsworkspace) |
+| setDesktopImageURL | [setDesktopImageURL(_:for:options:)](https://developer.apple.com/documentation/appkit/nsworkspace/1527239-setdesktopimageurl) |
+| File locations | [File System Overview](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html) |
+| SDWebImageSwiftUI | [SDWebImageSwiftUI on GitHub](https://github.com/SDWebImage/SDWebImageSwiftUI) |
+| Unsplash API | [Unsplash API documentation](https://unsplash.com/documentation) |

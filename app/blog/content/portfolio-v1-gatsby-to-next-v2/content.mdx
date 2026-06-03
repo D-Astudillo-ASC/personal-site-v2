@@ -1,0 +1,192 @@
+export const metadata = {
+  title: "Three generations of my personal site: Gatsby, Next, and Next again",
+  description:
+    "v1.danielastudillo.io (Gatsby 5), v2.danielastudillo.io (first Next.js generation), and danielastudillo.io (current Next 16 MDX) — what changed at each transition.",
+  date: "2025-05-10",
+  dateModified: "2026-06-03",
+  excerpt:
+    "Not two sites — three live URLs: Gatsby + GraphQL + particles, an intermediate Next deploy on the v2 subdomain, then the current editorial Next 16 stack with MDX and standalone output.",
+  tags: ["Gatsby", "Next.js", "MDX", "Portfolio", "SEO"],
+};
+
+# Three generations of my personal site: Gatsby, Next, and Next again
+
+## TL;DR
+
+I did not migrate once — I shipped **three** public generations of the same product (my portfolio + writing surface):
+
+| Gen | URL | Stack (high level) | Repo / role |
+| --- | --- | --- | --- |
+| **1** | [v1.danielastudillo.io](https://v1.danielastudillo.io/) | **Gatsby 5**, GraphQL data layer, React 18, Bootstrap, tsparticles | [personal-site](https://github.com/D-Astudillo-ASC/personal-site) — time capsule |
+| **2** | [v2.danielastudillo.io](https://v2.danielastudillo.io/) | **Next.js** on Vercel (`x-nextjs-prerender`, App Router era) | Intermediate Next rewrite — still live |
+| **3** | [danielastudillo.io](https://danielastudillo.io/) | **Next.js 16** canary, MDX blog, Tailwind v4, `output: "standalone"` | [personal-site-v2](https://github.com/D-Astudillo-ASC/personal-site-v2) — active |
+
+Gen 2 and Gen 3 share a repo name (`personal-site-v2`) but **different deploy targets and feature depth**. Treating “v2” as only the subdomain and “v3” as the apex domain matches how the URLs actually behave today.
+
+---
+
+## Generation 1 — Gatsby and GraphQL
+
+**When:** portfolio-focused years, last refreshed **May 2025** on the Gatsby starter lineage.
+
+**What it optimized for:**
+
+| Strength | Mechanism |
+| --- | --- |
+| Image pipeline | `gatsby-plugin-image`, sharp transforms |
+| Typography | `@fontsource/playfair-display` serif hero |
+| Motion | `@tsparticles/react` landing |
+| Hosting | Static CDN on Vercel — zero backend |
+
+**Pain that motivated Gen 2:**
+
+- Every new MDX field wanted a **GraphQL query** or plugin touchpoint.
+- `gatsby develop` rebuild feel when iterating on essays.
+- Blog as “occasional posts” not a **primary surface**.
+
+Gen 1 is not embarrassing — it is a measurable baseline for LCP, bundle, and build time.
+
+---
+
+## Generation 2 — first Next.js (v2 subdomain)
+
+**When:** roughly **May 2025 → early 2026** on [v2.danielastudillo.io](https://v2.danielastudillo.io/) (still live; Vercel `x-nextjs-prerender` headers).
+
+Timeline in [personal-site-v2](https://github.com/D-Astudillo-ASC/personal-site-v2):
+
+| When | Milestone |
+| --- | --- |
+| Jul 2024 | Repo created |
+| May 2025 | **Next.js 15** + React 19 + Tailwind v4, dark mode, Font Awesome, projects/about pages |
+| Jul 2025 | Contact form, animations, project imagery |
+| Jul 2025 | **First blog** — blog route + MDX support (minimal compared to today) |
+
+**What Gen 2 looked like vs Gen 1:**
+
+| Dimension | Gen 1 (Gatsby) | Gen 2 (v2 subdomain) |
+| --- | --- | --- |
+| Data layer | GraphQL nodes | TypeScript `data/*.ts` |
+| Visual identity | Particles + Bootstrap | **Different** Tailwind v4 system, Helvetica-forward toggles |
+| Writing | Rare posts | **Minimal blog** (MDX landed July 2025, not the 20-post corpus) |
+| Hero story | Plugin-era portfolio | Dark mode + font switcher + Framer-style polish |
+
+I kept **v1 on its subdomain** so “before / after” is a real diff. Gen 2 proved Next could own production DNS before I invested in the editorial site on the apex domain.
+
+---
+
+## Generation 3 — editorial Next (apex domain)
+
+**When:** **June 2026** — the apex domain [danielastudillo.io](https://danielastudillo.io/) picked up the full editorial revamp plus ongoing MDX expansion (**20 posts**, reading guide, case-study links).
+
+**DNS:** Nothing “broke” in the migration so far — it is too early to claim SEO or CWV wins. The operational work was adding **CNAME records in Namecheap** for **v1**, **v2**, and the apex, each pointing at the **Vercel DNS targets** so all three hostnames stay live for comparison. Gen 2-specific UI on the subdomain is gone from `main` (overwritten); only the URL snapshot remains.
+
+**Stack highlights** (current repo):
+
+| Concern | Implementation |
+| --- | --- |
+| Content | `app/blog/content/**/content.mdx` — no GraphQL |
+| Rendering | `force-static` where possible; Turbopack dev |
+| SEO | App Router `metadata` / `generateMetadata`, `sitemap.ts`, structured data |
+| Fonts | Self-hosted `/fonts`, `FontProvider`, documented anti-flicker approach |
+| Deploy | `output: "standalone"` + postbuild asset copy for Docker/Vercel |
+| Projects | `data/projects.ts` links to `blogSlug` case studies |
+
+**Visual / UX shift from Gen 1:**
+
+- v1: **portfolio classic** — particles, Bootstrap grid, GraphQL project cards.
+- v3: **editorial** — topic filters, series navigation (`BlogReadingGuide`), restrained motion, long-form depth for senior loops.
+
+Gen 3 is not “Gen 2 with more CSS.” It is a **content product** decision: essays are first-class, projects point to narratives, and performance budgets are explicit (image formats, font cache headers, bundle splitting).
+
+---
+
+## Transition map (engineering view)
+
+```text
+Gen 1  Gatsby 5 + GraphQL + particles
+         │  pain: essay velocity, GraphQL tax, build feel
+         ▼
+Gen 2  Next.js @ v2.danielastudillo.io
+         │  pain: (fill in) — likely design system + blog scale + CWV targets
+         ▼
+Gen 3  Next 16 @ danielastudillo.io + MDX + standalone + 20 posts
+```
+
+| Migration step | Checklist item |
+| --- | --- |
+| 1 → 2 | Export markdown/MDX; replicate routes; redirect old blog slugs |
+| 1 → 2 | Replace `gatsby-plugin-image` with `next/image` + explicit `sizes` |
+| 2 → 3 | Consolidate content folder convention; wire projects ↔ blog slugs |
+| 2 → 3 | Harden metadata, sitemap, structured data as code |
+| All gens | Keep prior subdomain alive for comparison |
+
+---
+
+## Chrome UX Report — field data (June 2026)
+
+[PageSpeed Insights](https://pagespeed.web.dev/) surfaces **28-day CrUX p75** metrics under “Discover what your real users are experiencing.” That is not the same as Lighthouse lab scores — it needs enough real Chrome traffic on the exact origin.
+
+| Origin | Field data (mobile, PSI) |
+| --- | --- |
+| [danielastudillo.io](https://danielastudillo.io/) | **No Data** ([report](https://pagespeed.web.dev/analysis/https-danielastudillo-io/tgovz4a2my?form_factor=mobile), Jun 2 2026) |
+| [v1.danielastudillo.io](https://v1.danielastudillo.io/) | **No Data** (low-traffic subdomain; separate CrUX origin) |
+| [v2.danielastudillo.io](https://v2.danielastudillo.io/) | **No Data** (same — comparison subdomain, not enough volume) |
+
+That is expected for a personal portfolio: CrUX omits origins below the [privacy threshold](https://developer.chrome.com/docs/crux/methodology#data-quality). Until field data appears, treat **Lighthouse lab** and **RUM you own** (Vercel Web Analytics, optional `web-vitals` beacon) as the honest signals. Re-check PSI after the apex migration has had a full CrUX collection window.
+
+---
+
+## Lighthouse performance (June 2026, mobile, lab)
+
+Headless Chrome, [Lighthouse](https://developer.chrome.com/docs/lighthouse/overview/) 12.6 — homepage `/` (same day, three sequential runs):
+
+| URL | Performance | LCP | FCP | TBT | CLS | Speed Index |
+| --- | --- | --- | --- | --- | --- | --- |
+| [v1.danielastudillo.io](https://v1.danielastudillo.io/) | **87** | 3.0 s | 2.8 s | 0 ms | 0.002 | 4.7 s |
+| [v2.danielastudillo.io](https://v2.danielastudillo.io/) | **91** | 3.6 s | 1.0 s | 30 ms | 0.000 | 1.2 s |
+| [danielastudillo.io](https://danielastudillo.io/) | **92** | 3.0 s | 1.5 s | 80 ms | 0.000 | 3.8 s |
+
+Cold `curl` on the same day showed Gen 1 HTML at **~237 KB** vs **~88 KB** for both Next URLs — particles and Gatsby payload explain that gap more than the Performance score spread.
+
+**Read:** Lab scores cluster high-80s/low-90s with **near-zero CLS**. Gen 1’s **Speed Index (4.7 s)** and **FCP (2.8 s)** lag Gen 2 — consistent with tsparticles + heavier first paint. Gen 2’s **LCP (3.6 s)** is the slowest LCP despite the best FCP/TBT — hero image weight on that deploy. The apex home’s **Speed Index (3.8 s)** reflects a denser editorial layout, not a failed migration.
+
+---
+
+## Gen 3 performance budget (repo defaults)
+
+The current `next.config.ts` encodes choices that did not exist on Gatsby v1:
+
+| Knob | Setting | Why |
+| --- | --- | --- |
+| Images | WebP + AVIF, 1-year `minimumCacheTTL` | CDN-friendly hero and OG assets |
+| `optimizePackageImports` | Framer Motion, Font Awesome, `next-themes`, Zod | Smaller client graphs without manual barrel surgery |
+| Webpack `splitChunks` | Dedicated chunks for React, Framer, FA | Cache isolation on repeat visits |
+| `output: "standalone"` | Docker/Vercel postbuild copy | Same artifact locally and in CI |
+| Webpack `context` lock | `process.cwd()` only | Prevents monorepo parent `package.json` resolution bugs |
+
+Gen 2 on the subdomain inherited an earlier slice of this file; Gen 3 is where **blog scale** (20 MDX posts, reading guide, project ↔ essay links) met explicit bundle and font-cache policy.
+
+| Metric | Why it still matters |
+| --- | --- |
+| `gatsby build` vs `next build` wall time | Cost of publishing |
+| Total JS on `/` | Particles vs editorial home |
+| LCP on hero | Image + font strategy |
+| Time to add one MDX post | Files touched, commands run |
+
+---
+
+## Closing thought
+
+Three URLs beat three README bullets: Gatsby proved static images and GraphQL pipelines; the v2 subdomain proved Next could own DNS; the apex site proved long-form MDX and case-study linking are the product. Name generations by **URL + stack**, not by repo folder names alone.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| Gen 1 live | [v1.danielastudillo.io](https://v1.danielastudillo.io/) |
+| Gen 2 live | [v2.danielastudillo.io](https://v2.danielastudillo.io/) |
+| Gen 3 live | [danielastudillo.io](https://danielastudillo.io/) |
+| Next.js App Router | [Next.js — App Router](https://nextjs.org/docs/app) |
+| Gatsby → headless migration patterns | [Gatsby migration guide](https://www.gatsbyjs.com/docs/how-to/performance/migrate-from-gatsby-to-next-js/) |

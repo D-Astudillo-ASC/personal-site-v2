@@ -23,7 +23,7 @@ export default function Contact() {
     <PageShell maxWidth="5xl">
       <PageHeader
         label="Contact"
-        title="Let's talk shop"
+        title="Daniel Astudillo"
         description="Working on something interesting — a performance problem, a distributed-systems puzzle, a real-time feature? I'd genuinely like to hear about it. I read every message."
         className="mb-16"
       />

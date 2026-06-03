@@ -1,0 +1,152 @@
+export const metadata = {
+  title: "Securing Firebase for a social mobile app",
+  description:
+    "Storage rules that were public by default, profile reads any authenticated user could scrape, App Check enforcement, and a P0 remediation order — before shipping a React Native social product.",
+  date: "2025-11-01",
+  excerpt:
+    "A cybersecurity audit on an Expo + Firebase social app: permissive Storage, Firestore profile leakage, and the fixes that actually matter before TestFlight.",
+  tags: ["Firebase", "Security", "React Native", "Mobile"],
+};
+
+# Securing Firebase for a social mobile app
+
+## TL;DR
+
+| Finding | Severity | Fix |
+| --- | --- | --- |
+| `allow read: if true` on user Storage paths | Critical | Owner-only reads |
+| Catch-all `/{allPaths=**}` public read/write | Critical | Delete rule |
+| Any auth user can read any profile | Critical | Participant-scoped or public-field split |
+| API keys in client bundles | High | App Check + server-only paid APIs |
+| No App Check enforcement | High | DeviceCheck / Play Integrity |
+
+**Series:** [Mobile platform architecture](/blog/lessons-from-building-a-mobile-events-social-platform) · [TestFlight](/blog/shipping-an-expo-app-through-testflight) · AI experiments ([Gemini SSE](/blog/building-a-gemini-ai-backend-with-sse) · [GPU pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse))
+
+This is the security chapter for that platform. Names and employers are omitted; the patterns are the lesson.
+
+---
+
+## Why Firebase security is not “set and forget”
+
+Firebase ships fast because defaults feel permissive during prototyping. A social app crosses the line from prototype to **PII processor** the moment you store avatars, phone numbers, interest graphs, and DM history. Rules you wrote in week one become liabilities in week twelve.
+
+The audit on that codebase found issues that would fail a serious production review — not exotic crypto mistakes, but **open reads** and **over-broad authenticated access**.
+
+---
+
+## Critical: public Cloud Storage
+
+The worst pattern was Storage rules that allowed **unauthenticated reads** on user media paths, plus a catch-all rule granting public read/write on everything else.
+
+```javascript
+// Anti-pattern — do not ship
+match /users/{userId}/{allPaths=**} {
+  allow read: if true;
+  allow write: if request.auth.uid == userId;
+}
+match /{allPaths=**} {
+  allow read, write: if true;
+}
+```
+
+**Impact:** anyone with the bucket name and object path could fetch uploads — profile photos, chat attachments, event flyers uploaded to the wrong path.
+
+**Fix:** owner-scoped reads, delete the catch-all, default deny at the bottom. Event flyers that must be discoverable get an explicit path (e.g. authenticated read, or signed URLs via function).
+
+---
+
+## Critical: profile reads for every signed-in user
+
+Firestore allowed **any authenticated user** to read **any** user document. That sounds reasonable for a “social graph” until you realize the document contains email, phone, precise location, and interest tags.
+
+**Fix options:**
+
+1. **Split collections** — `users_public/{id}` (display name, avatar, bio) vs `users_private/{id}` (owner only)
+2. **Field-level rules** — harder to maintain; prefer schema split
+3. **Callable “get profile”** — function returns only fields the relationship allows
+
+For DMs, validate `request.auth.uid in resource.data.participants` on conversation reads — not merely `request.auth != null`.
+
+---
+
+## App Check: closing the API-key gap
+
+Client bundles always leak Firebase config. App Check does not hide keys; it **binds requests to attested app instances** so scripted abuse cannot burn your quota with stolen project IDs.
+
+Rollout that worked in practice:
+
+1. Install `@react-native-firebase/app-check` (native rebuild required)
+2. Register iOS DeviceCheck and Android Play Integrity in console
+3. Register debug tokens for simulators
+4. Enforce on Firestore, Functions, Storage **after** clients ship tokens — enforce too early and you lock yourself out of dev
+
+Pair with **Places autocomplete/details only on callable functions** — the client sends the query string; the function attaches the API key.
+
+---
+
+## RTDB is a second rules surface
+
+Messaging split typing indicators into Realtime Database. Teams often harden Firestore and forget RTDB entirely. Typing paths need the same participant checks as chat — otherwise presence leaks to anyone who can guess conversation IDs.
+
+---
+
+## P0 order of operations
+
+1. Fix Storage rules → deploy → verify denied unauthenticated fetch
+2. Tighten Firestore profile + conversation rules
+3. Deploy RTDB rules
+4. Ship App Check on clients → enforce in console
+5. Move paid APIs behind functions
+
+Estimated effort: **2–4 hours** for P0 rule fixes if you already know the schema. The expensive part is **testing denied paths**, not writing rules.
+
+---
+
+## Storage rules: before vs after
+
+| Path | Before | After |
+| --- | --- | --- |
+| `users/{uid}/**` | `allow read: if true` | Owner read/write only |
+| Catch-all `/{allPaths=**}` | Public read/write | **Removed** — default deny |
+| Event media | Mixed into user tree | Explicit authenticated path or signed URL |
+
+Post-audit rules also cap upload size (**25MB** on image paths) and allowlist top-level collections so a misconfigured client cannot write arbitrary bucket roots.
+
+---
+
+## Emulator test matrix
+
+| Scenario | Expected |
+| --- | --- |
+| Unauthenticated Storage GET on avatar | `permission-denied` |
+| User A reads User B private profile doc | `permission-denied` |
+| Non-participant reads conversation | `permission-denied` |
+| Participant sends message | `allow` |
+
+Run these in the Firebase emulator **before** flipping App Check enforcement — otherwise you debug production lockouts and client attestation at the same time.
+
+---
+
+## What I would not bother with first
+
+- Custom JWT minting when Firebase Auth + `onCall` context already works
+- WAF in front of Cloud Functions before App Check (cost without fixing client abuse)
+- Encrypting message bodies at rest before fixing ACLs (encryption without access control is theater)
+
+---
+
+## Closing thought
+
+Until an unauthenticated client gets `permission-denied` in the emulator, your rules are documentation. App Check and Storage paths belong in the same gate—not a later phase.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Architecture anchor — Firestore + RTDB split |
+| [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight) | Distribution gates that assume security is already fixed |
+| [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Callable functions and App Check before AI touches prod |
+
+**External:** [Firebase Security Rules](https://firebase.google.com/docs/rules) · [App Check](https://firebase.google.com/docs/app-check) · [Firestore security rules structure](https://firebase.google.com/docs/firestore/security/get-started)

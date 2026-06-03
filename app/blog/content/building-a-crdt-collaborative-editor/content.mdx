@@ -3,6 +3,7 @@ export const metadata = {
   description:
     "From last-write-wins string sync to Yjs binary updates, append-only Postgres persistence, and object-storage snapshots — how a production-style collaborative editor handles concurrency, reconnects, and durability.",
   date: "2026-03-21",
+  dateModified: "2026-06-03",
   excerpt:
     "Real-time collaboration is a relay problem, not a referee problem. Yjs CRDTs, an append-only update log, and snapshot + tail replay for fast joins.",
   tags: ["Real-time", "CRDT", "Yjs", "Node.js", "PostgreSQL"],
@@ -188,8 +189,54 @@ CRDTs feel like overkill until two cursors collide and **nothing breaks**. After
 
 ---
 
-## Further reading
+## Append-only updates under row lock
 
-- [Yjs documentation](https://docs.yjs.dev/) — CRDT primitives and provider ecosystem
-- [y-monaco](https://github.com/yjs/y-monaco) — Monaco binding
-- Shapiro et al., *A comprehensive study of Convergent and Commutative Replicated Data Types* — the theory behind "apply in any order, converge always"
+Each Yjs binary frame is persisted with a monotonic sequence inside a Postgres transaction. The server locks `document_state` with `FOR UPDATE`, increments `latest_update_seq`, and inserts into `document_updates` — fan-out happens only after commit:
+
+```javascript
+await client.query('begin;');
+const stateRes = await client.query(
+  `select latest_update_seq from document_state where document_id = $1 for update;`,
+  [documentId]
+);
+const nextSeq = BigInt(stateRes.rows[0].latest_update_seq) + 1n;
+await client.query(
+  `insert into document_updates (document_id, seq, actor_user_id, update) values ($1, $2, $3, $4);`,
+  [documentId, nextSeq.toString(), actorUserId || null, Buffer.from(updateBytes)]
+);
+await client.query('commit;');
+```
+
+That ordering guarantees tail replay is deterministic even when two editors type at once.
+
+---
+
+## Snapshot cadence and join performance
+
+Snapshots upload to R2 when **either** threshold fires — env-tunable without redeploying client code:
+
+| Env var | Default | Role |
+| --- | --- | --- |
+| `SNAPSHOT_EVERY_N_UPDATES` | 50 | Count-based flush |
+| `SNAPSHOT_EVERY_MS` | 30_000 | Time-based flush for idle docs |
+| `PRUNE_UPDATES_BEFORE_SNAPSHOT` | false | Optional tail trim after snapshot |
+
+On join, the server sends the latest snapshot bytes plus updates **after** `snapshotSeq`. If R2 download fails but a snapshot pointer exists, it falls back to full replay rather than handing the client a broken partial state — a failure mode that showed up during local dev without object storage configured.
+
+---
+
+## Closing thought
+
+Correct merge logic still feels broken if join takes ten seconds—snapshot cadence and tail replay are user-facing performance, not storage trivia.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Server → client **streaming** — different problem than CRDT merge |
+| [Building a browser music visualizer with Goose](/blog/building-a-browser-music-visualizer-with-goose) | Browser real-time loops (`requestAnimationFrame`) without shared state |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Firebase real-time — last-write-wins unless you invest in CRDTs |
+
+**External:** [Yjs documentation](https://docs.yjs.dev/) · [y-monaco](https://github.com/yjs/y-monaco) · [Socket.IO rooms](https://socket.io/docs/v4/rooms/) · Shapiro et al., [*A comprehensive study of CRDTs*](https://hal.science/hal-01555508) — why "apply in any order, converge always" is a design goal

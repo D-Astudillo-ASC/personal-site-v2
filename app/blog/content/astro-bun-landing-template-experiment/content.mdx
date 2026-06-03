@@ -1,0 +1,165 @@
+export const metadata = {
+  title: "An Astro + Bun landing template experiment",
+  description:
+    "Shipping a static commercial landing page with Astro 6, Bun, design tokens in plain CSS, Playwright smoke tests, and Vercel — without Tailwind.",
+  date: "2026-04-20",
+  excerpt:
+    "I wanted a resale-ready marketing shell: one data file for copy, scroll-driven story sections, theme toggle, lead capture in demo mode, and e2e checks on deploy.",
+  tags: ["Astro", "Bun", "Static sites", "DX"],
+};
+
+# An Astro + Bun landing template experiment
+
+## TL;DR
+
+I built and deployed a **static business landing template** at [astro-bun-site.vercel.app](https://astro-bun-site.vercel.app/) to explore **Astro 6 + Bun** as a lightweight alternative to a Next.js marketing page. The goal was not a unique brand — it was a **repeatable product shell**: hero, story scroll, testimonials, FAQ, lead form, legal modals, SEO, and **Playwright smoke tests** — with **zero Tailwind**, only CSS tokens.
+
+---
+
+## Why Astro + Bun (and not Next)
+
+| Need | Astro choice |
+| --- | --- |
+| Mostly static marketing | `.astro` components, minimal JS shipped |
+| Fast local tooling | **Bun** for install/dev (`bun.lock` only) |
+| Resale / forkability | Single `landing.ts` data file + `landing.css` tokens |
+| Predictable deploy | `dist/` to any static host |
+
+Next.js would work, but it pulls an app runtime mindset for a page that never needs SSR dynamics. Astro’s **content-first** model matches “landing template you sell or clone.”
+
+---
+
+## Architecture
+
+```text
+src/data/landing.ts     ← all copy + section toggles
+src/styles/landing.css  ← tokens, motion, layout
+src/components/landing/ ← Nav, Hero, Story, FAQ, Lead, Footer, modals
+src/pages/index.astro
+public/                 ← favicon, manifest
+tests/e2e/smoke.spec.ts ← build + preview + theme toggle
+```
+
+**Customizer map** (documented in-repo): change brand in `landing.ts`, hero image under `src/assets/images/hero/`, colors in `:root` / `[data-theme]`.
+
+---
+
+## Features I cared about
+
+### Design tokens without Tailwind
+
+`:root` holds spacing, typography, and color roles; `[data-theme="dark"]` flips them. `ThemeToggle.astro` writes `localStorage` key `apex-theme` — no flash if script runs early. This keeps the CSS portable to non-React buyers.
+
+### Lead capture with honest demo mode
+
+Without `PUBLIC_LEAD_ENDPOINT`, the form validates client-side and can open a **mailto draft** — the UI says submissions are not sent to a server. For production, point the env var at a real `POST` handler. I prefer templates that fail visibly over faking success.
+
+### SEO package
+
+- `@astrojs/sitemap` driven by `PUBLIC_SITE_URL`
+- `robots.txt.ts` with sitemap line
+- JSON-LD `Organization` + `WebSite` in layout
+- OG tags from `seoMeta` in data
+
+### Quality gate
+
+`bun run test:e2e` builds, runs `preview`, and asserts the theme toggle flips `data-theme` and CSS variables — cheap insurance before shipping template updates.
+
+Why **preview** and not dev server: Astro’s dev server can behave differently from the static `dist/` output (asset hashing, inline scripts, sitemap base URL). [Playwright](https://playwright.dev/docs/test-webserver) starts `astro preview` after `astro build` so the test exercises what Vercel will serve.
+
+Typical smoke assertions worth keeping in a template SKU:
+
+| Check | Catches |
+| --- | --- |
+| Theme toggle flips `data-theme` | FOUC regressions, broken inline script |
+| Hero `<h1>` visible | Broken `landing.ts` import |
+| Lead form validation message | Zod/schema drift in demo mode |
+| `sitemap-index.xml` 200 when `PUBLIC_SITE_URL` set | Misconfigured deploy env |
+
+---
+
+## Deploy
+
+Static output to **`dist/`**. On Vercel:
+
+- Install: `bun install` (or `npm install` if Bun unavailable)
+- Build: `bun run build`
+- Output directory: `dist`
+- Set **`PUBLIC_SITE_URL`** to the production origin
+
+The live demo uses placeholder “Apex Studio” copy — intentional fiction for a template market.
+
+---
+
+## Comparison to this portfolio (Next.js 16)
+
+| | Astro template | danielastudillo.io |
+| --- | --- | --- |
+| Runtime | Static HTML | React 19 + MDX blog |
+| Content | One TS data file | MDX essays + TS data |
+| CSS | Single token file | Tailwind v4 + DESIGN.md |
+| Interactivity | Minimal islands | Contact form API, theme/font stores |
+
+Running both projects clarified when to **stop** at Astro: marketing shells, downloadable templates, client sites with no app server. When to reach for Next: typed APIs, MDX pipelines, shared component libraries with React 19.
+
+---
+
+## Takeaways
+
+1. **Bun + Astro** is a credible DX combo for static landings — fast installs, simple scripts table.
+2. **One data file** beats scattered hard-coded copy for templates you intend to resell.
+3. **Playwright on `preview`** catches broken production builds that `astro check` misses.
+4. **Demo-mode lead forms** are a feature — they set buyer expectations.
+
+---
+
+## See it live
+
+[astro-bun-site.vercel.app](https://astro-bun-site.vercel.app/) — fictional brand, real plumbing.
+
+---
+
+## Theme toggle: cross-tab sync without React
+
+The landing ships a zero-dependency dark mode in `ThemeToggle.astro`. It persists under `apex-theme` in `localStorage`, writes `data-theme` on `<html>`, and listens for `storage` events so a second tab stays in sync when the user toggles elsewhere:
+
+```javascript
+function onStorageSync(e: StorageEvent) {
+  if (e.key !== STORAGE_KEY || e.storageArea !== localStorage) return;
+  const v = e.newValue;
+  if (v === 'light' || v === 'dark') {
+    document.documentElement.setAttribute('data-theme', v);
+    syncButton(v);
+    return;
+  }
+  document.documentElement.removeAttribute('data-theme');
+  syncButton(readResolvedTheme());
+}
+```
+
+The Playwright smoke suite asserts the toggle flips both the attribute **and** the CSS custom property `--color-bg` — catching “button works but tokens did not update” regressions that manual QA misses.
+
+---
+
+## Lead capture: demo mode and client validation
+
+`LeadCapture.astro` posts to `PUBLIC_LEAD_ENDPOINT` when set; otherwise it enters **demo mode** (success toast, no network). That lets buyers preview the funnel on Vercel without wiring Zapier on day one. Client-side validation surfaces an `role="alert"` region for malformed emails — the same path Playwright hits with `not-an-email` before submit.
+
+---
+
+## Closing thought
+
+When the product is copy, SEO, and a contact funnel, Astro plus static deploy is enough—reach for Next when you need authenticated APIs, MDX pipelines, or shared app components that outgrow islands.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Building a browser music visualizer with Goose](/blog/building-a-browser-music-visualizer-with-goose) | Another **client-only** experiment — agents for scaffolding, you own the hard APIs |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | When the product needs a full app runtime, not a static shell |
+
+This portfolio ([danielastudillo.io](https://danielastudillo.io)) is the counterexample: Next.js 16, MDX, API routes, theme/font stores — the right tool when the site is the product, not a template SKU.
+
+**External:** [Astro docs: Build faster websites](https://docs.astro.build/en/concepts/why-astro/) · [Bun package manager](https://bun.sh/docs/cli/install) · [Playwright test generator](https://playwright.dev/docs/intro) · [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)

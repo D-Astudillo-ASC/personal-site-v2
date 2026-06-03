@@ -1,0 +1,105 @@
+export const metadata = {
+  title: "Expo sandboxes: camera, Expo Router, and React Three Fiber",
+  description:
+    "Three small React Native experiments — official camera sample, a sandbox app with messaging components, and expo-gl + three.js on mobile.",
+  date: "2025-08-01",
+  excerpt:
+    "Before the archived social mobile codebase: camera capture, file-based routing sandboxes, and a Three.js scene through expo-gl — practice reps on the path to production Expo work.",
+  tags: ["React Native", "Expo", "Three.js", "Mobile"],
+};
+
+# Expo sandboxes: camera, Expo Router, and React Three Fiber
+
+## TL;DR
+
+Before the archived [mobile events platform](/blog/lessons-from-building-a-mobile-events-social-platform), I kept **three small Expo repos** as deliberate practice:
+
+| Repo | Focus |
+| --- | --- |
+| `react-native-camera-example` | Official-style **expo-camera** sample — capture and display |
+| `react-native-sandbox` | **Expo Router** starter + early `components/messages/` UI experiments |
+| `react-native-threejs` | **expo-gl** + **@react-three/fiber** + **three** on device |
+
+None of these shipped to the App Store. Together they de-risked the bigger Firebase codebase.
+
+---
+
+## Camera example
+
+Forked from the Expo examples pattern: install, optional `pod-install`, `yarn start`, open on iOS simulator or Android emulator or web.
+
+**Lesson:** permissions and secure context rules differ per platform — camera on web is not camera on device. I treated this repo as the **capability spike** before building profile photo flows in a real app.
+
+---
+
+## Sandbox with Expo Router
+
+Created with `create-expo-app`, using file-based routes under `app/`. Includes a `components/messages/` area — early UI slicing for chat-like layouts without backend wiring.
+
+**Lesson:** Expo Router’s file tree is the same mental model as Next.js App Router — good for portfolio engineers crossing web and mobile.
+
+---
+
+## React Three Fiber on mobile
+
+`react-native-threejs` pins **Expo SDK 54**, **React 19**, **expo-router 6**, and:
+
+```json
+"@react-three/fiber": "^9.3.0",
+"expo-gl": "^16.0.7",
+"three": "^0.180.0"
+```
+
+**Lesson:** 3D on mobile means **GL surface lifecycle** — mounting, unmounting, and memory when users background the app. I never merged this into the social product (2D feed was enough complexity), but the spike informed how I think about **heavy views** in RN.
+
+---
+
+## How this ties to production-shaped work
+
+| Sandbox skill | Used later in |
+| --- | --- |
+| Camera permissions | Profile / story media flows (archived app) |
+| Router structure | Expo Router in the main social codebase |
+| Performance caution | Deciding not to ship Three.js in a social feed |
+
+---
+
+## Message list row patterns (`react-native-sandbox`)
+
+The sandbox’s `MessageItem` is `React.memo`’d with haptic feedback on press, relative “Active 5m ago” copy, and unread badge styling — patterns copied into the production inbox without dragging the whole spike repo:
+
+```typescript
+export const MessageItem: React.FC<MessageItemProps> = React.memo(({ conversation, onPress }) => {
+  const formatLastSeen = (date: Date): string => {
+    const diffInMinutes = Math.floor((Date.now() - date.getTime()) / (1000 * 60));
+    if (diffInMinutes < 1) return 'Active now';
+    if (diffInMinutes < 60) return `Active ${diffInMinutes}m ago`;
+    // ...
+  };
+});
+```
+
+Keeping list rows pure and memoized mattered once Firestore snapshot listeners started firing on every typing indicator update in the main app.
+
+---
+
+## Three.js spike stack (Expo SDK 54)
+
+`react-native-threejs` pins `@react-three/fiber` 9.x with `expo-gl` and `three@0.180` — useful as a **compatibility matrix** when upgrading Expo major versions, even though 3D never shipped in the social product.
+
+---
+
+## Closing thought
+
+Spikes belong in repos you can delete—camera APIs, GL surfaces, and router experiments should not land in the same branch as your Firestore schema. Once a spike works, copy the pattern, not the folder structure.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| Expo Camera docs | [docs.expo.dev — Camera](https://docs.expo.dev/versions/latest/sdk/camera/) |
+| Expo Router | [Expo Router introduction](https://docs.expo.dev/router/introduction/) |
+| React Three Fiber | [docs.pmnd.rs/react-three-fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) |
+| Main mobile architecture | [Mobile events platform](/blog/lessons-from-building-a-mobile-events-social-platform) |

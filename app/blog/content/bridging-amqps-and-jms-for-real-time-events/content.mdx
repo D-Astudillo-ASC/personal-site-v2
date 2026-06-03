@@ -182,3 +182,42 @@ Container restarts, network blips, and consumer redeploys are normal. The design
 4. **Measure end-to-end** — producer send time means nothing if consumer queue depth grows unbounded.
 
 Cross-stack integration doesn't require a third stack in the middle. It requires a **clear contract**, a **broker that speaks both languages**, and consumers that behave correctly when messages duplicate.
+
+---
+
+## Message property contract (producer → consumer)
+
+Every cross-language event carried the same logical envelope — the .NET side wrote AMQP properties; the Java consumer read JMS headers:
+
+| Field | Purpose |
+| --- | --- |
+| `correlationId` | Tie HTTP request span to async handler logs |
+| `idempotencyKey` | Dedupe replays in the consumer DB transaction |
+| `eventType` | Versioned string (`EnrollmentCompleted.v1`) |
+| `occurredAt` | ISO timestamp for lag dashboards |
+
+Consumers that ignored `idempotencyKey` were the source of duplicate enrollment rows during broker redelivery tests — not “lost messages.”
+
+---
+
+## When queue depth lied
+
+During a consumer deploy in staging, **error rate stayed flat** while **queue depth climbed** for ten minutes. The Java pod had restarted with a lower `concurrency` than partition count; messages were not failing — they were waiting. That incident is why ops dashboards treat **lag** as the primary alert, not 5xx on the producer.
+
+---
+
+## Closing thought
+
+When two language stacks must see the same event, standardize on broker semantics—at-least-once delivery, idempotent handlers, visible queue depth—not on ad hoc HTTP callbacks that retry without keys.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Cutting a data API from 21s to ~250ms](/blog/cutting-a-data-api-from-21s-to-250ms) | Synchronous OLTP path — this post is the **async** complement |
+| [Building a microfrontend platform for data products](/blog/building-a-microfrontend-data-platform) | Multiple UIs consuming the same fast APIs |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Mobile fan-out (FCM) vs broker-backed server events |
+
+**External:** [ActiveMQ Artemis documentation](https://activemq.apache.org/components/artemis/documentation/) · [AMQP 1.0 overview](https://www.amqp.org/about/overview) · [Jakarta Messaging (JMS) API](https://jakarta.ee/specifications/messaging/)

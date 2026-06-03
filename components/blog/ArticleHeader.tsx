@@ -6,14 +6,34 @@ interface ArticleHeaderProps {
 }
 
 export default function ArticleHeader({ post }: ArticleHeaderProps) {
+  const showUpdated = post.dateModified > post.date;
+
   return (
     <header className="mb-12 border-b border-border pb-10">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
         <time dateTime={post.date}>{formatDate(new Date(post.date))}</time>
+        {showUpdated ? (
+          <>
+            <span className="text-muted/40" aria-hidden="true">
+              /
+            </span>
+            <time dateTime={post.dateModified}>
+              Updated {formatDate(new Date(post.dateModified))}
+            </time>
+          </>
+        ) : null}
         <span className="text-muted/40" aria-hidden="true">
           /
         </span>
         <span>{post.readingTime}</span>
+        {post.featured ? (
+          <>
+            <span className="text-muted/40" aria-hidden="true">
+              /
+            </span>
+            <span className="text-accent/90">Start here</span>
+          </>
+        ) : null}
       </div>
       <h1 className="mt-5 font-display text-[clamp(2.25rem,6vw,3.25rem)] italic leading-[1.05] tracking-tight text-text text-balance">
         {post.title}

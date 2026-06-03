@@ -1,0 +1,152 @@
+export const metadata = {
+  title: "Building a browser music visualizer with Goose",
+  description:
+    "How I used Block's Goose agent to scaffold a React + Wavesurfer.js visualizer with Web Audio analyser modes, and what broke when connecting the audio graph.",
+  date: "2026-03-05",
+  excerpt:
+    "A weekend-side-project: drop-zone upload, waveform/bars/circular modes, and letting Goose handle the boilerplate while I focused on the analyser edge cases.",
+  tags: ["React", "Web Audio", "Goose", "TypeScript"],
+};
+
+# Building a browser music visualizer with Goose
+
+## TL;DR
+
+**Goose** (Block’s open agent for software tasks) helped me go from “I want a local music visualizer” to a working **React + Vite + MUI** app with **Wavesurfer.js** and three render modes — faster than hand-rolling every file. The interesting engineering was not the UI chrome; it was **Web Audio graph wiring** (one `MediaElementSource` per element, `AudioContext` resume on user gesture, cleanup on unmount).
+
+---
+
+## What shipped
+
+| Piece | Role |
+| --- | --- |
+| `DropZone` | Drag/drop or pick audio files → object URL |
+| `useVisualizer` | Wavesurfer instance + `AnalyserNode` + `requestAnimationFrame` loop |
+| `EnhancedVisualizer` | Play/pause, volume, mode menu (waveform / bars / circular) |
+| MUI dark theme | Single-file gradient background, glassy panels |
+
+Stack: **Vite**, **React 18**, **TypeScript**, **wavesurfer.js v7**, **Material UI**. No backend — pure client.
+
+The audio graph is the product:
+
+```text
+<audio> → MediaElementSource → AnalyserNode → (Wavesurfer | canvas FFT loop)
+```
+
+[Wavesurfer.js](https://wavesurfer.xyz/) owns waveform rendering; [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) owns frequency data for bar/circular modes. Mixing them on one `AudioContext` is standard, but **lifecycle bugs** dominate the debugging time.
+
+---
+
+## Why Goose here
+
+Goose is strongest when the task has **clear boundaries** and lots of repetitive structure: component files, hook skeletons, MUI layout, icon imports. I described the target UX in plain language:
+
+- Upload a local audio file
+- Show waveform while playing
+- Switch between bar spectrum and a circular FFT-style view
+- Dark theme, minimal controls
+
+Goose generated the initial component tree and hook API. I then iterated on the **audio pipeline** manually — agents are helpful for scaffolding, not for subtle browser audio rules.
+
+Practical tips when pairing with Goose (or any coding agent):
+
+1. **Pin libraries upfront** — “Wavesurfer v7, no legacy plugins.”
+2. **Ask for one vertical slice** — file upload → decode → play → static waveform before fancy modes.
+3. **Review lifecycle code** — `useEffect` cleanup is where visualizers leak GPU/CPU.
+
+---
+
+## Web Audio lessons (the real bugs)
+
+### One `MediaElementSource` per `<audio>` element
+
+The browser throws if you call `createMediaElementSource` twice on the same element. React strict mode and hot reload made this common. Pattern:
+
+- Store `_mediaElementSource` on the media element
+- Reuse if already created
+- Disconnect on teardown
+
+### `AudioContext` suspension
+
+Autoplay policies suspend contexts until a user gesture. Every play button needs:
+
+```typescript
+if (audioContext.state === "suspended") {
+  await audioContext.resume();
+}
+```
+
+Without this, the waveform renders but the analyser flatlines.
+
+### Mode switching
+
+Three modes share one analyser:
+
+- **waveform** — Wavesurfer’s built-in renderer
+- **bars / circular** — custom canvas loop reading `getByteFrequencyData`
+
+Switching modes means canceling the previous `requestAnimationFrame`, detaching old canvases, and re-binding Wavesurfer without recreating the media element source.
+
+---
+
+## Scope boundaries
+
+This repo is **only** the visualizer: upload, decode, play, three render modes. No backend, no graph database, no meeting-ingestion pipeline. That narrow scope is why Goose worked — the agent could own the component tree while I owned the audio graph.
+
+---
+
+## Takeaways
+
+1. **Agents accelerate scaffolding**, not audio graph correctness — budget time for browser APIs.
+2. **Wavesurfer v7 + Web Audio** is enough for a portfolio-grade demo without a backend.
+3. **Explicit cleanup** in hooks matters more than visual polish for “why did my laptop fan spin up?”
+
+---
+
+## Agent tooling note (2025–2026)
+
+**Goose** is Block’s open-source agent for developer workflows ([Block Open Source](https://github.com/block/goose)). It is not a model — it orchestrates tools against your repo. For bounded UI tasks (component tree, MUI shell, hook stubs), that is enough. For **Web Audio**, treat the agent output as a starting point and verify against [MDN: Autoplay guide](https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide) and browser DevTools performance panel.
+
+---
+
+## Analyser configuration (bars / circular modes)
+
+Custom canvas modes share one `AnalyserNode` wired after Wavesurfer’s media element. The hook pins FFT and smoothing explicitly — defaults are not always what you want for bar charts:
+
+| Parameter | Value | Effect |
+| --- | --- | --- |
+| `fftSize` | 1024 | Frequency bin resolution |
+| `smoothingTimeConstant` | 0.8 | Less jitter between frames |
+| `minDecibels` / `maxDecibels` | −90 / −10 | Normalizes quiet vs loud tracks |
+
+```typescript
+analyserRef.current = audioContextRef.current.createAnalyser();
+analyserRef.current.fftSize = 1024;
+analyserRef.current.smoothingTimeConstant = 0.8;
+```
+
+---
+
+## The one-source-per-element rule
+
+Browsers allow only **one** `MediaElementSourceNode` per `<audio>` element. The hook stores the node on the element as `_mediaElementSource` and reuses it when switching visual modes — recreating the source throws and leaves you with a silent analyser loop. Teardown disconnects analyser and source in `cleanupAudioContext()` before unmount.
+
+---
+
+## Autoplay policy in practice
+
+`AudioContext` often starts `suspended` until a user gesture. The hook calls `resume()` before wiring nodes and logs failures instead of assuming `play()` alone is enough — the difference between “works on my machine after refresh” and “works in Safari on first click.”
+
+---
+
+## Closing thought
+
+Visual modes are cheap; leaking `AudioContext` instances and fighting autoplay policy are what break demos. Budget time on teardown in `useEffect`, not on shader aesthetics.
+
+---
+
+## Related reading
+
+- [An Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) — another client-only side project with a clear deploy boundary
+- [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) — real-time in the browser, but **state sync** instead of a playback analyser loop
+- [MDN: Using server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) — useful contrast when your “stream” is analyser frames, not LLM tokens ([mobile AI posts](/blog/building-a-gemini-ai-backend-with-sse) cover that pattern)

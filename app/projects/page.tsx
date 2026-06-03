@@ -21,6 +21,8 @@ export const metadata: Metadata = {
 };
 
 export default function Projects() {
+  const [leadProject, ...gridProjects] = projects;
+
   // Structured data to make this page distinct from homepage
   const collectionPageSchema = {
     "@context": "https://schema.org",
@@ -75,12 +77,15 @@ export default function Projects() {
           title="Selected work"
           description="Systems I've built across payments, financial data, and real-time products — with the constraints they solved and the results they shipped."
         />
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project, index) => (
+        <div className="mb-8">
+          <ProjectCard project={leadProject} size="large" priority />
+        </div>
+        <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+          {gridProjects.map((project, index) => (
             <ProjectCard
               key={project.id}
               project={project}
-              priority={index === 0}
+              priority={index < 2}
             />
           ))}
         </div>

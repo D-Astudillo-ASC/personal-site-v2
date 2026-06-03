@@ -111,7 +111,7 @@ export default function StructuredData() {
         name: "What has Daniel Astudillo built?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Daniel has taken a data API from a 21-second worst case to roughly 200–300ms (Storage Write API, then PostgreSQL), built a real-time event pipeline processing 100K+ daily events at 99.99% uptime, and modernized payment systems serving 20M+ monthly requests. He writes about this work on his blog.",
+          text: "Daniel has taken a data API from a 21-second worst case to roughly 200–300ms (Storage Write API, then PostgreSQL), built a real-time event pipeline processing 100K+ daily events at 99.99% uptime, and modernized Visa payment and eligibility APIs at production scale (including paths above 20M requests per month). He writes about this work on his blog.",
         },
       },
       {

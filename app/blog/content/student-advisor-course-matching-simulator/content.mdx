@@ -1,0 +1,90 @@
+export const metadata = {
+  title: "MasterPlan: student–advisor and student–course matching in JavaScript",
+  description:
+    "A 2019 Williams-era scheduling simulator — tag overlap, prerequisite checks, compatibility scoring, and console-driven recommendations from CSV inputs.",
+  date: "2019-04-14",
+  excerpt:
+    "Pure JavaScript (ES5-style classes) for advisor–student pairing and course recommendations — no framework, just algorithms and CSV ingestion.",
+  tags: ["JavaScript", "Algorithms", "Education"],
+};
+
+# MasterPlan: student–advisor and student–course matching in JavaScript
+
+## TL;DR
+
+**MasterPlan** (2019) is a small **JavaScript** program — no React, no backend — that reads student, advisor, and course data and prints **compatibility-based recommendations**. README goals:
+
+- **Student–advisor matching** — implemented via `AdvStudCompat` objects and scheduler logic
+- **Student–course matching** — tag overlap + prerequisite checks, top-N course names per student
+
+It is a **batch CLI mindset** prototype: load CSVs, compute scores, emit text. That pattern reappears in my later [hybrid match scoring](/blog/building-a-gemini-ai-backend-with-sse) work — deterministic ranking first, language model second.
+
+---
+
+## How course matching works
+
+`Runner.js` initializes `courses` and `students`, then for each student:
+
+1. **`getCompatibility`** — array parallel to every course
+2. **`checkPrereqs`** — student’s `classesTaken` must contain all course prerequisites
+3. **Tag overlap** — increment score when student and course tags align
+4. **`getMostCompatible`** — select top N course indices and print names
+
+```javascript
+console.info(
+  "\nHello " + student.getName() + ", the top " + Runner.numRecommended + " recommended courses for you are:",
+);
+```
+
+The code reads like **transpiled Java** (typed-style comments, `ArrayList` wording) — likely from a course tooling pipeline. Maintaining it taught me to focus on **data invariants** (tags, prereq lists) before UI.
+
+---
+
+## Advisor matching
+
+`AdvStudCompat.js` wraps a `(student, advisor, compatibility)` triple with getters. The scheduler consumes these objects to pair advisees — same compatibility theme as courses, different domain rules.
+
+---
+
+## Why it still matters on a portfolio site
+
+| Skill | Evidence here |
+| --- | --- |
+| Explainable scoring | Numeric compatibility, not black-box ML |
+| Prerequisite graphs | Set containment check — precursor to “can user access resource?” |
+| Separation of concerns | `Student.js`, `Course.js`, `Advisor.js`, `Scheduler.js` modules |
+
+---
+
+## Prerequisite gate (courses)
+
+`checkPrereqs` is set containment — every course prerequisite must appear in the student’s completed list before tag overlap scoring runs. Courses that fail the gate stay at compatibility **0**, regardless of tag match count:
+
+```javascript
+Runner.prototype.checkPrereqs = function (course, student) {
+  var preReqs = course.getPreReqs();
+  var classesTaken = student.getClassesTaken();
+  return preReqs.every(function (req) { return classesTaken.indexOf(req) >= 0; });
+};
+```
+
+---
+
+## Advisor assignment: global sort + greedy match
+
+`adviseeAssigned` builds all `(student, advisor)` pairs, scores tag overlap as `count / advisorTags.length`, merge-sorts `AdvStudCompat` objects by compatibility, then assigns greedily from highest score downward while skipping already-matched students or advisors. Same explainable pattern as the later mobile BFF — numeric score first, narrative second.
+
+---
+
+## Closing thought
+
+Matching engines are boring on purpose: tags, prerequisites, and additive scores give you an audit trail chat models skip. Ship the table first, then decide if language adds anything.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| Repository | Local workspace `MasterPlan/` (private coursework layout) |
+| Later matching math | [Gemini BFF hybrid scores](/blog/building-a-gemini-ai-backend-with-sse) |

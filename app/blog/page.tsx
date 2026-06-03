@@ -1,9 +1,13 @@
-import Link from "next/link";
 import { Metadata } from "next";
+import { Suspense } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import { getAllPosts } from "@/lib/posts";
-import { formatDate } from "@/utils/date";
+import BlogIndexClient from "@/components/blog/BlogIndexClient";
+import BlogIndexClientFallback from "@/components/blog/BlogIndexClientFallback";
+import BlogReadingGuide from "@/components/blog/BlogReadingGuide";
+import BlogStartHere from "@/components/blog/BlogStartHere";
+import { START_HERE_SLUG_SET } from "@/constants/blog";
+import { getAllPosts, getStartHerePosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
   title: "Writing",
@@ -11,6 +15,11 @@ export const metadata: Metadata = {
     "Daniel Astudillo writes about performance engineering, distributed systems, and the trade-offs behind real production systems — query optimization, real-time pipelines, and CRDT sync.",
   alternates: {
     canonical: "https://danielastudillo.io/blog",
+    types: {
+      "application/rss+xml": [
+        { url: "/feed.xml", title: "Daniel Astudillo — Writing (RSS)" },
+      ],
+    },
   },
   openGraph: {
     title: "Writing — Daniel Astudillo",
@@ -21,7 +30,11 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogIndex() {
-  const posts = await getAllPosts();
+  const [posts, startHerePosts] = await Promise.all([
+    getAllPosts(),
+    getStartHerePosts(),
+  ]);
+  const listPosts = posts.filter((post) => !START_HERE_SLUG_SET.has(post.slug));
 
   return (
     <PageShell maxWidth="2xl">
@@ -32,45 +45,13 @@ export default async function BlogIndex() {
         className="mb-16"
       />
 
-      {posts.length === 0 ? (
-        <p className="font-mono text-sm text-muted">
-          First post landing soon.
-        </p>
-      ) : (
-        <div className="divide-y divide-border border-y border-border">
-          {posts.map((post) => (
-            <article key={post.slug} className="group py-8">
-              <Link href={`/blog/${post.slug}`} className="block">
-                <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
-                  <time dateTime={post.date}>
-                    {formatDate(new Date(post.date))}
-                  </time>
-                  <span className="text-muted/40">/</span>
-                  <span>{post.readingTime}</span>
-                </div>
-                <h2 className="mt-3 text-2xl font-medium text-text transition-fast group-hover:text-accent">
-                  {post.title}
-                </h2>
-                <p className="mt-2 text-base leading-relaxed text-muted">
-                  {post.excerpt}
-                </p>
-                {post.tags.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {post.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded bg-text/5 px-2 py-0.5 font-mono text-[11px] text-muted/80 ring-1 ring-border"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Link>
-            </article>
-          ))}
-        </div>
-      )}
+      {startHerePosts.length > 0 ? <BlogStartHere posts={startHerePosts} /> : null}
+
+      {posts.length > 0 ? <BlogReadingGuide /> : null}
+
+      <Suspense fallback={<BlogIndexClientFallback posts={listPosts} />}>
+        <BlogIndexClient posts={posts} />
+      </Suspense>
     </PageShell>
   );
 }

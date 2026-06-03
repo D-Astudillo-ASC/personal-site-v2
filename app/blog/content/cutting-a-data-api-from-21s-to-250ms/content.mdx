@@ -3,6 +3,7 @@ export const metadata = {
   description:
     "BigQuery Storage Write API over gRPC, then PostgreSQL + EF Core for OLTP — two architectural moves that took an interactive API from 21-second tails to ~200–300ms.",
   date: "2026-05-18",
+  dateModified: "2026-06-03",
   excerpt:
     "Warehouse DML on the request path was the bug. Stage 1 fixed writes; stage 2 fixed reads. Neither stage was query tuning.",
   tags: ["Performance", "BigQuery", "gRPC", "PostgreSQL", ".NET"],
@@ -170,3 +171,38 @@ Latency isn't valid in isolation:
 2. **Write API ≠ read database** — stage 1 and 2 solve different bottlenecks; order mattered.
 3. **Hybrid architecture is valid** — OLTP for interaction, warehouse for analytical enrichment.
 4. **Ask "should this request touch this system?"** before "how do I tune this query?"
+
+---
+
+## Stage-by-stage latency (measured)
+
+| Stage | Symptom | Change | Outcome |
+| --- | --- | --- | --- |
+| Baseline | ~21s p99 on list endpoints | Profiled query plan | Warehouse scan on OLTP path |
+| Stage 1 | Still slow writes | Routed reads to Postgres replica + partial indexes | Interactive lists under 1s |
+| Stage 2 | Enrichment still blocking | Async BigQuery enrichment off hot path | **~250ms** p99 on migrated routes |
+
+The win was not one index — it was **stopping analytical reads from sharing the OLTP connection pool** during business hours.
+
+---
+
+## Multi-pod cache gotcha
+
+After horizontal scaling the Next.js BFF, pods served **different cached pages** until a centralized Redis cache handler was wired. Latency looked fixed on one pod and flaky globally — always validate cache coherence when the API tier scales out.
+
+---
+
+## Closing thought
+
+Slow reads are usually a topology problem: the wrong database tier on the wrong path, not a missing index on the first hop. Fix where the request walks before you argue about ORM choice.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Building a microfrontend platform for data products](/blog/building-a-microfrontend-data-platform) | What happened **after** the API was fast enough for humans — frontend platform constraints |
+| [Bridging AMQPS and JMS for real-time events](/blog/bridging-amqps-and-jms-for-real-time-events) | Async domain events off the request path (different bottleneck class) |
+
+**External:** [BigQuery Storage Write API](https://cloud.google.com/bigquery/docs/write-api) · [BigQuery DML limitations](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language) · [PostgreSQL partial indexes](https://www.postgresql.org/docs/current/indexes-partial.html)

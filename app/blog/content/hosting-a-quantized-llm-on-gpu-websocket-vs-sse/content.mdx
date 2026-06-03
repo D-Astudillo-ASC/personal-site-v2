@@ -1,0 +1,256 @@
+export const metadata = {
+  title: "Self-hosting Llama-2 13B GPTQ on a GPU pod — and why I should have used SSE",
+  description:
+    "Experiment two of two: vLLM on a cloud GPU, FastAPI WebSockets, HuggingFace snapshot archaeology, simulated streaming, and hindsight after building real SSE on a separate Gemini BFF.",
+  date: "2025-12-20",
+  excerpt:
+    "RunPod + vLLM + Llama-2 13B GPTQ: auth-on-first-frame WebSockets, batch generate() chunked for UX, and the transport I wish I had chosen — HTTP streaming or SSE like experiment A.",
+  tags: ["vLLM", "LLM", "GPTQ", "WebSocket", "SSE", "Infrastructure"],
+};
+
+# Self-hosting Llama-2 13B GPTQ on a GPU pod — and why I should have used SSE
+
+## TL;DR
+
+**Experiment B** in the same AI arc as [experiment A (Gemini + SSE BFF)](/blog/building-a-gemini-ai-backend-with-sse). I deployed **TheBloke/Llama-2-13B-GPTQ** with **vLLM** on a **GPU cloud pod** (RunPod-style TCP port mapping) and exposed inference over **WebSocket**.
+
+Looking back, **I should have used SSE or OpenAI-style HTTP streaming** on the pod — the same pattern I had already implemented in [experiment A](/blog/building-a-gemini-ai-backend-with-sse) on `POST /api/chat/message/stream`. WebSocket added protocol complexity without bidirectional benefit.
+
+**Product context:** [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform).
+
+Hard lessons:
+
+1. **Model path discovery** — HuggingFace cache directories are not vLLM model paths.
+2. **Chat templates** — Llama-2 needs `[INST] <<SYS>> …` formatting or outputs look “broken.”
+3. **Fake streaming** — `llm.generate()` is batch; my chunks were cosmetic.
+4. **The right server** — `vllm serve` exposes [OpenAI-compatible streaming](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html); I hand-rolled FastAPI WS instead.
+
+---
+
+## Why experiment B exists
+
+[Experiment A](/blog/building-a-gemini-ai-backend-with-sse) answered “can we ship AI features this sprint?” Experiment B answered:
+
+- What does **self-hosting** a **13B quantized** model feel like in engineering hours and GPU rent?
+- Can we route **matchmaking blurbs** and **lightweight chat** through our own weights?
+- Where does **transport** matter once inference is slow and bursty?
+
+I targeted **Llama-2 13B GPTQ** (4-bit): large enough for short social copy, small enough to fit a single datacenter GPU with quantization. **vLLM** provides continuous batching and a production-serving story via `vllm serve` — I used the embedded `LLM` Python class inside FastAPI instead, which is fine for a spike but skips the maintained streaming APIs.
+
+---
+
+## Architecture (intended vs what the repo proves)
+
+<FlowDiagram>
+  <FlowDiagram.Step title="Mobile / BFF" caption="intended consumer" />
+  <FlowDiagram.Connector label="wss://…/ws (built)" />
+  <FlowDiagram.Step title="GPU pod" caption="vLLM · FastAPI" highlight />
+</FlowDiagram>
+
+**Intended:** social backend calls the pod for inference on match/chat prompts.
+
+**What was actually wired:**
+
+- The **Fastify BFF** ([experiment A](/blog/building-a-gemini-ai-backend-with-sse)) talks to **Gemini**, not this pod — two parallel backends, not a chain.
+- The mobile client never opened `/ws` or called `POST /generate`.
+- The pod **does** ship `POST /generate` (non-streaming HTTP) for curl debugging alongside WebSocket.
+
+So experiment B is a **working inference service** with **no production client** — still worth writing up because the failure modes (paths, templates, transport) are the learning.
+
+---
+
+## Bootstrapping the model (snapshot archaeology)
+
+vLLM errors like “invalid repository ID or local directory” usually mean **no `config.json` at `MODEL_PATH`**.
+
+HuggingFace Hub cache layout:
+
+```text
+models--TheBloke--Llama-2-13B-GPTQ/
+  snapshots/
+    <revision-hash>/
+      config.json
+      *.safetensors
+      tokenizer.*
+```
+
+Pointing vLLM at the **parent** cache folder fails. Fixes:
+
+| Approach | When to use |
+| --- | --- |
+| Repo ID `TheBloke/Llama-2-13B-GPTQ` | Fresh pod; let vLLM download ([quickstart](https://docs.vllm.ai/en/latest/getting_started/quickstart.html)) |
+| Full **snapshot** path | Volume already populated |
+| `snapshot_download` in **entrypoint** | Docker image with persistent `/workspace/models` |
+
+My entrypoint script runs `huggingface_hub.snapshot_download` when `config.json` is missing, then exports `MODEL_PATH` to the resolved snapshot — the right production habit.
+
+**GPTQ background:** post-training quantization (GPTQ, Frantar et al., 2022) stores weights in low-bit grids so inference loads less VRAM at some accuracy cost — popular for running 13B-class models on single-GPU pods in 2025–2026 hobby and staging environments.
+
+---
+
+## Prompt formatting (the silent killer)
+
+Llama-2 chat expects a template along the lines of:
+
+```text
+<s>[INST] <<SYS>>
+{system}
+<</SYS>>
+
+{user} [/INST]
+```
+
+I implemented `format_llama2_prompt()` in Python and logged first bytes of prompts and completions during debugging. Empty or nonsense outputs often traced to **template**, not quantization.
+
+vLLM’s docs emphasize that **`llm.generate` does not apply chat templates automatically** — you should use `llm.chat` or apply `tokenizer.apply_chat_template` ([quickstart note](https://docs.vllm.ai/en/latest/getting_started/quickstart.html)). I learned that after manual string concatenation.
+
+`SamplingParams.stop` included `</s>`, `[INST]`, `<<SYS>>` to curb runaway generations — necessary for Llama-family decoding.
+
+---
+
+## WebSocket protocol (what I actually built)
+
+After `accept`:
+
+1. **Auth frame:** `{ "type": "auth", "api_key": "…" }` — invalid key → close `1008`.
+2. **Inference loop:** `{ "type": "inference", "prompt": "…", "max_tokens": 256, "temperature": 0.7, … }`.
+3. **Generation:** `outputs = llm.generate([formatted_prompt], sampling_params)` — **batch**, returns full text.
+4. **“Streaming”:** slice text into ~10-char JSON messages `{ "type": "chunk", "text": "…" }` with `asyncio.sleep(0.01)` between sends, then `{ "type": "response", "done": true }`.
+
+Rate limit: per client IP, per minute bucket (`MAX_REQ_PER_MIN`, default 60).
+
+**Health** returns RunPod pod id, internal/external ports, `MODEL_PATH`, CUDA visibility — essential when the platform maps symmetrical TCP ports (`RUNPOD_TCP_PORT_*` env vars).
+
+There is also **`POST /generate`** with the same formatting and sampling — the endpoint I should have extended for streaming instead of WS.
+
+---
+
+## Hindsight: I should have used SSE (or vLLM’s OpenAI server)
+
+On experiment A I already had the correct pattern:
+
+- HTTP POST with JSON body
+- Response `text/event-stream`
+- `data: {"chunk": "…"}\n\n` until `data: [DONE]\n\n`
+- Under the hood: real `generateContentStream`
+
+For the GPU pod, the **same shape** would be:
+
+```http
+POST /v1/chat/completions
+Authorization: Bearer …
+Accept: text/event-stream
+```
+
+…or a minimal FastAPI route that streams newline-delimited JSON or SSE frames from vLLM’s async engine.
+
+### WebSocket vs SSE for LLM output
+
+| Dimension | WebSocket | SSE / HTTP stream |
+| --- | --- | --- |
+| Traffic pattern | Bidirectional | **Server → client** dominant for tokens |
+| Mobile / corporate networks | Long-lived upgrade can be fragile | Looks like normal HTTP |
+| Auth | Custom first frame | Standard headers |
+| Retries | Reconnect + resync protocol | New POST per turn |
+| Load balancers | Sticky sessions | Familiar HTTP semantics |
+| Best fit | Games, CRDTs, multiplexed channels | **LLM token streams**, logs, progress |
+
+[MDN’s SSE guide](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) states plainly: SSE is for when the server pushes events to the front-end — “you can't send events from a client to a server” on that channel. LLM chat is exactly that for the **response half**: one prompt up, many tokens down.
+
+WebSocket would be justified **BFF → pod** if I kept a persistent connection between **my** servers to amortize TLS — still not required to expose WS to the phone.
+
+### What I should have deployed instead
+
+1. **`vllm serve TheBloke/Llama-2-13B-GPTQ`** with `--api-key` ([OpenAI-compatible server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html)).
+2. Client uses `stream: true` on chat completions — default **JSON-SSE** chunks with **real** partial outputs ([online serving docs](https://docs.vllm.ai/en/latest/serving/online_serving/)).
+3. Optional thin FastAPI proxy if I need custom auth/logging — proxy streams, do not re-chunk batch output.
+
+vLLM added a **Realtime WebSocket** at `/v1/realtime` in 2026 for incremental **audio** and multimodal streams ([vLLM blog, Jan 2026](https://vllm.ai/blog/2026-01-31-streaming-realtime)). That is the legitimate WS case — not “print Llama match blurbs to a phone.”
+
+That aligns experiment A and B on the **wire** while keeping inference backends swappable.
+
+---
+
+## Fake streaming vs real latency
+
+Batch `generate()` waits for the full completion before my loop sent chunk frames. Users saw a typewriter effect; **time-to-first-token** did not improve. This is the difference between:
+
+- **Transport streaming** (SSE/WS framing), and
+- **Inference streaming** (model emits partial tokens as they are sampled)
+
+vLLM’s serving stack is built for the second; my WebSocket layer only implemented the first.
+
+---
+
+## Operations on GPU pods (2025–2026 lessons)
+
+- **Cold start:** first `snapshot_download` can take tens of minutes — bake models into the image or attach a persistent volume.
+- **Port mapping:** public port ≠ internal `7860`; health JSON should document both.
+- **VRAM:** 13B GPTQ still fails if another process holds the GPU or quant is mismatched.
+- **Cost gate:** compare GPU $/hour + engineer time against Gemini Flash per-million-token pricing before claiming savings.
+
+---
+
+## How the two experiments fit together
+
+```text
+Experiment A (Gemini BFF)     Experiment B (GPU pod)
+─────────────────────────     ────────────────────────
+Managed API                   Owned weights
+Real SSE + real stream        WebSocket + batch generate
+Matching + chat agents        Raw inference service
+Ship-first                    Economics + control
+Mobile client wired?          No                          No
+```
+
+The portfolio story is not “we use AI.” It is “**I tried both managed and self-hosted paths, implemented streaming correctly on one, learned transport on the other, and can explain what ships next.**”
+
+---
+
+## What I would rebuild today
+
+1. **Pod:** `vllm serve` + OpenAI streaming client from the BFF.
+2. **Mobile:** only ever sees **SSE** from the BFF (experiment A pattern).
+3. **Delete** custom WS auth framing unless I need multiplexing.
+4. **Chat template:** `llm.chat` or HF template — never hand-roll `[INST]` again.
+5. **Integrate or delete** — a pod without a caller is a science project; a BFF route without a client is a sketch.
+
+---
+
+## GPU pod wire protocol (FastAPI + vLLM)
+
+The RunPod service required `API_KEY` at boot and rejected connections without a first-frame auth handshake:
+
+```python
+auth_msg = await ws.receive_text()
+auth_data = json.loads(auth_msg)
+if auth_data.get("type") != "auth" or auth_data.get("api_key") != API_KEY:
+    await ws.close(code=1008, reason="Invalid authentication")
+    return
+```
+
+Rate limiting keyed on `client_ip + minute bucket` (`MAX_REQ_PER_MIN`, default 60) stopped runaway loops during load tests. **Fake streaming** — `llm.generate()` returns the full completion, then the server slices it into WebSocket chunks — was the main reason mobile clients should never have spoken WebSocket directly; SSE from a BFF can re-chunk real token streams from vLLM’s OpenAI-compatible endpoint instead.
+
+---
+
+## Manual Llama-2 chat template risk
+
+`format_llama2_prompt` hand-builds `[INST]` / `<<SYS>>` markers. When vLLM’s tokenizer already applies a chat template, double-wrapping produces empty or repetitive outputs — the debug logs (`Generated text length: 0`) were the signal to migrate to `llm.chat()` or HF template APIs.
+
+---
+
+## Closing thought
+
+Self-hosting pays off when you expose an OpenAI-compatible surface and hide transport behind the BFF. Raw WebSockets to mobile for one-way token streams are a design you will rewrite—match the wire protocol to the direction of data.
+
+---
+
+## Related reading
+
+| Post | Why |
+| --- | --- |
+| [Building a Gemini AI backend with SSE (experiment A)](/blog/building-a-gemini-ai-backend-with-sse) | Managed API + **real** SSE — the transport pattern this pod should have copied |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Why AI was optional infrastructure, not a launch blocker |
+| [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Legitimate WebSocket use case (binary CRDT frames, not token streaming) |
+
+**External:** [vLLM OpenAI-compatible server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) · [vLLM online serving](https://docs.vllm.ai/en/latest/serving/online_serving/) · [vLLM Realtime API (Jan 2026)](https://vllm.ai/blog/2026-01-31-streaming-realtime) — WebSocket for **audio**, not chat blurbs · [MDN: SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)

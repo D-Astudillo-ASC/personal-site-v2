@@ -1,0 +1,87 @@
+export const metadata = {
+  title: "Team MERN capstone: exam and patient workflows in React and Redux",
+  description:
+    "A 2022 fellowship team project on a React/Express monorepo — Redux routing, Material-UI tables, MongoDB, and deployment docs for Amplify and Elastic Beanstalk.",
+  date: "2022-03-15",
+  excerpt:
+    "COVID-era clinical UI capstone: displayPatient flows, exam tables, and my first serious Redux + react-router monorepo — public code on GitHub.",
+  tags: ["React", "Redux", "MERN", "Healthcare"],
+};
+
+# Team MERN capstone: exam and patient workflows in React and Redux
+
+## TL;DR
+
+In **2022** I contributed to a **team capstone** built on a standard **React + Express monorepo template** (client on :8000, API on :3000). Public repository: [innovators-covid-project](https://github.com/D-Astudillo-ASC/innovators-covid-project). We aimed at a **COVID-era clinical workflow UI**: exams, patient detail views, admin screens, and sortable tables backed by MongoDB.
+
+My last merged contribution ([#13](https://github.com/D-Astudillo-ASC/innovators-covid-project/pull/13)) shipped **displayPatient**, routing fixes, and API routes supporting an exam table refactor.
+
+| Piece | Choice |
+| --- | --- |
+| UI | CRA, **Redux** + `react-router` v5, **Material-UI v4**, **react-table** |
+| API | Express + MongoDB |
+| Deploy docs | AWS Amplify (client), Elastic Beanstalk guides (API) |
+
+---
+
+## Architecture in practice
+
+The client’s `App.js` is a router `Switch` with explicit pages: `Exams`, `CreateExams`, `DisplayExam`, `DisplayPatientInfo`, `Admin`, etc. State flows through `connect()` and `bindActionCreators` — verbose today, but it forced me to see **action → reducer → props** on every feature.
+
+The template README split setup across `client/README.md` and `server/README.md`. Our team’s product work was integrating **patient views** with **exam listing** so clinicians (in the fictional workflow) could move between list and detail without broken routes — the kind of bug that only shows up when frontend and backend slugs disagree.
+
+---
+
+## What went well
+
+- **Feature integration** — patient display working end-to-end was the milestone that made the demo credible.
+- **Table UX** — react-table + MUI was the right tool for dense exam grids.
+- **Deployment literacy** — we documented Amplify and Beanstalk paths even when demos ran locally.
+- **Git collaboration** — PR review on a shared capstone repo is its own skill.
+
+---
+
+## What I’d improve now
+
+| Issue | Today’s fix |
+| --- | --- |
+| Redux ceremony | Server state via TanStack Query; local UI state only in Redux if needed |
+| Template vs product README | Single root quickstart with copy-paste env |
+| Mixed CSS (Bootstrap + MUI) | One design system |
+| Post-fetch filtering on lists | Push filters to query params when the API supports them |
+
+---
+
+## Patient route integration (February 2022)
+
+The milestone PR that made the demo credible wired **`/Patient`** in the React router and a `DisplayPatientInfo` page that reads `PATIENT_ID` from navigation state, then loads exams via `getExamsByPatientId`. Without that route, the Redux store could hold patient data while the table view never mounted — classic “API works in Postman, UI shows nothing.”
+
+```javascript
+// routes.js
+const DISPLAYPATIENT = '/Patient';
+
+// DisplayPatientInfo.js — guard when deep-linked without state
+if (props.location.state !== undefined) {
+  let patient_Id = props.location.state.PATIENT_ID;
+  // fetch exams, render ExamTable
+} else {
+  component = <div>Patient Not Found</div>;
+}
+```
+
+The same integration pass refactored the exam table component and aligned backend routes with the client API module (~244 lines changed across eleven files in that release window).
+
+---
+
+## Closing thought
+
+Capstone repos fail in the seams: a working Redux reducer does not help if the patient route and the API path disagree. Treat frontend routes and backend handlers as one checklist before you call the demo done.
+
+---
+
+## Related reading
+
+| Topic | Link |
+| --- | --- |
+| Repository | [github.com/D-Astudillo-ASC/innovators-covid-project](https://github.com/D-Astudillo-ASC/innovators-covid-project) |
+| First MERN production app | [First MERN stack deploy](/blog/first-mern-stack-production-deploy) |

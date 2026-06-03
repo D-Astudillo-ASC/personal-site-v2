@@ -186,11 +186,13 @@ At `lg+`, article body and TOC share a two-column grid (`blog-post-layout`). TOC
 │  ARTICLE (min-w-0)              │  TOC RAIL (13–14.5rem) │
 │  [ArticleHeader]                │  On this page          │
 │  [Mobile TOC — below lg]        │  — section links       │
-│  [BlogDisclaimer]               │  (sticky, scroll-spy)  │
+│  [BlogDisclaimer — conditional] │  (sticky, scroll-spy)  │
 │  [MDX prose]                    │                        │
 │                                                          │
 ├──────────────────────────────────────────────────────────┤
-│  OLDER / NEWER POST NAV (1 or 2 columns)                 │
+│  MORE IN {SERIES} (themed neighbors, guide order)        │
+├──────────────────────────────────────────────────────────┤
+│  OLDER / NEWER BY DATE (1 or 2 columns)                  │
 │  [← Back to writing]                                     │
 ├──────────────────────────────────────────────────────────┤
 │ FOOTER                                                   │
@@ -242,12 +244,15 @@ At `lg+`, article body and TOC share a two-column grid (`blog-post-layout`). TOC
 
 ### Project Card
 
-- Background: `bg-surface`
-- Border: `border border-border`
-- Hover: `hover:border-border/60 hover:shadow-lg hover:shadow-text/5`
-- Title: `text-lg font-medium text-text`
-- Description: `text-sm text-muted leading-relaxed` (1-2 sentences max)
-- Tech tags: `font-mono text-[11px] text-muted/70 bg-text/5 px-2 py-0.5 rounded ring-1 ring-border`
+- Container: `bg-surface`, `border border-border`, `rounded-lg`, `hover:border-accent/25`, `hover:shadow-lg hover:shadow-text/5`
+- Media: fixed aspect (`16/10` default, `16/9` large); image `object-cover` with subtle scale on hover; bottom gradient into surface
+- No image: accent radial placeholder + mono “Case study” label (mobile archive)
+- Highlight: `font-mono text-[11px] uppercase tracking-[0.14em] text-accent` (one measured line)
+- Title: `font-display italic` with `group-hover:text-accent` (matches Writing rows)
+- Description: `cardDescription` when set — `text-sm` / `line-clamp-2` (scannable, not paragraph dumps)
+- Tech tags: `font-mono text-[11px] text-muted/80 bg-text/5 px-2 py-0.5 rounded ring-1 ring-border` (cap 4 default / 7 large)
+- Footer: optional `Case study →` (`blogSlug`), external live (IconClick), GitHub — `border-t border-border`
+- Primary click target: `liveUrl`, else `githubUrl`, else `/blog/{blogSlug}`; internal links do not use `target="_blank"`
 
 ### Writing (Blog)
 
@@ -256,12 +261,24 @@ At `lg+`, article body and TOC share a two-column grid (`blog-post-layout`). TOC
 #### Blog index & homepage list
 
 - Index uses `PageHeader` (`max-w-2xl`): label “Writing”, title “Notes & deep dives”.
+- **Start here** (`BlogStartHere`): accent-tinted panel (`border-accent/25`, `bg-accent/5`) — three pillar essays in editorial order (numbered circles, display-italic titles). Config: `constants/blog.ts` → `START_HERE_SLUGS`.
+- **How to read this** (`BlogReadingGuide`): neutral surface panel — four themed series with pill links to every essay in that spine. Same config file (`BLOG_SERIES`); chip labels are human-readable, not slug fragments.
+- **Catalog list** (`BlogIndexClient`): tag filters (OR semantics via `?tag=`). When no tags are active, pillar slugs are **excluded** from the main list so they are not duplicated under Start here; filtering by tag can surface them again.
 - Post rows: `divide-y divide-border border-y` — date + reading time in mono overline, title `text-2xl font-medium`, excerpt in muted body.
 - Homepage writing rows: same divider pattern; titles use `font-display text-2xl italic` with accent hover (stronger editorial feel than the index).
 
+#### Editorial config
+
+- Single source: `constants/blog.ts` — pillars, series membership, series order, and which series require the case-study disclaimer (`mobile-platform`, `enterprise-platform` only).
+- Post metadata: MDX `metadata` export; optional `dateModified` (ISO date) for materially updated essays. `featured` is derived from pillar membership, not set in frontmatter.
+
+#### Syndication
+
+- RSS 2.0 at `/feed.xml` (static route). Discovery via `alternates.types["application/rss+xml"]` on root layout and `/blog` metadata.
+
 #### Article header
 
-- Metadata: `font-mono text-[11px] uppercase tracking-[0.14em] text-muted` — date `/` reading time.
+- Metadata: `font-mono text-[11px] uppercase tracking-[0.14em] text-muted` — published date; optional **Updated {date}** when `dateModified > date`; `/` reading time; optional **Start here** accent label on pillar posts.
 - Title: Instrument Serif italic, `clamp(2.25rem, 6vw, 3.25rem)`, `text-balance`.
 - Excerpt: `text-lg text-muted`.
 - Tags: same pill pattern as project cards (`font-mono text-[11px]`, `ring-1 ring-border`).
@@ -269,6 +286,7 @@ At `lg+`, article body and TOC share a two-column grid (`blog-post-layout`). TOC
 
 #### Case study disclaimer
 
+- Shown only for posts in **Mobile platform** or **Enterprise & platform** series (employer-adjacent work). Side projects and earlier work omit it.
 - Surface callout above prose: `rounded-lg border border-border bg-surface/60`.
 - Overline: “Case study note” in accent mono (`text-[10px] uppercase`).
 - Copy states generalized/anonymized nature of essays — not employer documentation.
@@ -311,9 +329,16 @@ Section headings use `scroll-mt-28` for fixed header offset.
 - Scroll-spy via `IntersectionObserver`; h3 entries indented.
 - Omitted when fewer than two headings.
 
-#### Post navigation
+#### Series navigation
 
-- Older/newer cards in a split panel (`rounded-lg border bg-border gap-px`); single neighbor spans full width.
+- `BlogSeriesNav` below prose (above date neighbors): `rounded-xl border border-border bg-surface/40`.
+- Overline: “More in {series title}”; list of sibling posts in **guide order** (current slug excluded).
+- Footer link inside panel: “← All writing by theme” → `/blog`.
+
+#### Post navigation (by date)
+
+- Older/newer cards in a split panel (`rounded-lg border bg-border gap-px`); chronological neighbors, independent of series.
+- `aria-label`: “More writing by date”. Single neighbor spans full width.
 - Titles: `font-display text-lg italic`, accent on hover.
 - Footer link: “← Back to writing” in mono overline style.
 
@@ -336,3 +361,9 @@ Section headings use `scroll-mt-28` for fixed header offset.
 | 2026-06-01 | Absolute-positioned heading permalinks | `#` anchor must not shift heading text — body copy and h2/h3 left edges must align |
 | 2026-06-01 | Case study disclaimer on anonymized posts | Sets reader expectations; keeps voice precise without implying official employer documentation |
 | 2026-06-01 | Numbered homepage section labels (`01 /`, `02 /`, …) | Scannable rhythm across Featured → Writing → About without adding visual noise |
+| 2026-06-03 | Start here + themed reading guide on `/blog` | Pillars get a dedicated entry path; series spine replaces “sort by date” as the mental model for 20 essays |
+| 2026-06-03 | Accent panel for Start here vs neutral guide/catalog | Pillars read as “recommended”; guide and list stay in standard surface tokens |
+| 2026-06-03 | Series footer + date footer on articles | Theme continuity without replacing reverse-chronological discovery |
+| 2026-06-03 | Conditional case-study disclaimer | Only employer-adjacent series; side projects and coursework stay uncluttered |
+| 2026-06-03 | `dateModified` in frontmatter, header, JSON-LD, sitemap | Signals refreshed long-form content to readers and crawlers without changing published date |
+| 2026-06-03 | RSS at `/feed.xml` | Syndication for readers and aggregators; complements sitemap for discovery |

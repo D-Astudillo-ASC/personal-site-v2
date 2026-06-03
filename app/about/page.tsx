@@ -146,8 +146,9 @@ export default function About() {
             >
               Visa
             </Link>{" "}
-            I worked on payment and eligibility systems at 20M+ monthly
-            requests — modernizing .NET and Spring Boot services, replacing
+            I worked on payment and eligibility systems at production scale
+            (20M+ monthly requests on the eligibility path) — modernizing .NET
+            and Spring Boot services, replacing
             hundreds of stored procedures with APIs, and building the first
             real-time benefit-redemption pipeline between VCES and VDBP at
             99.99% uptime. After Visa, I spent time shipping on my own: mobile

@@ -118,7 +118,7 @@ export const experiences: Experience[] = [
   {
     id: "exp_3",
     title: "Software Developer Intern",
-    company: "RestEasy, Inc.",
+    company: "Digital memorial platform (remote)",
     location: "New York, NY (Remote)",
     employmentType: "Internship",
     startDate: new Date("2020-09"),

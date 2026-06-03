@@ -2,22 +2,23 @@ import fs from "node:fs";
 import path from "node:path";
 import GithubSlugger from "github-slugger";
 
-export interface TocHeading {
-  id: string;
-  title: string;
-  level: 2 | 3;
-}
+export type { PostMeta, TocHeading } from "@/lib/post-meta";
+export { getUniqueTags } from "@/lib/post-meta";
 
-export interface PostMeta {
-  slug: string;
-  title: string;
-  description: string;
-  date: string; // ISO date string (YYYY-MM-DD)
-  excerpt: string;
-  cover?: string;
-  tags: string[];
-  readingTime: string; // e.g. "6 min read"
-}
+import type { PostMeta, TocHeading } from "@/lib/post-meta";
+import {
+  getSeriesForSlug,
+  START_HERE_SLUG_SET,
+  START_HERE_SLUGS,
+  type BlogSeries,
+} from "@/constants/blog";
+
+export { getSeriesForSlug, type BlogSeries };
+export {
+  BLOG_SERIES,
+  START_HERE_SLUGS,
+  seriesUsesCaseStudyDisclaimer,
+} from "@/constants/blog";
 
 const CONTENT_DIR = path.join(process.cwd(), "app", "blog", "content");
 
@@ -118,15 +119,20 @@ export async function getPostMeta(slug: string): Promise<PostMeta | null> {
       (typeof m.excerpt === "string" && m.excerpt) ||
       "";
 
+    const dateModified =
+      typeof m.dateModified === "string" ? m.dateModified : date;
+
     return {
       slug,
       title,
       date,
+      dateModified,
       description,
       excerpt: (typeof m.excerpt === "string" && m.excerpt) || description,
       cover: typeof m.cover === "string" ? m.cover : undefined,
       tags: Array.isArray(m.tags) ? (m.tags as string[]) : [],
       readingTime: estimateReadingTime(slug),
+      featured: START_HERE_SLUG_SET.has(slug),
     };
   } catch {
     return null;
@@ -140,6 +146,38 @@ export async function getAllPosts(): Promise<PostMeta[]> {
   return posts
     .filter((post): post is PostMeta => post !== null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+/** Pillar posts in editorial “Start here” order. */
+export async function getStartHerePosts(): Promise<PostMeta[]> {
+  const bySlug = new Map(
+    (await getAllPosts()).map((post) => [post.slug, post] as const),
+  );
+  return START_HERE_SLUGS.map((slug) => bySlug.get(slug)).filter(
+    (post): post is PostMeta => post !== undefined,
+  );
+}
+
+/**
+ * Other posts in the same themed series (guide order), excluding the current slug.
+ */
+export async function getSeriesNeighbors(
+  slug: string,
+): Promise<{ series: BlogSeries; posts: PostMeta[] } | null> {
+  const series = getSeriesForSlug(slug);
+  if (!series) return null;
+
+  const bySlug = new Map(
+    (await getAllPosts()).map((post) => [post.slug, post] as const),
+  );
+
+  const posts = series.links
+    .filter((link) => link.slug !== slug)
+    .map((link) => bySlug.get(link.slug))
+    .filter((post): post is PostMeta => post !== undefined);
+
+  if (posts.length === 0) return null;
+  return { series, posts };
 }
 
 /**
