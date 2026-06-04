@@ -15,7 +15,7 @@ export default function Introduction() {
           around them — subscription platforms, payment rails, market data. Most
           of my experience is there: .NET and Spring Boot services at{" "}
           <Link
-            href="/about"
+            href="/blog/bridging-amqps-and-jms-for-real-time-events"
             className="text-text transition-fast hover:text-accent"
           >
             Visa
