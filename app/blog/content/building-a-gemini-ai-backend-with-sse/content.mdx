@@ -201,7 +201,34 @@ Stream tokens over SSE from a BFF you control; let Gemini or vLLM be implementat
 
 ---
 
+## Reader field guide
+
+**Experiment A** is the default path when you need AI on a mobile product this quarter.
+
+**Ship checklist**
+
+- [ ] BFF owns auth (`Authorization` on every route except health)—no `test-token` in prod
+- [ ] Rank/filter in code; use the LLM only for language (match blurbs, assistant tone)
+- [ ] Streaming route: `text/event-stream`, `data: {"chunk":…}\n\n`, terminal `data: [DONE]\n\n`
+- [ ] Under the hood: provider **native** stream API (`generateContentStream`), not batch-then-chunk
+- [ ] Cache keys include model id + prompt/system hash if you enable Redis
+- [ ] Persist assistant turns on stream end (buffer chunks → single write), if transcripts matter
+- [ ] Rate limit at the edge; keep paid inference keys server-side only
+
+| Choice | Experiment A (this post) | Experiment B ([GPU pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse)) |
+| --- | --- | --- |
+| Inference | Gemini 1.5 Flash (managed) | Llama-2 13B GPTQ + vLLM |
+| Client transport | HTTP POST + **SSE** | Should be SSE/OpenAI stream from BFF—not phone WebSocket |
+| Time to first token | Real (API streams partials) | Real only if you use vLLM `stream: true` / OpenAI server |
+| When to pick | Ship fast, predictable ops | Cost/residency control after you have a caller |
+
+Wire the mobile client to `/api/chat/message/stream` before you tune prompts—the protocol and persistence gaps hurt more than model choice.
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
@@ -210,4 +237,12 @@ Stream tokens over SSE from a BFF you control; let Gemini or vLLM be implementat
 | [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | Rules and App Check before any AI endpoint touches prod data |
 | [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Where **bidirectional** WebSockets are the right tool (not LLM token streams) |
 
-**External:** [Gemini text generation (streaming)](https://ai.google.dev/gemini-api/docs/text-generation#streaming) · [MDN: Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
+### References (curated)
+
+Gemini’s streaming docs define the server-side contract; MDN’s SSE page is what I send mobile engineers so framing matches `EventSource`.
+
+| Reference | Notes |
+| --- | --- |
+| [Gemini text generation (streaming)](https://ai.google.dev/gemini-api/docs/text-generation#streaming) | Native `generateContentStream`—map chunks to `data: …\n\n`, not batch-then-slice. |
+| [MDN: Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) | One-way server→client; proxies and reconnect behavior matter for mobile. |
+| [Fastify reply.raw for SSE](https://fastify.dev/docs/latest/Reference/Reply/#raw) | How we held the socket open without fighting the JSON serializer. |

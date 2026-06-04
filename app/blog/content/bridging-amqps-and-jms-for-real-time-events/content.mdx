@@ -31,13 +31,15 @@ export const metadata = {
 | Latency | **Sub-200ms** (happy path) |
 | Uptime | **99.99%** |
 
-The business problem: **real-time cross-service handoff** — when an upstream service commits a domain event, a downstream service must apply it immediately so balances and fulfillment stay consistent. Two mature codebases, two ecosystems, one latency budget.
+**Real-time cross-service handoff:** upstream commits a domain event; downstream must apply it fast enough that balances and fulfillment stay consistent. Two mature codebases, two ecosystems, one latency budget.
 
-The trap is **HTTP callbacks with hand-rolled retries**. The better answer: let a broker own delivery semantics, and make consumers **idempotent by design**.
+I avoided **HTTP callbacks with hand-rolled retries**. A broker owns delivery semantics; consumers stay **idempotent by design**.
 
 ---
 
 ## Why not HTTP?
+
+Synchronous HTTP looks tempting when both services already speak REST. For durable handoff across .NET and Java, the comparison usually flips once retries, poison messages, and backpressure enter the picture.
 
 | Concern | HTTP callback | Message broker |
 | --- | --- | --- |
@@ -213,7 +215,34 @@ When two language stacks must see the same event, standardize on broker semantic
 
 ---
 
+## Reader field guide
+
+**When this pattern applies:** A .NET (or other) producer must notify a Java (or other) consumer without shared libraries; you need at-least-once delivery, backpressure, and DLQ visibility; the caller must not block on downstream commit. Skip the broker if the flow is strictly request/response with no durability requirement.
+
+**Operational checklist**
+
+- Publish with a stable **`eventId`** (UUID) in message properties — consumer dedup key, not business id alone.
+- Use **CLIENT_ACK** (or equivalent) only **after** side effects commit in the same transaction as the idempotency row.
+- Table **`processed_events`** (or equivalent) with retention past max redelivery horizon.
+- Pin **TLS** and broker address settings (`dead-letter`, `max-delivery-attempts`, backoff) in every environment — same `broker.xml` shape in dev and prod.
+- Alert on **queue depth / lag**, not producer 5xx alone — slow consumers look healthy until depth climbs.
+- Propagate **`correlationId`** from HTTP ingress through message properties for cross-stack traces.
+
+**Integration choice**
+
+| Requirement | HTTP callback + custom retry | Message broker (AMQP ↔ JMS) |
+| --- | --- | --- |
+| Caller must not wait on downstream | Awkward (async job elsewhere) | Natural |
+| At-least-once without bespoke code | You build it | Built-in |
+| Poison / bad schema handling | Per-integration hacks | DLQ + alerts |
+| Cross-language shared types | DTO duplication + drift | JSON + `schemaVersion` |
+| Ops signal under load | Per-endpoint 5xx | Queue depth, DLQ depth |
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
@@ -221,4 +250,12 @@ When two language stacks must see the same event, standardize on broker semantic
 | [Building a microfrontend platform for data products](/blog/building-a-microfrontend-data-platform) | Multiple UIs consuming the same fast APIs |
 | [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Mobile fan-out (FCM) vs broker-backed server events |
 
-**External:** [ActiveMQ Artemis documentation](https://activemq.apache.org/components/artemis/documentation/) · [AMQP 1.0 overview](https://www.amqp.org/about/overview) · [Jakarta Messaging (JMS) API](https://jakarta.ee/specifications/messaging/)
+### References (curated)
+
+When someone says “we need a queue,” I start with whether the consumer speaks AMQP 1.0 or JMS—the bridge cost is real.
+
+| Reference | Notes |
+| --- | --- |
+| [ActiveMQ Artemis documentation](https://activemq.apache.org/components/artemis/documentation/) | Core protocol bridges, address settings, and consumer durability knobs. |
+| [AMQP 1.0 concepts](https://www.rabbitmq.com/tutorials/amqp-concepts.html) | Wire-level model for external publishers (e.g. cloud AMQP endpoints). |
+| [Jakarta Messaging (JMS) API](https://jakarta.ee/specifications/messaging/) | What legacy Java services expect on the other side of the bridge. |

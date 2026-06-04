@@ -16,6 +16,8 @@ export interface PostMeta {
   tags: string[];
   readingTime: string; // e.g. "6 min read"
   featured: boolean;
+  /** Employer-safe or coursework essay — shown in index/article chrome. */
+  caseStudy: boolean;
 }
 
 /** Parse `?q=...` from the blog index URL. */

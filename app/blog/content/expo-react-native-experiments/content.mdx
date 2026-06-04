@@ -96,11 +96,43 @@ Spikes belong in repos you can delete—camera APIs, GL surfaces, and router exp
 
 ---
 
+## Reader field guide
+
+Use separate sandboxes when the production app already carries Firebase schema, messaging rules, and TestFlight paperwork.
+
+**When to spin a spike repo**
+
+- [ ] **Capability unknown** (camera permissions, `expo-gl` lifecycle, Router nested layouts)—prove on a throwaway app first
+- [ ] **No backend yet**—UI rows and navigation structure without Firestore listeners
+- [ ] **Heavy native dep**—confirm prebuild + device build before merging into the main `app.config`
+
+| Sandbox | Proves | Copy into production, not the repo |
+| --- | --- | --- |
+| `react-native-camera-example` | Per-platform permission + capture | Profile/story media flows |
+| `react-native-sandbox` | Expo Router + memoized list rows | Inbox layout patterns ([platform post](/blog/lessons-from-building-a-mobile-events-social-platform)) |
+| `react-native-threejs` | R3F + `expo-gl` memory on background | Usually **skip** for a 2D social feed |
+
+**Stop spike work when:** you can archive a device build with the native module, or you have a one-page note on what failed—then delete or freeze the sandbox so it does not become a second product.
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| Expo Camera docs | [docs.expo.dev — Camera](https://docs.expo.dev/versions/latest/sdk/camera/) |
-| Expo Router | [Expo Router introduction](https://docs.expo.dev/router/introduction/) |
-| React Three Fiber | [docs.pmnd.rs/react-three-fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) |
-| Main mobile architecture | [Mobile events platform](/blog/lessons-from-building-a-mobile-events-social-platform) |
+| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Production-shaped architecture these sandboxes fed into |
+| [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight) | What happens after spikes graduate to signed builds |
+| [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | Rules and App Check before any spike touches prod data |
+
+### References (curated)
+
+I treat these repos as throwaway—official Expo and R3F docs are where I copy API names, not blog summaries.
+
+| Reference | Notes |
+| --- | --- |
+| [Expo Camera](https://docs.expo.dev/versions/latest/sdk/camera/) | Permissions and preview lifecycle on device, not simulator-only. |
+| [Expo Router](https://docs.expo.dev/router/introduction/) | File routes before you nest custom navigators. |
+| [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) | `expo-gl` + R3F spikes—watch GPU memory on older iPhones. |
+| [Expo SDK reference](https://docs.expo.dev/versions/latest/) | Version skew across sandboxes is the usual breakage mode. |

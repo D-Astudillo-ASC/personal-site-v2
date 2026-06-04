@@ -5,11 +5,13 @@ export const metadata = {
   date: "2025-09-20",
   dateModified: "2026-06-03",
   excerpt:
-    "A small full-stack exercise: join courses, enrollments, and users from a creator-platform Public API, with retries, rate spacing, and a nested CRA client that taught me to treat setup docs as part of the API surface.",
+    "Express BFF plus React UI over a creator-platform Public API — published courses, active enrollments, parallel user hydration, and why API-native filters beat application-tier filtering.",
   tags: ["TypeScript", "React", "Express", "API design"],
 };
 
 # Building a course roster dashboard over a third-party public API
+
+Third-party APIs rarely hand you the shape your UI needs. I built an **Express BFF + React** dashboard that joins **published courses** with **active enrollments** and hydrated student names — and learned that filtering belongs upstream, not in the browser.
 
 ## TL;DR
 
@@ -22,11 +24,11 @@ I built an **Express BFF + React** dashboard that calls a **creator-platform Pub
 | React | Horizontal course cards; **no** client-side published filter |
 | Tests | Jest on filtering, retries, and error paths |
 
-This post is about **integration design** and **developer experience** — not a product launch.
+This post is about **integration design** and **developer experience** — how to aggregate upstream resources without leaking draft metadata to the browser.
 
 ---
 
-## The spec
+## What the dashboard had to show
 
 Minimum bar:
 
@@ -57,7 +59,7 @@ Architecturally that is **BFF-tier** filtering, not React filtering. The better 
 
 ### The lesson that stuck
 
-The biggest surprise at the time: **filtering and sorting belong on the API**, not in the React layer. With ~**75 test courses** in the environment, client-side `filter()` felt fine — but that mindset does not scale. Pulling only `is_published=true` rows upstream saves bandwidth, keeps pagination honest, and avoids leaking draft metadata to the browser. Years later that sounds obvious; in the exercise it was the main architectural correction.
+The biggest surprise at the time: **filtering and sorting belong on the API**, not in the React layer. With ~**75 test courses** in the environment, client-side `filter()` felt fine — but that mindset does not scale. Pulling only `is_published=true` rows upstream saves bandwidth, keeps pagination honest, and avoids leaking draft metadata to the browser. That correction stuck: push predicates to the origin when the upstream API documents them.
 
 ---
 
@@ -137,10 +139,39 @@ Correct aggregation with a broken onboarding path is half a system. On third-par
 
 ---
 
+## Reader field guide
+
+**When a BFF over a public API makes sense:** The upstream API exposes multiple resources (courses, enrollments, users); the UI needs a joined shape; rate limits and retries belong server-side; the browser should not see draft rows.
+
+**Operational checklist**
+
+- [ ] Prefer upstream `is_published` (or equivalent) query params over BFF `filter()` when documented
+- [ ] Wrap upstream calls with timeout, exponential backoff, and 429/5xx retry policy
+- [ ] Use `Promise.allSettled` on user hydration — drop failed lookups, do not fail the whole dashboard
+- [ ] Cap concurrency on course fan-out if roster size grows beyond school-scale
+- [ ] Document nested client paths (`src/client/`) and env vars (`REACT_APP_API_URL`) in the root README
+- [ ] Return a stable envelope (`success`, `data`, `meta`) so UI and tests share one contract
+- [ ] Helmet + CORS on Express before exposing aggregated data
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| First MERN app | [First MERN stack deploy](/blog/first-mern-stack-production-deploy) |
-| Team MERN capstone | [Exam workflow capstone](/blog/team-mern-exam-workflow-capstone) |
-| Express production best practices | [Express security best practices](https://expressjs.com/en/advanced/best-practice-security.html) |
+| [First MERN stack production deploy](/blog/first-mern-stack-production-deploy) | Earlier lesson in one-origin Express + static client hosting |
+| [Team MERN exam workflow capstone](/blog/team-mern-exam-workflow-capstone) | Monorepo client patterns after this focused BFF exercise |
+| [Cutting a data API from 21s to ~250ms](/blog/cutting-a-data-api-from-21s-to-250ms) | When aggregation belongs in SQL/OLTP, not in Node loops |
+
+### References (curated)
+
+The third-party API’s filter docs matter more than our dashboard UI—most bugs were “filter in the wrong tier.”
+
+| Reference | Notes |
+| --- | --- |
+| [Express security best practices](https://expressjs.com/en/advanced/best-practice-security.html) | Helmet, rate limits, and error shapes on the BFF. |
+| [Jest — mocking HTTP](https://jestjs.io/docs/mock-functions) | How we tested retries without hitting live rate limits in CI. |
+| [HTTP 429 semantics](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) | Backoff + jitter when the upstream throttles enrollment pulls. |
+| [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | Dashboard tests that assert loading and empty states, not implementation details. |

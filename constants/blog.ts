@@ -30,13 +30,24 @@ export const START_HERE_SLUGS = [
 
 export const START_HERE_SLUG_SET = new Set<string>(START_HERE_SLUGS);
 
-/** Optional card/OG art for pillar essays (paths under /public). */
+/**
+ * Optional card/OG art for pillar essays (paths under /public).
+ * Employer-adjacent / anonymized pillars intentionally omit art — case-study tone only.
+ */
 export const PILLAR_COVERS: Partial<
   Record<(typeof START_HERE_SLUGS)[number], string>
 > = {
-  "cutting-a-data-api-from-21s-to-250ms": "/images/projects/vdbp.avif",
   "building-a-crdt-collaborative-editor": "/images/projects/personal-site-v2.avif",
 };
+
+/** Index + article chrome: employer-safe or coursework essays (no hero thumbnails). */
+export function isCaseStudyPost(slug: string): boolean {
+  const series = getSeriesForSlug(slug);
+  if (!series) return false;
+  return (
+    seriesUsesCaseStudyDisclaimer(series.id) || series.id === "earlier-work"
+  );
+}
 
 export const BLOG_SERIES: readonly BlogSeries[] = [
   {
@@ -112,6 +123,10 @@ export const BLOG_SERIES: readonly BlogSeries[] = [
         label: "macOS wallpaper",
         slug: "macos-wallpaper-picker-unsplash",
       },
+      {
+        label: "npm supply chain",
+        slug: "triaging-shai-hulud-and-npm-audit-on-nextjs",
+      },
     ],
   },
   {
@@ -153,6 +168,14 @@ const SERIES_BY_SLUG = new Map<string, BlogSeries>(
 export function getSeriesForSlug(slug: string): BlogSeries | undefined {
   return SERIES_BY_SLUG.get(slug);
 }
+
+const EARLIER_WORK_SERIES = BLOG_SERIES.find((s) => s.id === "earlier-work");
+
+/** Slugs in the “Earlier work” series — demoted on /blog when unfiltered. */
+export const EARLIER_WORK_SLUGS = (EARLIER_WORK_SERIES?.links.map((l) => l.slug) ??
+  []) as readonly string[];
+
+export const EARLIER_WORK_SLUG_SET = new Set<string>(EARLIER_WORK_SLUGS);
 
 /** Series that use the employer-safe case study disclaimer. */
 export function seriesUsesCaseStudyDisclaimer(

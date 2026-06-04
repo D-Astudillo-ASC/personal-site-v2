@@ -8,6 +8,7 @@ export { getUniqueTags } from "@/lib/post-meta";
 import type { PostMeta, TocHeading } from "@/lib/post-meta";
 import {
   getSeriesForSlug,
+  isCaseStudyPost,
   PILLAR_COVERS,
   START_HERE_SLUG_SET,
   START_HERE_SLUGS,
@@ -17,6 +18,7 @@ import {
 export { getSeriesForSlug, type BlogSeries };
 export {
   BLOG_SERIES,
+  isCaseStudyPost,
   START_HERE_SLUGS,
   seriesUsesCaseStudyDisclaimer,
 } from "@/constants/blog";
@@ -137,6 +139,7 @@ export async function getPostMeta(slug: string): Promise<PostMeta | null> {
       tags: Array.isArray(m.tags) ? (m.tags as string[]) : [],
       readingTime: estimateReadingTime(slug),
       featured: START_HERE_SLUG_SET.has(slug),
+      caseStudy: isCaseStudyPost(slug),
     };
   } catch {
     return null;

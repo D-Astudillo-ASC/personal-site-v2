@@ -11,6 +11,8 @@ export const metadata = {
 
 # Building a browser music visualizer with Goose
 
+I wanted a local music visualizer without standing up a backend. **Goose** got me to a working React shell quickly; the real work was wiring **Web Audio** so three render modes share one analyser without leaking contexts.
+
 ## TL;DR
 
 **Goose** (Block’s open agent for software tasks) helped me go from “I want a local music visualizer” to a working **React + Vite + MUI** app with **Wavesurfer.js** and three render modes — faster than hand-rolling every file. The interesting engineering was not the UI chrome; it was **Web Audio graph wiring** (one `MediaElementSource` per element, `AudioContext` resume on user gesture, cleanup on unmount).
@@ -34,7 +36,7 @@ The audio graph is the product:
 <audio> → MediaElementSource → AnalyserNode → (Wavesurfer | canvas FFT loop)
 ```
 
-[Wavesurfer.js](https://wavesurfer.xyz/) owns waveform rendering; [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) owns frequency data for bar/circular modes. Mixing them on one `AudioContext` is standard, but **lifecycle bugs** dominate the debugging time.
+[Wavesurfer.js](https://github.com/katspaugh/wavesurfer.js) owns waveform rendering; [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) owns frequency data for bar/circular modes. Mixing them on one `AudioContext` is standard, but **lifecycle bugs** dominate the debugging time.
 
 ---
 
@@ -146,8 +148,38 @@ Visual modes are cheap; leaking `AudioContext` instances and fighting autoplay p
 
 ---
 
+## Reader field guide
+
+**When this stack fits:** Client-only playback and visualization; no server-side transcoding; you want Wavesurfer for waveform plus custom canvas modes on the same `AudioContext`.
+
+**Operational checklist**
+
+- [ ] Create **one** `MediaElementSource` per `<audio>` element — stash on the element and reuse across mode switches
+- [ ] Call `audioContext.resume()` on every user-initiated play — suspended contexts render flat analysers
+- [ ] Cancel `requestAnimationFrame` when switching waveform ↔ bars ↔ circular
+- [ ] Disconnect analyser and source in hook teardown before unmount
+- [ ] Pin Wavesurfer v7 in agent prompts so scaffolding does not pull legacy plugin APIs
+- [ ] Profile with DevTools Performance if the fan spins up after hot reload
+
+---
+
 ## Related reading
 
-- [An Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) — another client-only side project with a clear deploy boundary
-- [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) — real-time in the browser, but **state sync** instead of a playback analyser loop
-- [MDN: Using server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) — useful contrast when your “stream” is analyser frames, not LLM tokens ([mobile AI posts](/blog/building-a-gemini-ai-backend-with-sse) cover that pattern)
+### On this site
+
+| Post | Why |
+| --- | --- |
+| [An Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) | Another client-only side project with a clear deploy boundary |
+| [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Real-time in the browser, but **state sync** instead of a playback analyser loop |
+| [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | When your “stream” is tokens over SSE, not analyser frames |
+
+### References (curated)
+
+Wavesurfer and Web Audio docs disagree on who owns the element graph—read both before you let an agent scaffold the hook.
+
+| Reference | Notes |
+| --- | --- |
+| [Wavesurfer.js docs](https://wavesurfer-js.pages.dev/docs/) | v7 API surface—pin it in prompts so scaffolding does not pull legacy plugins. |
+| [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) | `AudioContext` lifecycle, `AnalyserNode`, and why `resume()` follows user gesture. |
+| [MediaElementAudioSourceNode](https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode) | One source per `<audio>`—the leak that survives hot reload. |
+| [MDN: Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) | Contrast with rAF-driven visualizers—different backpressure story. |

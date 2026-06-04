@@ -11,6 +11,8 @@ export const metadata = {
 
 # Three generations of my personal site: Gatsby, Next, and Next again
 
+I did not migrate once — I shipped **three public generations** of the same product. Each URL is a time capsule: Gatsby particles, an intermediate Next deploy on the v2 subdomain, and the current editorial stack on the apex domain.
+
 ## TL;DR
 
 I did not migrate once — I shipped **three** public generations of the same product (my portfolio + writing surface):
@@ -56,7 +58,7 @@ Timeline in [personal-site-v2](https://github.com/D-Astudillo-ASC/personal-site-
 
 | When | Milestone |
 | --- | --- |
-| Jul 2024 | Repo created |
+| Jul 2024 | Project scaffold |
 | May 2025 | **Next.js 15** + React 19 + Tailwind v4, dark mode, Font Awesome, projects/about pages |
 | Jul 2025 | Contact form, animations, project imagery |
 | Jul 2025 | **First blog** — blog route + MDX support (minimal compared to today) |
@@ -181,12 +183,43 @@ Three URLs beat three README bullets: Gatsby proved static images and GraphQL pi
 
 ---
 
+## Reader field guide
+
+**When to keep prior deploys alive:** You are comparing stack generations; recruiters ask for before/after; SEO and CWV need separate origins measured honestly.
+
+**Operational checklist**
+
+- [ ] Map each generation to **URL + stack**, not folder name alone (v2 subdomain ≠ current apex deploy)
+- [ ] Replicate routes and slug redirects when moving MDX between frameworks
+- [ ] Replace `gatsby-plugin-image` with `next/image` + explicit `sizes` during Gatsby → Next moves
+- [ ] Export `metadata` / `generateMetadata`, `sitemap.ts`, and structured data as code in Gen 3
+- [ ] Lab Lighthouse on `/` after each major visual change — CrUX may stay “No Data” on low-traffic personal domains
+- [ ] Track wall-clock publish cost (`gatsby build` vs `next build`) and JS weight on hero, not vibes
+- [ ] Wire `data/projects.ts` → `blogSlug` so projects point at case-study essays
+
+**Lab scores to compare (June 2026 mobile homepage):** v1 **87**, v2 **91**, apex **92** — see Lighthouse table above for LCP/FCP/CLS detail.
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| Gen 1 live | [v1.danielastudillo.io](https://v1.danielastudillo.io/) |
-| Gen 2 live | [v2.danielastudillo.io](https://v2.danielastudillo.io/) |
-| Gen 3 live | [danielastudillo.io](https://danielastudillo.io/) |
-| Next.js App Router | [Next.js — App Router](https://nextjs.org/docs/app) |
-| Gatsby → headless migration patterns | [Gatsby migration guide](https://www.gatsbyjs.com/docs/how-to/performance/migrate-from-gatsby-to-next-js/) |
+| [Building a CRDT collaborative editor](/blog/building-a-crdt-collaborative-editor) | Shipped product work linked from the current generation |
+| [Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) | Static SKU vs this MDX editorial stack |
+| [Triaging Shai-Hulud on my portfolio v2](/blog/triaging-shai-hulud-and-npm-audit-on-nextjs) | Supply-chain response on personal-site-v2 — audit vs worm IoCs |
+
+### References (curated)
+
+Three live URLs are the migration proof; Next and Gatsby docs are for readers planning their own cutover.
+
+| Reference | Notes |
+| --- | --- |
+| [Gen 1 — Gatsby](https://v1.danielastudillo.io/) | GraphQL image pipelines and particles hero (Lighthouse **87** in lab). |
+| [Gen 2 — Next subdomain](https://v2.danielastudillo.io/) | First App Router deploy on Vercel (**91** in lab). |
+| [Gen 3 — apex](https://danielastudillo.io/) | MDX blog + standalone output (**92** in lab, May 2026). |
+| [Next.js App Router](https://nextjs.org/docs/app) | File-based routes, RSC defaults, and metadata APIs we use now. |
+| [Next.js — Migrating](https://nextjs.org/docs/app/guides/migrating) | App Router migration guide when you outgrow build-time GraphQL for everything. |
+| [Core Web Vitals](https://web.dev/vitals/) | Lab scores are directional—field data on a personal origin is often sparse. |

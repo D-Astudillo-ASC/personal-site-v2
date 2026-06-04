@@ -27,7 +27,7 @@ export const metadata = {
 
 ## “Works on my phone” is not a release candidate
 
-Expo Go masks an entire class of failures: native modules you have not prebuilt, entitlement gaps, background modes that Apple rejects at upload time, and privacy manifests required for third-party SDKs.
+Expo Go hides failures that only show up in a signed IPA: native modules you never prebuilt, missing entitlements, `UIBackgroundModes` strings Apple rejects at upload, and privacy manifests third-party SDKs require.
 
 Distribution was **first-class engineering**, not a Friday afternoon task. The playbook clusters into three layers: **validate config**, **produce a signed IPA**, **pass App Store Connect paperwork**.
 
@@ -155,7 +155,35 @@ Distribution is a feature: broken entitlements and rejected privacy strings wast
 
 ---
 
+## Reader field guide
+
+Treat TestFlight as a **pipeline**, not a single `eas build` click.
+
+**Pre-upload checklist**
+
+- [ ] P0 Firebase rules deployed ([security post](/blog/securing-firebase-for-a-social-mobile-app))
+- [ ] `expo-doctor` clean; project `audit:ios` (or equivalent plist walk) clean
+- [ ] At least one **local** production archive or `eas build --local` when native modules are in play
+- [ ] `UIBackgroundModes` values match Apple’s allowlist (fix in `app.config`, re-prebuild)
+- [ ] IPA validation script or Transporter preflight passed (signing, plist, forbidden modes)
+- [ ] Privacy policy URL live; export compliance and age-rating questionnaires done in App Store Connect
+- [ ] Internal TestFlight group dogfood ≥24h before external beta
+
+| Stage | Tool / artifact | Catches |
+| --- | --- | --- |
+| JS config | `expo-doctor` | Plugin/SDK drift before native work |
+| iOS metadata | `audit:ios`, `app.config` | Usage strings, icons, privacy manifest gaps |
+| Native truth | `expo prebuild` + Xcode archive | What Expo Go never exercises |
+| Upload | Transporter + `validate-ipa.sh` | Invalid background modes, signing chain |
+| Store | App Store Connect | Privacy URL, screenshots, encryption questionnaire |
+
+**Native modules that force prebuild in this stack:** VisionCamera, WebRTC, App Check—plan rebuild time when you add any of them.
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
@@ -163,4 +191,13 @@ Distribution is a feature: broken entitlements and rejected privacy strings wast
 | [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | P0 rules before TestFlight |
 | [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Native rebuild required for App Check — same class of work |
 
-**External:** [Expo: Create a production build](https://docs.expo.dev/build/introduction/) · [Apple: TestFlight beta testing](https://developer.apple.com/testflight/) · [EAS Build](https://docs.expo.dev/build/introduction/)
+### References (curated)
+
+EAS is the path I document for teammates; Apple’s TestFlight page is the checklist for compliance metadata that blocks external testers.
+
+| Reference | Notes |
+| --- | --- |
+| [Expo: Create a production build](https://docs.expo.dev/build/introduction/) | When `expo start` is no longer the artifact you ship. |
+| [EAS Build](https://docs.expo.dev/build/introduction/) | Signed IPA/AAB, credentials, and the profiles you actually archive. |
+| [Apple: TestFlight beta testing](https://developer.apple.com/testflight/) | External tester gates—privacy nutrition labels, export compliance. |
+| [Expo: App version and build numbers](https://docs.expo.dev/build-reference/app-versions/) | Monotonic `buildNumber`—TestFlight rejects recycled values. |

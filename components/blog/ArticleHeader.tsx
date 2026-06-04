@@ -34,6 +34,14 @@ export default function ArticleHeader({ post }: ArticleHeaderProps) {
             <span className="text-accent/90">Start here</span>
           </>
         ) : null}
+        {post.caseStudy ? (
+          <>
+            <span className="text-muted/40" aria-hidden="true">
+              /
+            </span>
+            <span>Case study</span>
+          </>
+        ) : null}
       </div>
       <h1 className="mt-5 font-display text-[clamp(2.25rem,6vw,3.25rem)] italic leading-[1.05] tracking-tight text-text text-balance">
         {post.title}

@@ -19,13 +19,13 @@ export const metadata = {
 | Stage 1 | **Storage Write API v2** over **gRPC** (append rows, not SQL jobs) | **under 2s** |
 | Stage 2 | **PostgreSQL + EF Core** OLTP; warehouse for enrichment only | **~200–300ms** |
 
-Interactive UI operations — list views, keyed lookups, validation saves — were backed by a warehouse used as an OLTP store. This post walks through measurement, the two migrations, and what we refused to optimize.
+Interactive UI operations — list views, keyed lookups, validation saves — were backed by a warehouse used as an OLTP store. Below: how I measured it, the two migrations, and what I refused to optimize.
 
 ---
 
 ## Symptoms: tail latency, not averages
 
-Internal users filed tickets on paths that should feel instant. Mean latency looked acceptable on cached routes; **p95/p99 sat at 21–30s** on write-heavy and full-list reads.
+Tickets piled up on paths that should feel instant. Means on cached routes looked fine; **p95/p99 sat at 21–30s** on write-heavy and full-list reads.
 
 Root causes after instrumentation:
 
@@ -198,11 +198,45 @@ Slow reads are usually a topology problem: the wrong database tier on the wrong 
 
 ---
 
+## Reader field guide
+
+**When this pattern applies:** A product UI waits on warehouse DML or full-table scans; p99 latency dominates support noise while averages look fine; you need keyed reads, small writes, or transactional updates on the request path. Skip it if the workload is batch-only analytics with no synchronous caller.
+
+**Operational checklist**
+
+- Measure **p95/p99** per route before tuning SQL — means hide warehouse job latency.
+- Classify each handler: OLTP (keyed read/write) vs enrichment (can be async).
+- For hot writes still on BigQuery, pilot **Storage Write API** append streams before debating indexes.
+- Backfill Postgres (or your row store) with row-count + checksum parity; run **shadow reads** before flipping traffic.
+- Cut over **one route at a time** with a feature flag; watch p95 and error rate, not deploy count.
+- Keep warehouse on the path only for hierarchy joins and analytics that do not block the UI thread.
+
+**Where to put the data (request path)**
+
+| Caller need | Warehouse DML/SELECT | Storage Write API | PostgreSQL (OLTP) |
+| --- | --- | --- | --- |
+| Single-row UI save | Poor (job semantics) | Good for append-heavy writes | Best |
+| Keyed lookup by id | Poor (columnar scan) | N/A for reads | Best |
+| Bulk nightly ETL | Good | Good | Usually wrong tier |
+| Real-time enrichment | Async/off hot path | Async/off hot path | Primary row + async join |
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
 | [Building a microfrontend platform for data products](/blog/building-a-microfrontend-data-platform) | What happened **after** the API was fast enough for humans — frontend platform constraints |
 | [Bridging AMQPS and JMS for real-time events](/blog/bridging-amqps-and-jms-for-real-time-events) | Async domain events off the request path (different bottleneck class) |
 
-**External:** [BigQuery Storage Write API](https://cloud.google.com/bigquery/docs/write-api) · [BigQuery DML limitations](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language) · [PostgreSQL partial indexes](https://www.postgresql.org/docs/current/indexes-partial.html)
+### References (curated)
+
+I still sanity-check warehouse semantics against Google’s docs before arguing for Postgres—DML job latency is easy to misread when averages look fine.
+
+| Reference | Notes |
+| --- | --- |
+| [BigQuery Storage Write API](https://cloud.google.com/bigquery/docs/write-api) | Append streams for row ingestion without DML jobs on the hot path. |
+| [BigQuery DML limitations](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language) | Why `INSERT`/`MERGE` behave like batch work, not keyed OLTP. |
+| [PostgreSQL partial indexes](https://www.postgresql.org/docs/current/indexes-partial.html) | Smaller indexes when route predicates are stable. |

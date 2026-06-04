@@ -11,6 +11,8 @@ export const metadata = {
 
 # An Astro + Bun landing template experiment
 
+Marketing pages do not always need an app runtime. I shipped a **static business landing template** to learn whether **Astro 6 + Bun** could replace Next for copy-heavy, resale-ready shells.
+
 ## TL;DR
 
 I built and deployed a **static business landing template** at [astro-bun-site.vercel.app](https://astro-bun-site.vercel.app/) to explore **Astro 6 + Bun** as a lightweight alternative to a Next.js marketing page. The goal was not a unique brand — it was a **repeatable product shell**: hero, story scroll, testimonials, FAQ, lead form, legal modals, SEO, and **Playwright smoke tests** — with **zero Tailwind**, only CSS tokens.
@@ -154,13 +156,38 @@ When the product is copy, SEO, and a contact funnel, Astro plus static deploy is
 
 ---
 
+## Reader field guide
+
+**When Astro + Bun is enough:** Mostly static marketing; one data file drives copy; lead capture can start in demo mode; buyers may fork without React expertise.
+
+**Operational checklist**
+
+- [ ] Centralize copy in `landing.ts` (or equivalent) — not scattered across components
+- [ ] Theme toggle writes `data-theme` early to avoid FOUC; test with Playwright on **`astro preview`**, not dev server
+- [ ] Set `PUBLIC_SITE_URL` before shipping sitemap/OG URLs
+- [ ] Lead form: honest demo mode when `PUBLIC_LEAD_ENDPOINT` is unset
+- [ ] CSS tokens in plain `:root` / `[data-theme]` — portable beyond Astro if the buyer reskins
+- [ ] Smoke-test theme toggle, hero `<h1>`, form validation, and sitemap 200 in CI
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
 | [Building a browser music visualizer with Goose](/blog/building-a-browser-music-visualizer-with-goose) | Another **client-only** experiment — agents for scaffolding, you own the hard APIs |
-| [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | When the product needs a full app runtime, not a static shell |
+| [Building Perpetual Gems jewelry repair site](/blog/building-perpetual-gems-jewelry-repair-site) | When the SKU needs SSR **and** a mutating API, not a static shell |
+| [Portfolio v1 → v2](/blog/portfolio-v1-gatsby-to-next-v2) | [danielastudillo.io](https://danielastudillo.io) as the counterexample—MDX, API routes, editorial blog |
 
-This portfolio ([danielastudillo.io](https://danielastudillo.io)) is the counterexample: Next.js 16, MDX, API routes, theme/font stores — the right tool when the site is the product, not a template SKU.
+### References (curated)
 
-**External:** [Astro docs: Build faster websites](https://docs.astro.build/en/concepts/why-astro/) · [Bun package manager](https://bun.sh/docs/cli/install) · [Playwright test generator](https://playwright.dev/docs/intro) · [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
+Astro’s “why Astro” page is the pitch I give buyers; Bun’s install docs are what I hand operators who already live in npm.
+
+| Reference | Notes |
+| --- | --- |
+| [Astro: Why Astro](https://docs.astro.build/en/concepts/why-astro/) | Islands + static-first—matches resale landing SKUs. |
+| [Bun package manager](https://bun.sh/docs/cli/install) | Fast installs in CI; pin versions so templates do not drift. |
+| [Playwright test generator](https://playwright.dev/docs/intro) | Smoke tests on preview deploys—cheap confidence for white-label ships. |
+| [@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/) | SEO baseline without bolting on a second framework. |

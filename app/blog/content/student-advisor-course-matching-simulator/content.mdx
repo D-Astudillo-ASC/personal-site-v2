@@ -11,6 +11,8 @@ export const metadata = {
 
 # MasterPlan: student–advisor and student–course matching in JavaScript
 
+Before LLM rerankers, matching was tags and set containment. **MasterPlan** (2019) is pure **JavaScript** — no React, no backend — that scores advisor and course compatibility from CSV inputs and prints explainable recommendations.
+
 ## TL;DR
 
 **MasterPlan** (2019) is a small **JavaScript** program — no React, no backend — that reads student, advisor, and course data and prints **compatibility-based recommendations**. README goals:
@@ -83,9 +85,37 @@ Matching engines are boring on purpose: tags, prerequisites, and additive scores
 
 ---
 
+## Reader field guide
+
+**When deterministic matching beats ML first:** You need explainable scores; prerequisites are set containment; stakeholders ask “why this course?”; batch CLI output is enough for v1.
+
+**Operational checklist**
+
+- [ ] Gate courses with `checkPrereqs` before tag overlap — failed prereqs stay at score 0
+- [ ] Tag overlap is additive and auditable — log top-N indices, not black-box ranks
+- [ ] Advisor pairing: build all pairs, sort by compatibility, greedy assign without reusing students/advisors
+- [ ] Keep `Student`, `Course`, `Advisor`, `Scheduler` modules separate — data invariants before UI
+- [ ] Validate CSV inputs for missing tags or unknown prereq codes before scoring
+
+**Later echo:** Same score-first pattern shows up in [hybrid match scoring](/blog/building-a-gemini-ai-backend-with-sse) — deterministic rank, language model second.
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| Repository | Local workspace `MasterPlan/` (private coursework layout) |
-| Later matching math | [Gemini BFF hybrid scores](/blog/building-a-gemini-ai-backend-with-sse) |
+| [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Later matching math—rules in code, language from the model |
+| [Public API course enrollment dashboard](/blog/public-api-course-enrollment-dashboard) | Another “explainable pipeline” exercise with explicit HTTP boundaries |
+
+### References (curated)
+
+No framework magic here—plain CSV + functions kept the matching rules auditable, which is the point.
+
+| Reference | Notes |
+| --- | --- |
+| MasterPlan (2019 coursework) | Tag overlap + prerequisite checks in plain JavaScript—local workspace, not published. |
+| [CSV parsing in Node](https://nodejs.org/api/fs.html#fspromisesreadfile) | Batch runner input—validate headers before you score rows. |
+| [Explainable recommendation systems](https://developers.google.com/machine-learning/recommendation) | Why we kept scores inspectable instead of black-box ranks. |

@@ -11,11 +11,13 @@ export const metadata = {
 
 # Team MERN capstone: exam and patient workflows in React and Redux
 
+COVID-era clinical UI sounds dramatic until you hit the boring failure mode: Redux holds patient data, but the route never mounts. Our **2022 team capstone** on a React/Express monorepo was my first serious pass at wiring list ↔ detail flows end to end.
+
 ## TL;DR
 
 In **2022** I contributed to a **team capstone** built on a standard **React + Express monorepo template** (client on :8000, API on :3000). Public repository: [innovators-covid-project](https://github.com/D-Astudillo-ASC/innovators-covid-project). We aimed at a **COVID-era clinical workflow UI**: exams, patient detail views, admin screens, and sortable tables backed by MongoDB.
 
-My last merged contribution ([#13](https://github.com/D-Astudillo-ASC/innovators-covid-project/pull/13)) shipped **displayPatient**, routing fixes, and API routes supporting an exam table refactor.
+My integration work shipped **displayPatient**, routing fixes, and API routes supporting an exam table refactor.
 
 | Piece | Choice |
 | --- | --- |
@@ -38,7 +40,7 @@ The template README split setup across `client/README.md` and `server/README.md`
 - **Feature integration** — patient display working end-to-end was the milestone that made the demo credible.
 - **Table UX** — react-table + MUI was the right tool for dense exam grids.
 - **Deployment literacy** — we documented Amplify and Beanstalk paths even when demos ran locally.
-- **Git collaboration** — PR review on a shared capstone repo is its own skill.
+- **Team integration** — aligning frontend routes with backend handlers before calling the demo done.
 
 ---
 
@@ -55,7 +57,7 @@ The template README split setup across `client/README.md` and `server/README.md`
 
 ## Patient route integration (February 2022)
 
-The milestone PR that made the demo credible wired **`/Patient`** in the React router and a `DisplayPatientInfo` page that reads `PATIENT_ID` from navigation state, then loads exams via `getExamsByPatientId`. Without that route, the Redux store could hold patient data while the table view never mounted — classic “API works in Postman, UI shows nothing.”
+The integration pass that made the demo credible wired **`/Patient`** in the React router and a `DisplayPatientInfo` page that reads `PATIENT_ID` from navigation state, then loads exams via `getExamsByPatientId`. Without that route, the Redux store could hold patient data while the table view never mounted — classic “API works in Postman, UI shows nothing.”
 
 ```javascript
 // routes.js
@@ -80,9 +82,37 @@ Capstone repos fail in the seams: a working Redux reducer does not help if the p
 
 ---
 
+## Reader field guide
+
+**When this monorepo pattern shows up:** CRA client + Express API in one repo; Redux + react-router v5; dense tables (react-table + MUI); list/detail navigation that must agree on slugs and IDs.
+
+**Operational checklist**
+
+- [ ] Single root quickstart with copy-paste env — not split READMEs that hide nested `client/`
+- [ ] Patient/detail routes guard missing navigation state (deep links should fail visibly)
+- [ ] Verify API path in the client module matches Express handler before debugging Redux
+- [ ] Push filters to query params when the API supports them — avoid post-fetch filtering on large lists
+- [ ] Pick one design system — mixed Bootstrap + MUI reads as template debt
+- [ ] Document Amplify (client) and Beanstalk (API) paths even if demos stay local
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| Repository | [github.com/D-Astudillo-ASC/innovators-covid-project](https://github.com/D-Astudillo-ASC/innovators-covid-project) |
-| First MERN production app | [First MERN stack deploy](/blog/first-mern-stack-production-deploy) |
+| [First MERN stack production deploy](/blog/first-mern-stack-production-deploy) | Solo deploy patterns before this team monorepo |
+| [Public API course enrollment dashboard](/blog/public-api-course-enrollment-dashboard) | Smaller Express surface—useful contrast to Redux-heavy client |
+
+### References (curated)
+
+The capstone repo is a time capsule; these links are what I’d assign a team redoing the same UI today.
+
+| Reference | Notes |
+| --- | --- |
+| [Capstone repository](https://github.com/D-Astudillo-ASC/innovators-covid-project) | COVID-era clinical workflow UI—Redux + Material-UI monorepo. |
+| [Redux Toolkit](https://redux-toolkit.js.org/) | Modern replacement for hand-rolled reducers we used in 2022. |
+| [Material-UI (MUI)](https://mui.com/material-ui/getting-started/) | Table-heavy exam views—accessibility and density knobs matter. |
+| [AWS Amplify hosting](https://docs.amplify.aws/) | Deployment path documented in the capstone README era. |

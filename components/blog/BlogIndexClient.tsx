@@ -1,10 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import BlogEarlierWorkSection from "@/components/blog/BlogEarlierWorkSection";
+import BlogPostList from "@/components/blog/BlogPostList";
 import BlogSearchInput from "@/components/blog/BlogSearchInput";
-import { START_HERE_SLUG_SET } from "@/constants/blog";
+import {
+  EARLIER_WORK_SLUGS,
+  EARLIER_WORK_SLUG_SET,
+  START_HERE_SLUG_SET,
+} from "@/constants/blog";
 import {
   filterPostsBySearch,
   filterPostsByTags,
@@ -13,7 +18,6 @@ import {
   getUniqueTags,
   type PostMeta,
 } from "@/lib/post-meta";
-import { formatDate } from "@/utils/date";
 
 interface BlogIndexClientProps {
   posts: PostMeta[];
@@ -45,6 +49,16 @@ function buildBlogIndexQuery(tags: string[], query: string): string {
   return params.toString();
 }
 
+function orderEarlierWorkPosts(posts: PostMeta[]): PostMeta[] {
+  const bySlug = new Map(posts.map((p) => [p.slug, p] as const));
+  const ordered: PostMeta[] = [];
+  for (const slug of EARLIER_WORK_SLUGS) {
+    const post = bySlug.get(slug);
+    if (post) ordered.push(post);
+  }
+  return ordered;
+}
+
 export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -66,18 +80,35 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
   const hasSearch = searchQuery.length > 0;
   const hasTopicFilters = hasFilters || hasSearch;
 
-  const listSource = useMemo(
-    () =>
-      hasTopicFilters
-        ? posts
-        : posts.filter((post) => !START_HERE_SLUG_SET.has(post.slug)),
-    [posts, hasTopicFilters],
-  );
+  const listSource = useMemo(() => {
+    if (hasTopicFilters) return posts;
+    return posts.filter(
+      (post) =>
+        !START_HERE_SLUG_SET.has(post.slug) &&
+        !EARLIER_WORK_SLUG_SET.has(post.slug),
+    );
+  }, [posts, hasTopicFilters]);
+
+  const earlierSource = useMemo(() => {
+    if (hasTopicFilters) return [];
+    return orderEarlierWorkPosts(
+      posts.filter((post) => EARLIER_WORK_SLUG_SET.has(post.slug)),
+    );
+  }, [posts, hasTopicFilters]);
 
   const filteredPosts = useMemo(
     () =>
       filterPostsByTags(filterPostsBySearch(listSource, searchQuery), activeTags),
     [listSource, searchQuery, activeTags],
+  );
+
+  const filteredEarlierPosts = useMemo(
+    () =>
+      filterPostsByTags(
+        filterPostsBySearch(earlierSource, searchQuery),
+        activeTags,
+      ),
+    [earlierSource, searchQuery, activeTags],
   );
 
   const replaceQuery = useCallback(
@@ -113,6 +144,13 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
     );
   }
 
+  const resultCount = hasTopicFilters
+    ? filteredPosts.length
+    : filteredPosts.length + filteredEarlierPosts.length;
+  const catalogSize = hasTopicFilters
+    ? listSource.length
+    : listSource.length + earlierSource.length;
+
   return (
     <>
       <BlogSearchInput
@@ -134,8 +172,11 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
           </div>
           <p className="font-mono text-[11px] text-muted/80" aria-live="polite">
             {hasTopicFilters
-              ? `${filteredPosts.length} of ${listSource.length} posts`
-              : `${listSource.length} posts`}
+              ? `${resultCount} of ${catalogSize} posts`
+              : `${filteredPosts.length} posts`}
+            {!hasTopicFilters && filteredEarlierPosts.length > 0
+              ? ` · ${filteredEarlierPosts.length} in archive`
+              : null}
           </p>
         </div>
         <div
@@ -177,7 +218,7 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
         ) : null}
       </div>
 
-      {filteredPosts.length === 0 ? (
+      {resultCount === 0 ? (
         <div className="rounded-lg border border-border bg-surface/40 px-6 py-10 text-center">
           <p className="text-sm text-muted">
             {hasSearch ? (
@@ -213,40 +254,14 @@ export default function BlogIndexClient({ posts }: BlogIndexClientProps) {
           </button>
         </div>
       ) : (
-        <div className="divide-y divide-border border-y border-border">
-          {filteredPosts.map((post) => (
-            <article key={post.slug} className="group py-8">
-              <Link href={`/blog/${post.slug}`} className="block">
-                <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
-                  <time dateTime={post.date}>
-                    {formatDate(new Date(post.date))}
-                  </time>
-                  <span className="text-muted/40" aria-hidden="true">
-                    /
-                  </span>
-                  <span>{post.readingTime}</span>
-                </div>
-                <h2 className="mt-3 text-2xl font-medium text-text transition-fast group-hover:text-accent">
-                  {post.title}
-                </h2>
-                <p className="mt-2 text-base leading-relaxed text-muted">
-                  {post.excerpt}
-                </p>
-                {post.tags.length > 0 ? (
-                  <ul className="mt-4 flex flex-wrap gap-1.5">
-                    {post.tags.map((tag) => (
-                      <li key={tag}>
-                        <span className="rounded bg-text/5 px-2 py-0.5 font-mono text-[11px] text-muted/80 ring-1 ring-border">
-                          {tag}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </Link>
-            </article>
-          ))}
-        </div>
+        <>
+          {filteredPosts.length > 0 ? (
+            <BlogPostList posts={filteredPosts} />
+          ) : null}
+          {!hasTopicFilters && filteredEarlierPosts.length > 0 ? (
+            <BlogEarlierWorkSection posts={filteredEarlierPosts} />
+          ) : null}
+        </>
       )}
     </>
   );

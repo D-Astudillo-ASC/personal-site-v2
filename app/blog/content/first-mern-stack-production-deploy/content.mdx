@@ -11,6 +11,8 @@ export const metadata = {
 
 # My first MERN stack app: from two dev servers to one NGINX host
 
+My first production MERN stack was a remote internship on a digital memorial platform — families register, upload media, and run registry fundraising. Locally that meant **two dev servers**; in production it collapsed to **one NGINX origin** so cookies and TLS behaved like a real product.
+
 ## TL;DR
 
 My **first production MERN stack** was a remote internship (**2020–2021**) on a digital memorial platform: families register, upload photos and video, and run registry fundraising. Stack:
@@ -69,7 +71,7 @@ Secrets stayed out of git: `config.json`, `payment/stripeConfig.js`, SSH keys. O
 | **Stripe** | Registry contributions, checkout flows, Connect onboarding for memorial members tied to the platform org account |
 | **Memorials** | Core product routes and templates (digital memory CRUD, public lookup links) |
 | **S3 media** | Presigned upload/download, client PUT pipeline, canonical-resource signing bugs |
-| **NGINX + EC2** | Reverse-proxy config, TLS, domain cutovers, `git pull` + PM2 deploy runbook |
+| **NGINX + EC2** | Reverse-proxy config, TLS, domain cutovers, SSH deploy + PM2 runbook |
 
 ---
 
@@ -147,7 +149,7 @@ Production bugs I debugged (worth naming because they teach):
 - **502 after domain cutover** — DNS at the registrar (`*` and apex A records to the Elastic IP) had to move **before** SSL hostnames matched.
 - **NGINX down after deleting `/var/log/nginx/*.log`** — without log files, `nginx -t` fails; recreate logs or rotate properly ([NGINX logging](https://nginx.org/en/docs/http/ngx_http_log_module.html)).
 
-References: [NGINX reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/), [Medium — MERN on EC2](https://medium.com/@Keithweaver_/setting-up-mern-stack-on-aws-ec2-6dc599be4737) (the tutorial our team used).
+References: [NGINX reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/), [AWS EC2 — Get started](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) (the runbook our team followed on EC2).
 
 ---
 
@@ -155,14 +157,13 @@ References: [NGINX reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-s
 
 Documented flow from the project README:
 
-1. Merge to `master`, `cd client && yarn build`, commit the production bundle.
+1. Build the CRA bundle (`cd client && yarn build`) and sync artifacts to the server (SCP, rsync, or CI deploy).
 2. **SSH** into the instance (`ubuntu@…` with `.pem` key).
-3. `cd /var/www/...` → `git pull`.
-4. **`NODE_ENV=production pm2 restart server.compiled --update-env`**
+3. **`NODE_ENV=production pm2 restart server.compiled --update-env`**
 
 | Step | Why it sticks |
 | --- | --- |
-| Build locally/CI, commit `client/build` | Era before ubiquitous S3-only static hosting for CRA |
+| Build locally/CI, ship static bundle with deploy | Era before ubiquitous S3-only static hosting for CRA |
 | PM2 on compiled server | Process supervision without container orchestration |
 | Security group IP allowlist | SSH and sometimes admin ports locked to office/home IPs |
 | Compiled `server.compiled.js` | Babel/transpile step separated dev `server.js` from prod artifact |
@@ -202,7 +203,7 @@ Client flow I implemented (memory template uploads):
 1. User picks a file → `handleUpload` reads `fileName` / `fileType`.
 2. `axios.post` to **`/aws/signS3_upload`** with those fields.
 3. API returns `{ signedRequest, url }`.
-4. Browser **`axios.put(signedRequest, file, { headers: { "Content-Type": filetype } })`** — must match what was signed or S3 returns **403** (I once broke the **canonical resource** string in the signer; [AWS REST authentication docs](https://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html) and [this walkthrough](https://medium.com/@khelif96/uploading-files-from-a-react-app-to-aws-s3-the-right-way-541dd6be689) were the fix).
+4. Browser **`axios.put(signedRequest, file, { headers: { "Content-Type": filetype } })`** — must match what was signed or S3 returns **403** (I once broke the **canonical resource** string in the signer; [AWS REST authentication docs](https://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html) and [uploading with a presigned URL](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html) were the fix).
 5. Objects stayed **private**; display used **`signS3_get`** presigned reads.
 
 Object keys were **per-user prefixes** (`userId/path/fileName`). The browser uploaded **directly to S3**; Express never saw the bytes — only metadata. Without presigning, you would stream every image through EC2 (bandwidth, RAM, and credential exposure on the app server).
@@ -253,7 +254,7 @@ References: [Stripe PaymentIntents](https://docs.stripe.com/payments/payment-int
 1. **Draw the dev vs prod diagram first** — two ports locally, one hostname in prod.
 2. **Presigned URLs** — API signs, browser uploads, S3 stores.
 3. **Payment primitives** — intents + customers, not “store card in MongoDB.”
-4. **Deploy runbooks** — SSH, git pull, PM2 restart; boring and reliable.
+4. **Deploy runbooks** — SSH, artifact sync, PM2 restart; boring and reliable.
 5. **Security groups and Atlas IP lists** — production data has a perimeter, not just passwords.
 
 ---
@@ -270,15 +271,43 @@ References: [Stripe PaymentIntents](https://docs.stripe.com/payments/payment-int
 
 ## Closing thought
 
-Two terminal tabs in development and one reverse proxy in production is still the whole mental model for self-hosted MERN. Containers and edge platforms change the packaging — not the fact that **someone** must serve static files, **something** must proxy `/api`, and **secrets** never belong in git.
+Two terminal tabs in development and one reverse proxy in production is still the whole mental model for self-hosted MERN. Containers and edge platforms change the packaging — not the fact that **someone** must serve static files, **something** must proxy `/api`, and **secrets** never belong in source control.
+
+---
+
+## Reader field guide
+
+**When this topology still applies:** Self-hosted MERN on a single VM; CRA (or similar) dev server on one port, Express API on another; production serves SPA + API from one Node process behind NGINX.
+
+**Operational checklist**
+
+- [ ] Draw dev (two origins) vs prod (one hostname) before debugging CORS or cookie bugs
+- [ ] NGINX terminates TLS and proxies **all** traffic to Node — including the production SPA bundle
+- [ ] Presigned S3 PUT/GET: API signs, browser uploads/downloads; Express never streams bytes
+- [ ] Match signed `Content-Type` on browser PUT to what the signer encoded — mismatches yield S3 403
+- [ ] Stripe PaymentIntents + Connect — card data stays in Stripe.js, not MongoDB
+- [ ] JWT public paths listed explicitly in `.unless()`; `isRevoked` re-checks user still exists
+- [ ] MongoDB Atlas + EC2 security group IP allowlists — plan for VPN or private endpoints at scale
 
 ---
 
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| NGINX reverse proxy | [NGINX — reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) |
-| PM2 process management | [PM2 documentation](https://pm2.keymetrics.io/docs/usage/quick-start/) |
-| MERN on EC2 (tutorial era) | [Medium — MERN on AWS EC2](https://medium.com/@Keithweaver_/setting-up-mern-stack-on-aws-ec2-6dc599be4737) |
-| JWT introduction | [jwt.io introduction](https://jwt.io/introduction) |
+| [Public API course enrollment dashboard](/blog/public-api-course-enrollment-dashboard) | Next Express BFF—aggregation and rate limits without Mongo |
+| [Team MERN exam workflow capstone](/blog/team-mern-exam-workflow-capstone) | Monorepo Redux patterns after this solo deploy lesson |
+| [Portfolio v1 → v2](/blog/portfolio-v1-gatsby-to-next-v2) | How hosting evolved from EC2 + NGINX to Vercel standalone |
+
+### References (curated)
+
+NGINX and PM2 docs are still the references I point juniors at when they ask why we had **one origin** in production.
+
+| Reference | Notes |
+| --- | --- |
+| [NGINX reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) | Single host:port for React build + `/api` upstream. |
+| [PM2 documentation](https://pm2.keymetrics.io/docs/usage/quick-start/) | Process supervision on EC2—restart policy beats `node server.js` in SSH. |
+| [JWT introduction](https://jwt.io/introduction) | Stateless auth trade-offs we used before refresh-token hardening was a habit. |
+| [Stripe webhooks](https://docs.stripe.com/webhooks) | Server-side payment confirmation—never trust client-only success UI. |

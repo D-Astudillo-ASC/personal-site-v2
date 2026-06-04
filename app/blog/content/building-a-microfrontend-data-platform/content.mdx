@@ -27,17 +27,13 @@ export const metadata = {
 | Identity | **Auth0 Organizations** + **Custom Token Exchange (RFC 8693)** | Org-scoped access + least-privilege tokens per remote |
 | Quality | CI on **Cache-Control**, **CSP**, **stub compliance** | Platform invariants enforced at merge, not in prod console |
 
-After moving a hot API from [**21s to ~250ms**](/blog/cutting-a-data-api-from-21s-to-250ms), the next bottleneck was frontend coordination: **N product UIs, one authenticated session, zero cross-team deploy coupling**. This post covers the platform shell pattern — host + federated remotes + BFF seam — without tying it to any single product name.
+After moving a hot API from [**21s to ~250ms**](/blog/cutting-a-data-api-from-21s-to-250ms), the next bottleneck was frontend coordination: **N product UIs, one authenticated session, zero cross-team deploy coupling**. I shipped a platform shell — host, federated remotes, BFF seam — so teams could deploy independently without sharing a monolith repo.
 
 ---
 
 ## Problem framing
 
-Several UI teams need:
-
-- One login, one navigation chrome, one entitlement model
-- Independent release cadence (remote deploy ≠ shell deploy)
-- No iframe penalty (shared React runtime, shared design tokens)
+The constraint set was familiar: one login and nav chrome, org-scoped entitlements, and **remote deploy ≠ shell deploy** without paying the iframe tax (shared React, shared tokens).
 
 Rejected:
 
@@ -260,11 +256,45 @@ Latency work optimizes milliseconds on the hot path. Platform work optimizes **c
 
 ---
 
+## Reader field guide
+
+**When this pattern applies:** Two or more UI teams share one authenticated product surface; releases must decouple; you can invest in CI contracts (stubs, CSP, cache headers) and a platform BFF for token policy. Skip federation if teams always ship together — a monorepo with packages is cheaper.
+
+**Operational checklist**
+
+- Pin **React/react-dom as federation singletons** (`eager: true` on the host) before the first remote loads.
+- Check in **compile-time stubs** for every remote `exposes`; fail CI on rename/remove.
+- Add a BFF route only when you need **token downscope**, aggregation, or uniform **Cache-Control** — delete pass-through proxies.
+- Wire **Auth0 Organizations** + **CTE (RFC 8693)** so each remote gets an audience-scoped token, not the shell’s full access token.
+- Lint **`remoteEntry.js` cache policy** and **CSP allowlists** on every remote merge — prod script blocks are expensive.
+- Treat **shared auth and router versions** in the host `shared` map as platform semver, not per-team preference.
+
+**Shell vs integration style**
+
+| Situation | Monolith SPA | Iframe mosaic | Module Federation + BFF |
+| --- | --- | --- | --- |
+| One team, one release train | Best fit | Overkill | Overkill |
+| N teams, shared session chrome | Deploy coupling | Weak UX, duplicate auth | Best fit |
+| Strict third-party script isolation | OK | Strong isolation | Needs CSP discipline |
+| Runtime contract enforcement | Types in-repo | PostMessage hacks | Stubs + CI |
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
 | [Cutting a data API from 21s to ~250ms](/blog/cutting-a-data-api-from-21s-to-250ms) | Prerequisite — why the BFF had to exist on a fast OLTP plane |
 | [Bridging AMQPS and JMS for real-time events](/blog/bridging-amqps-and-jms-for-real-time-events) | Async domain events when the UI does not need to wait |
 
-**External:** [Module Federation concepts](https://module-federation.io/guide/basic/introduction.html) · [Auth0: Token Exchange (RFC 8693)](https://auth0.com/docs/authenticate/protocols/token-exchange) · [Rspack Module Federation plugin](https://module-federation.io/guide/basic/rspack)
+### References (curated)
+
+Federation docs explain the loader graph; Auth0’s token-exchange page is what I re-read when remotes need a narrower audience than the shell.
+
+| Reference | Notes |
+| --- | --- |
+| [Module Federation concepts](https://module-federation.io/guide/basic/introduction.html) | Shared scope, singletons, and why the host owns React versions. |
+| [Auth0: Custom Token Exchange (RFC 8693)](https://auth0.com/docs/authenticate/custom-token-exchange) | Downscoping tokens per remote without handing every team the shell JWT. |
+| [Rspack Module Federation plugin](https://module-federation.io/guide/basic/rspack) | Build-time wiring we used alongside compile-time stubs in CI. |

@@ -62,6 +62,14 @@ export default function BlogStartHere({ posts }: BlogStartHereProps) {
                     /
                   </span>
                   <span>{post.readingTime}</span>
+                  {post.caseStudy ? (
+                    <>
+                      <span className="text-muted/40" aria-hidden="true">
+                        /
+                      </span>
+                      <span>Case study</span>
+                    </>
+                  ) : null}
                 </span>
                 <span className="mt-2 block font-display text-xl italic leading-snug text-text transition-fast group-hover:text-accent sm:text-2xl">
                   {post.title}

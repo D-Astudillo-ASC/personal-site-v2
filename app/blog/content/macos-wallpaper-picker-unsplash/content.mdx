@@ -11,6 +11,8 @@ export const metadata = {
 
 # macOS wallpaper picker with SwiftUI and the Unsplash API
 
+Changing the desktop picture is an AppKit privilege, not a SwiftUI feature. **WallpaperApp** (January 2022) was my practice run: Unsplash random photos, cache-directory JPEGs, and `NSWorkspace.setDesktopImageURL`.
+
 ## TL;DR
 
 **WallpaperApp** (January 2022) is a **macOS SwiftUI** utility: fetch **Unsplash** `photos/random`, show a scrollable grid, download the `"full"` asset into a cache folder, and set the **desktop picture** with **`NSWorkspace`**.
@@ -33,7 +35,7 @@ This is **desktop integration** practice — not an iOS port. I **never shipped*
 
 ### Caches directory (not Documents)
 
-Downloads use [FileManager.urls(for:in:)](https://developer.apple.com/documentation/foundation/filemanager/1407693-urls) with `.cachesDirectory` and `.userDomainMask`:
+Downloads use [FileManager.urls(for:in:)](https://developer.apple.com/documentation/foundation/filemanager/urls%28for:in:%29) with `.cachesDirectory` and `.userDomainMask`:
 
 ```swift
 guard let downloadsPath = FileManager.default.urls(
@@ -45,13 +47,13 @@ Apple’s [File System Programming Guide — Where to Put App Files](https://dev
 
 ### NSWorkspace and the desktop image
 
-The supported API to change the wallpaper is [setDesktopImageURL(_:for:options:)](https://developer.apple.com/documentation/appkit/nsworkspace/1527239-setdesktopimageurl) on [NSWorkspace.shared](https://developer.apple.com/documentation/appkit/nsworkspace):
+The supported API to change the wallpaper is [setDesktopImageURL(_:for:options:)](https://developer.apple.com/documentation/appkit/nsworkspace/setdesktopimageurl%28_:for:options:%29) on [NSWorkspace.shared](https://developer.apple.com/documentation/appkit/nsworkspace):
 
 ```swift
 try workspace.setDesktopImageURL(self.imgPath!, for: screen, options: [:])
 ```
 
-You can read the current image with [desktopImageURL(for:)](https://developer.apple.com/documentation/appkit/nsworkspace/1528728-desktopimageurl) — the app tried to delete the previous file before applying the new one. That often fails while the system still references the path; the code logs and continues, which matches real-world desktop automation.
+You can read the current image with [desktopImageURL(for:)](https://developer.apple.com/documentation/appkit/nsworkspace/desktopimageurl%28for:%29) — the app tried to delete the previous file before applying the new one. That often fails while the system still references the path; the code logs and continues, which matches real-world desktop automation.
 
 ### SwiftUI + AppKit mixing
 
@@ -167,12 +169,39 @@ The durable skill is knowing which framework owns which privilege — SwiftUI do
 
 ---
 
+## Reader field guide
+
+**When this pattern applies:** macOS utility that sets desktop images from remote URLs; personal or internal tool where AppKit bridges are acceptable.
+
+**Operational checklist**
+
+- [ ] Store full-resolution downloads in **Caches**, not Documents — re-downloadable data
+- [ ] Normalize to JPEG before `setDesktopImageURL` when upstream formats vary
+- [ ] Loop **`NSScreen.screens`**, not `NSScreen.main` only, for multi-display setups
+- [ ] Move API keys out of bundled plist into xcconfig/Keychain for anything distributed
+- [ ] Use `@MainActor` + structured concurrency for download completion and UI updates
+- [ ] Call Unsplash [download tracking](https://unsplash.com/documentation#track-a-photo-download) after a successful set; show photographer attribution
+- [ ] Cancel in-flight downloads when the user hits Refresh again
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| NSWorkspace | [NSWorkspace — Apple Documentation](https://developer.apple.com/documentation/appkit/nsworkspace) |
-| setDesktopImageURL | [setDesktopImageURL(_:for:options:)](https://developer.apple.com/documentation/appkit/nsworkspace/1527239-setdesktopimageurl) |
-| File locations | [File System Overview](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html) |
-| SDWebImageSwiftUI | [SDWebImageSwiftUI on GitHub](https://github.com/SDWebImage/SDWebImageSwiftUI) |
-| Unsplash API | [Unsplash API documentation](https://unsplash.com/documentation) |
+| [Expo React Native experiments](/blog/expo-react-native-experiments) | Mobile spikes vs a desktop SwiftUI utility with real filesystem side effects |
+| [Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) | Another “ship a SKU” project—static web instead of AppKit automation |
+
+### References (curated)
+
+Apple’s desktop APIs change slowly; Unsplash’s rate limits do not—read both before you cache full-res JPEGs on disk.
+
+| Reference | Notes |
+| --- | --- |
+| [NSWorkspace](https://developer.apple.com/documentation/appkit/nsworkspace) | Desktop-wide operations—permissions and Spaces matter. |
+| [setDesktopImageURL](https://developer.apple.com/documentation/appkit/nsworkspace/setdesktopimageurl%28_:for:options:%29) | The call that actually applies wallpaper per screen. |
+| [File System Overview](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html) | Where cached images live relative to sandbox rules. |
+| [SDWebImageSwiftUI](https://github.com/SDWebImage/SDWebImageSwiftUI) | Grid thumbnails without blocking the main actor on decode. |
+| [Unsplash API](https://unsplash.com/documentation) | Attribution, download endpoints, and rate limits for production keys. |

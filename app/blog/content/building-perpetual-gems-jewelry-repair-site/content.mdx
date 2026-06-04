@@ -11,6 +11,8 @@ export const metadata = {
 
 # Building Perpetual Gems: Angular SSR, i18n, and a repair intake API
 
+High-trust local services need translated copy and forms that do not lose leads to CSRF or silent mail failures. **Perpetual Gems** is a fictional jewelry repair brand I built to prove the same care on **Angular 19** that I put into React/Next work.
+
 ## TL;DR
 
 **[Perpetual Gems](https://perpetual-gems.vercel.app/)** is a marketing + lead-capture site for a fictional jewelry repair brand — a portfolio piece to prove I can ship **Angular 19** with the same care I put into React/Next work. Live at [perpetual-gems.vercel.app](https://perpetual-gems.vercel.app/). Stack:
@@ -122,10 +124,38 @@ Repair businesses convert on clarity—what you fix, how long it takes, and a fo
 
 ---
 
+## Reader field guide
+
+**When this split (Angular SSR + Express API) fits:** Marketing site with a mutating lead form; CSRF and CORS matter; email is the system of record in v1; multiple locales with regional pricing copy.
+
+**Operational checklist**
+
+- [ ] CSRF cookie readable by Angular client; mutating requests carry matching header
+- [ ] CORS allowlist explicit in production — unknown origins fail closed
+- [ ] Validate repair payload server-side before Nodemailer; return 503 when SMTP env is missing
+- [ ] Send shop notification **and** customer confirmation — 200 means both succeeded
+- [ ] Centralize locale codes in one config consumed by switcher + loader (known debt in v1)
+- [ ] Postbuild copies browser bundle into `public/` for Vercel static + API routing
+- [ ] E2E smoke on preview: `/` load + happy-path form POST
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| Live site | [perpetual-gems.vercel.app](https://perpetual-gems.vercel.app/) |
-| Static template alternative | [Astro + Bun landing](/blog/astro-bun-landing-template-experiment) |
-| Portfolio v1 → v2 | [Gatsby to Next](/blog/portfolio-v1-gatsby-to-next-v2) |
+| [Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) | Static resale shell vs SSR + API when leads must email the shop |
+| [Portfolio v1 → v2](/blog/portfolio-v1-gatsby-to-next-v2) | How this site’s generation compares to token-driven marketing stacks |
+
+### References (curated)
+
+Angular’s SSR guide and Express’s security page are the pair I send when someone asks “why two processes on Vercel.”
+
+| Reference | Notes |
+| --- | --- |
+| [Live site](https://perpetual-gems.vercel.app/) | Production deploy—eight locales, repair intake, trust copy. |
+| [Angular SSR](https://angular.dev/guide/ssr) | Universal + `postbuild` copy into `public/` for static hosting beside the API. |
+| [ngx-translate](https://github.com/ngx-translate/core) | Runtime locale switching—centralize codes (known v1 debt). |
+| [Express security best practices](https://expressjs.com/en/advanced/best-practice-security.html) | CSRF, CORS allowlists, and rate limits on `/repair-requests`. |

@@ -11,6 +11,8 @@ export const metadata = {
 
 # Modernizing a winter-study roguelike with Vite and ROT.js
 
+Before React reconciled the DOM for you, this game called `game.render()` after every turn. I refreshed the **2025 toolchain** without rewriting that lesson — state changes do not paint the screen; you paint the screen.
+
 ## TL;DR
 
 [Roguelike-Game-Winter-Study-2018](https://github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018) (**Weed Strike**, Williams Winter Study **2018**) is a **ROT.js** dungeon crawler in plain JavaScript. In **2025** I refreshed the **toolchain** (Vite 7, ESLint 9, `deploy:check`) without rewriting the core lesson:
@@ -239,11 +241,39 @@ Winter Study code aged when bundlers did; the idea did not. Calling `game.render
 
 ---
 
+## Reader field guide
+
+**When imperative render loops still teach:** Canvas or ROT.js games; turn-based simulation where React would hide the paint contract; you want students to feel stale UI when they forget to draw.
+
+**Operational checklist**
+
+- [ ] Every state mutation on the hot path ends in `game.render()` (or equivalent orchestrator)
+- [ ] `display.clear()` before each frame at mode scope — double-clear is OK, stale canvas is not
+- [ ] Prefer cheap heuristics over A\* every turn if pathfinding spikes frame time
+- [ ] On resize: recreate `Display` instances, then render — do not assume CSS rescale is enough
+- [ ] Run `deploy:check` (lint + format + prod build) before shipping static demos
+- [ ] Keep AI pathfinding disabled with a comment explaining the perf trade-off
+
+**If porting to React later:** Single `useReducer` + canvas ref + explicit `draw()` beats sprinkling `useEffect` on every keypress.
+
+---
+
 ## Related reading
 
-| Topic | Link |
+### On this site
+
+| Post | Why |
 | --- | --- |
-| ROT.js Display | [ROT.js manual — Display](https://ondras.github.io/rot.js/manual/#display) |
-| React render & commit | [React — Render and commit](https://react.dev/learn/render-and-commit) |
-| Repository | [github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018](https://github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018) |
-| Live demo | [roguelike-game-winter-study-2018.vercel.app](https://roguelike-game-winter-study-2018.vercel.app) |
+| [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Another real-time browser problem—shared state instead of a solo dungeon loop |
+| [Building a browser music visualizer with Goose](/blog/building-a-browser-music-visualizer-with-goose) | rAF loops and teardown discipline without a game grid |
+
+### References (curated)
+
+ROT.js owns the grid; React’s render docs explain why remounting `Display` on resize is a conscious cost, not a free CSS tweak.
+
+| Reference | Notes |
+| --- | --- |
+| [ROT.js Display](https://ondras.github.io/rot.js/manual/#display) | Character-cell rendering—the DOM backend we kept in the Vite port. |
+| [React: Render and commit](https://react.dev/learn/render-and-commit) | Why resize triggers full display rebuilds in the React wrapper. |
+| [Repository](https://github.com/D-Astudillo-ASC/Roguelike-Game-Winter-Study-2018) | Winter Study 2018 source + Vite modernization branch. |
+| [Live demo](https://roguelike-game-winter-study-2018.vercel.app/) | Playable build—verify combat and resize on mobile portrait. |

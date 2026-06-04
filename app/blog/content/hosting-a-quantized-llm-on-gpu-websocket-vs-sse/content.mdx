@@ -15,7 +15,7 @@ export const metadata = {
 
 **Experiment B** in the same AI arc as [experiment A (Gemini + SSE BFF)](/blog/building-a-gemini-ai-backend-with-sse). I deployed **TheBloke/Llama-2-13B-GPTQ** with **vLLM** on a **GPU cloud pod** (RunPod-style TCP port mapping) and exposed inference over **WebSocket**.
 
-Looking back, **I should have used SSE or OpenAI-style HTTP streaming** on the pod — the same pattern I had already implemented in [experiment A](/blog/building-a-gemini-ai-backend-with-sse) on `POST /api/chat/message/stream`. WebSocket added protocol complexity without bidirectional benefit.
+Hindsight: **I should have used SSE or OpenAI-style HTTP streaming** on the pod—the same pattern I already had in [experiment A](/blog/building-a-gemini-ai-backend-with-sse) on `POST /api/chat/message/stream`. WebSocket bought protocol complexity without any bidirectional win.
 
 **Product context:** [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform).
 
@@ -147,14 +147,19 @@ Accept: text/event-stream
 
 ### WebSocket vs SSE for LLM output
 
-| Dimension | WebSocket | SSE / HTTP stream |
-| --- | --- | --- |
-| Traffic pattern | Bidirectional | **Server → client** dominant for tokens |
-| Mobile / corporate networks | Long-lived upgrade can be fragile | Looks like normal HTTP |
-| Auth | Custom first frame | Standard headers |
-| Retries | Reconnect + resync protocol | New POST per turn |
-| Load balancers | Sticky sessions | Familiar HTTP semantics |
-| Best fit | Games, CRDTs, multiplexed channels | **LLM token streams**, logs, progress |
+Use this when choosing what the **phone** (or your BFF’s public edge) speaks—not what vLLM supports internally.
+
+| Dimension | WebSocket (custom `/ws`) | SSE / HTTP stream (experiment A pattern) | vLLM OpenAI `stream: true` |
+| --- | --- | --- | --- |
+| Traffic shape | Bidirectional socket | **One POST up**, many events down | Same as SSE from client view if proxied |
+| Time to first token | Only if inference streams; my pod **faked** chunks after batch `generate()` | Real when BFF uses `generateContentStream` ([experiment A](/blog/building-a-gemini-ai-backend-with-sse)) | Real partial tokens from the engine |
+| Mobile / corp networks | Upgrade + long-lived connection; proxies sometimes kill idle WS | Looks like normal HTTPS | Terminate at BFF; phone still sees SSE |
+| Auth | Custom first-frame `{ type: "auth" }` | `Authorization` header on POST | API key on server; optional BFF proxy |
+| Retries / idempotency | Reconnect + resync framing per message | New POST per user turn; simple replay | New completion request per turn |
+| Load balancers | Often needs sticky sessions | Standard HTTP semantics | Run behind BFF or `vllm serve` with TLS |
+| Ops surface | Hand-rolled protocol + rate limits | Fastify route + MDN-documented SSE | Maintained server; less FastAPI glue |
+| Legitimate WebSocket case | Multiplexed **bidirectional** channels (games, CRDTs) | **LLM assistant output**, logs, progress | vLLM **Realtime** `/v1/realtime` for **audio**, not chat blurbs |
+| This repo | Built for experiment B; **no mobile caller** | Already correct on the Gemini BFF | What I would deploy on the pod today |
 
 [MDN’s SSE guide](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) states plainly: SSE is for when the server pushes events to the front-end — “you can't send events from a client to a server” on that channel. LLM chat is exactly that for the **response half**: one prompt up, many tokens down.
 
@@ -246,7 +251,39 @@ Self-hosting pays off when you expose an OpenAI-compatible surface and hide tran
 
 ---
 
+## Reader field guide
+
+**Experiment B** is for economics and control—not for giving the phone a new socket protocol.
+
+**Pod boot checklist**
+
+- [ ] `MODEL_PATH` points at a HuggingFace **snapshot** directory containing `config.json`, not the cache parent folder
+- [ ] Chat template via `llm.chat()` or `tokenizer.apply_chat_template`—not hand-built `[INST]` strings unless you enjoy empty completions
+- [ ] Health endpoint reports internal vs public ports (RunPod-style TCP mapping)
+- [ ] Cold start plan: baked model volume or `snapshot_download` in entrypoint—not download on first user request
+- [ ] Rate limit and API key enforced **before** inference work
+
+**Transport checklist (what I would do today)**
+
+- [ ] Run `vllm serve` with OpenAI-compatible server ([docs](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html))
+- [ ] BFF calls `stream: true`; mobile only ever hits BFF **SSE** ([experiment A wire format](/blog/building-a-gemini-ai-backend-with-sse))
+- [ ] Delete custom WebSocket auth framing unless you need server↔server multiplexing
+- [ ] Do not confuse **transport streaming** (chunk frames) with **inference streaming** (partial tokens)—batch `generate()` + slice is the former only
+
+| Your situation | Choose |
+| --- | --- |
+| Ship AI features this sprint on a social app | [Experiment A](/blog/building-a-gemini-ai-backend-with-sse) — managed API + SSE |
+| Need owned weights / residency | GPU pod + OpenAI stream; phone still uses SSE via BFF |
+| True bidirectional binary frames (CRDT, game state) | WebSocket—but not for one-way LLM text |
+| Incremental **audio** with vLLM Realtime | vLLM `/v1/realtime` WebSocket—not this chat spike |
+
+If the pod has no caller and the BFF still points at Gemini, treat experiment B as **ops homework**, not product scope.
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
@@ -254,4 +291,13 @@ Self-hosting pays off when you expose an OpenAI-compatible surface and hide tran
 | [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Why AI was optional infrastructure, not a launch blocker |
 | [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Legitimate WebSocket use case (binary CRDT frames, not token streaming) |
 
-**External:** [vLLM OpenAI-compatible server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) · [vLLM online serving](https://docs.vllm.ai/en/latest/serving/online_serving/) · [vLLM Realtime API (Jan 2026)](https://vllm.ai/blog/2026-01-31-streaming-realtime) — WebSocket for **audio**, not chat blurbs · [MDN: SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
+### References (curated)
+
+vLLM’s OpenAI-compatible server is the rebuild target; the Realtime API post is a reminder that WebSocket on the pod is for **audio**, not chat copy.
+
+| Reference | Notes |
+| --- | --- |
+| [vLLM OpenAI-compatible server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) | `stream: true` from the BFF—stop hand-rolling FastAPI WebSockets for text. |
+| [vLLM online serving](https://docs.vllm.ai/en/latest/serving/online_serving/) | Deployment patterns (ports, health) on GPU hosts like RunPod. |
+| [vLLM Realtime API (Jan 2026)](https://vllm.ai/blog/2026-01-31-streaming-realtime) | WebSocket when the modality is realtime **audio**—not matchmaking blurbs. |
+| [MDN: Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) | What the phone should still speak after you add a self-hosted backend. |

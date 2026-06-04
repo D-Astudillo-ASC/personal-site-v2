@@ -1,0 +1,248 @@
+export const metadata = {
+  title: "Triaging Shai-Hulud on my portfolio v2",
+  description:
+    "A May 2026 supply-chain scare on a Next.js 16 portfolio: real CVEs from audit --force, zero high-risk Shai-Hulud hits, one RFC 5737 test fix, and a repeatable pnpm scan wrapper.",
+  date: "2026-05-14",
+  dateModified: "2026-05-31",
+  excerpt:
+    "npm audit fix --force pinned Next 9 and flooded the tree with CVEs. Shai-Hulud scanning found no worm IoCs — but still surfaced one real test-hygiene fix and a macOS false positive in Next telemetry.",
+  tags: ["Security", "npm", "Next.js", "pnpm", "Supply chain"],
+};
+
+# Triaging Shai-Hulud on my portfolio v2
+
+May 2026 was a bad month to be careless with `npm audit`. Maintainer-account compromises were in the news, and **`npm audit fix --force`** on **[personal-site-v2](https://github.com/D-Astudillo-ASC/personal-site-v2)** — the repo behind [danielastudillo.io](https://danielastudillo.io/) — had just tried to “help” by pinning **Next.js 9** while the app targeted **Next 16**. That is two different problems — **known CVEs in a broken lockfile** and **worm-specific indicators of compromise** — and conflating them makes incident response worse.
+
+This post is the public version of what I did on **my portfolio v2** (Next 16, MDX blog, standalone output): recover the dependency tree, run a community Shai-Hulud detector, triage the noise, ship a one-command scan, and migrate to pnpm so the next panic is repeatable.
+
+## TL;DR
+
+| Layer | What happened | Outcome |
+| --- | --- | --- |
+| **npm audit / lockfile** | `npm audit fix --force` resolved against **Next 9** while the app targeted **Next 16** | Restored Next 16 canary, aligned ESLint peers, **`pnpm audit` → 0** |
+| **Shai-Hulud detector** | [Cobenian `shai-hulud-detect`](https://github.com/Cobenian/shai-hulud-detect) with `--paranoid` | **0 high-risk** worm IoCs; **3 medium** findings triaged |
+| **Repo tooling** | `scripts/shai-hulud-scan.sh` + `pnpm security:shai-hulud` | Repeatable scan; fixed **git-grep path** false positive on Next telemetry |
+| **Hygiene** | Test email route used `192.168.1.100` | Switched to **RFC 5737** documentation IP `192.0.2.1` |
+
+**Bottom line:** Real dependency vulnerabilities existed first. Shai-Hulud did **not** show campaign-level compromise in this repo. It still earned its keep: one legitimate test fix, one wrapper fix for upstream + macOS behavior, and one accepted heuristic false positive.
+
+---
+
+## Threat context (May 2026)
+
+**Shai-Hulud** was a widely reported npm supply-chain wave: stolen maintainer tokens, malicious postinstall behavior, and credential-exfiltration patterns in compromised packages. The right response for a solo maintainer is not panic — it is **layered checks**:
+
+1. **`pnpm audit` / advisory data** — “Is my *declared* tree on patched versions?”
+2. **Focused IoC scanner** — “Does anything in the tree match *this campaign’s* fingerprints?”
+
+Those layers answer different questions. Skipping (1) because the worm scanner was clean would have been wrong. Skipping (2) because audit hit zero would also have been wrong.
+
+---
+
+## Timeline
+
+| When | What |
+| --- | --- |
+| **2026-05-13 (earlier)** | ESLint 9 alignment, Next **16.3.0-canary.19**, font-flicker docs — audit baseline already improving |
+| **2026-05-13 (evening)** | Shai-Hulud wrapper, test-email IP fix, **pnpm** lockfile + `packageManager` pin |
+| **2026-05-25** | Project docs: run `pnpm security:shai-hulud` before security-sensitive changes |
+| **2026-05-31** | This essay — consolidated narrative for readers, not just maintainers |
+
+The work landed in one intense evening after an afternoon of Dependabot noise, Search Console, and dependency churn. Security sat in the **second half** of that arc — after the audit tree was already broken.
+
+---
+
+## Layer 1 — How `npm audit fix --force` broke the tree
+
+### The failure mode
+
+On a **Next.js 16** app, `npm audit fix --force` is not a neutral “make safe” button. npm optimizes for advisory satisfaction and can **downgrade the framework generation** — in my case toward **`next@9.3.3`** — which pulls a completely different transitive graph than the App Router stack I actually run.
+
+The symptom was alarming: dozens of high-severity advisories on packages I never chose, because the resolver had swapped the spine of the app.
+
+### Recovery (deliberate, not automated)
+
+| Step | Why |
+| --- | --- |
+| Restore **Next 16** on the intended canary line | Framework version is a product decision, not an audit side effect |
+| Bump to a canary with patched **PostCSS** (`>=8.5.10` in the advisory chain) | Transitive fix without abandoning the release line |
+| Align **ESLint 9** + `eslint-config-next` peers | `eslint-config-next` and ESLint 10 fights are a common secondary casualty |
+| Re-run audit until **0** | Proof the *intended* tree is clean |
+
+Today the repo runs **`next@16.3.0-canary.37`** with **`pnpm audit` clean** — a later canary bump, same discipline: never let audit tooling pick the framework generation.
+
+### Lesson
+
+**Never run `npm audit fix --force` on a modern Next app without reading the proposed tree.** If you need automation, pin the framework in policy first, then let audit fix leaves — or use targeted overrides with eyes open.
+
+---
+
+## Layer 2 — Shai-Hulud detector results
+
+I used [Cobenian/shai-hulud-detect](https://github.com/Cobenian/shai-hulud-detect): clone/pull upstream, point it at the repo root, optionally add `--paranoid` for extra heuristics.
+
+| Exit code (upstream) | Meaning |
+| --- | --- |
+| **0** | Clean at configured severity |
+| **2** | Medium / paranoid findings — **triage required**, not confirmed infection |
+
+**High-risk in this repo: 0.** No known compromised package names or install-script IoCs from the campaign showed up in the scan I ran.
+
+### Medium findings (3) — triage table
+
+| Signal | Where | Verdict | Action |
+| --- | --- | --- | --- |
+| “Credential scanning” / exfil heuristic | `node_modules/next/dist/.../detect-agent.js` (telemetry) | **False positive** | Fixed in wrapper — see Layer 3 |
+| Typosquat-style package name | `eslint-plugin-react-hooks` | **False positive** | Legitimate package; document and move on |
+| Hardcoded “suspicious” IP | `app/api/test-email/route.ts` | **True positive (test hygiene)** | **RFC 5737** documentation IP |
+
+### Low noise
+
+Compiled **`.next`** output triggers low-severity hits. Before a scan:
+
+```bash
+pnpm run security:shai-hulud:clean   # rm -rf .next, then scan
+```
+
+After the IP fix and wrapper change, a clean tree reported **exit 0** in the session that closed the incident.
+
+---
+
+## Layer 3 — Why I wrapped the detector
+
+Upstream prefers **git grep** on macOS. Git-grep prints paths like `node_modules/next/...` **without** a leading `./`. The detector filters with `grep -v "/node_modules/"` — that pattern **does not match** repo-relative `node_modules/...` lines. Result: **Next.js telemetry falsely flagged as MEDIUM** every time.
+
+The fix is boring and important: pass **`--use-grep`** so paths look like absolute find output, and prepend **GNU grep** on `PATH` (Homebrew `grep`) because other upstream filters assume GNU semantics.
+
+```24:27:scripts/shai-hulud-scan.sh
+DETECTOR_FLAGS=()
+if [[ "${SHA_HULUD_USE_GIT_GREP:-}" != "1" ]]; then
+  DETECTOR_FLAGS+=(--use-grep)
+fi
+```
+
+```29:40:scripts/shai-hulud-scan.sh
+_prefer_gnu_grep_path() {
+  local dir
+  for dir in \
+    "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/grep/libexec/gnubin" \
+    "/usr/local/opt/grep/libexec/gnubin"; do
+    if [[ -x "$dir/grep" ]]; then
+      export PATH="$dir:$PATH"
+      return 0
+    fi
+  done
+  return 1
+}
+```
+
+**Environment knobs** worth knowing:
+
+| Variable | Effect |
+| --- | --- |
+| `SHA_HULUD_DETECT_DIR` | Override clone dir (default `$TMPDIR/shai-hulud-detect`) |
+| `SHA_HULUD_USE_GIT_GREP=1` | Reproduce upstream git-grep behavior (debug only) |
+| `CLEAN_NEXT=1` | Delete `.next` before scan |
+
+**Repeatable commands** (from repo root):
+
+```bash
+pnpm run security:shai-hulud          # recommended
+pnpm run security:shai-hulud:clean    # drop .next noise
+pnpm run security:shai-hulud:paranoid # noisier heuristics
+pnpm audit                            # advisory CVE pass
+```
+
+First run clones upstream over the network; macOS maintainers should `brew install grep` once.
+
+---
+
+## Layer 4 — pnpm migration (same arc)
+
+After the audit recovery, I moved off npm’s lockfile:
+
+| Change | Detail |
+| --- | --- |
+| Removed | `package-lock.json` |
+| Added | `pnpm-lock.yaml`, `pnpm-workspace.yaml` |
+| `packageManager` | `pnpm@11.1.1` (see current `package.json` for drift) |
+| `allowBuilds` | `sharp`, `unrs-resolver` — pnpm v11 install scripts |
+
+`pnpm import` bridged the existing npm lock before the swap. Post-migration, **`pnpm audit` stayed clean** — same bar, clearer ergonomics for a one-package site.
+
+Dependabot still uses ecosystem **`npm`** in config but updates **`pnpm-lock.yaml`**; that mismatch is documented in-repo so future-me does not “fix” it back to npm by accident.
+
+---
+
+## Application fix — documentation IPs in test fixtures
+
+The dev-only test email route embeds metadata scanners read literally. **`192.168.x.x`** trips “hardcoded suspicious IP / exfil” heuristics even when the route returns **404 in production**.
+
+```37:40:app/api/test-email/route.ts
+    // Use RFC 5737 / 3849 documentation ranges only — avoids LAN-style literals that
+    // security scanners (e.g. Shai-Hulud “network exfiltration” heuristics) flag as C2-like.
+    const testMetadata = {
+      ipv4: '192.0.2.1 (TEST-NET-1, example only)',
+```
+
+**RFC 5737** exists so examples stay non-routable. This is not “security theater” — it is aligning test data with how heuristic scanners classify literals.
+
+---
+
+## What not to claim (accuracy matters)
+
+| Claim | Reality |
+| --- | --- |
+| “Shai-Hulud found malware in my repo” | **High-risk was 0** — no campaign IoCs |
+| “It was all false positives” | **`pnpm audit` had real issues** after `--force`; the test IP was a valid hygiene fix |
+| “One scanner replaces audit” | Run **both** when the threat model includes compromised maintainers |
+
+---
+
+## Closing thought
+
+Supply-chain response on a personal site should still be **boring and reproducible**: fix the real tree first, run IoC tooling second, document false positives so you do not re-litigate them every month, and commit the wrapper script so “we ran something once in a chat” is not your only audit trail.
+
+---
+
+## Reader field guide
+
+**When this playbook applies:** You maintain a Next/npm repo during a public supply-chain scare; audit tooling suggests a framework downgrade; or a heuristic scanner flags `node_modules` telemetry and test literals.
+
+**Operational checklist**
+
+- [ ] Read the **proposed lockfile** before any `audit fix --force` — confirm `next` major matches your App Router target
+- [ ] Run **`pnpm audit`** (or equivalent) on the *intended* framework line until zero actionable advisories
+- [ ] Run a **campaign-focused detector** when maintainer compromise is in the news — separate pass from audit
+- [ ] Triage mediums: telemetry in `node_modules`, typosquat heuristics on well-known plugins, literals in test routes
+- [ ] Use **RFC 5737 / RFC 3849** addresses in fixtures; avoid `192.168.x.x` in source scanners grep
+- [ ] Scan with **`CLEAN_NEXT=1`** or delete `.next` so build artifacts do not dominate low findings
+- [ ] On macOS, prefer **`--use-grep`** + GNU grep when upstream filters assume POSIX path shapes
+- [ ] Pin **`packageManager`** and one lockfile — npm + pnpm dual locks are how the tree broke in the first place
+
+**What to log after an incident:** audit exit status, detector exit code, list of triaged mediums with verdict (FP / fix / accepted), and the wrapper flags you used — not screenshots of panic.
+
+---
+
+## Related reading
+
+### On this site
+
+| Post | Why |
+| --- | --- |
+| [Three generations of my personal site](/blog/portfolio-v1-gatsby-to-next-v2) | The Next 16 stack this repo protects — deploy targets and build policy |
+| [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | Different layer (rules + Storage), same “triage before you claim clean” discipline |
+| [Astro + Bun landing template experiment](/blog/astro-bun-landing-template-experiment) | Playwright smoke on `preview` — dependency hygiene on another static SKU |
+
+### References (curated)
+
+Audit data and worm IoCs answer different questions; these are the references I actually used.
+
+| Reference | Notes |
+| --- | --- |
+| [Cobenian/shai-hulud-detect](https://github.com/Cobenian/shai-hulud-detect) | Community Shai-Hulud detector — IoC + heuristics, not an audit replacement. |
+| [RFC 5737 — IPv4 documentation blocks](https://datatracker.ietf.org/doc/html/rfc5737) | TEST-NET-1 (`192.0.2.0/24`) for non-routable examples in code and tests. |
+| [npm audit documentation](https://docs.npmjs.com/cli/v10/commands/npm-audit) | Understand `--force` before it picks your framework version. |
+| [pnpm audit](https://pnpm.io/cli/audit) | Same advisory DB, different lockfile ergonomics after migration. |
+| [Next.js — Content Security Policy](https://nextjs.org/docs/app/guides/content-security-policy) | Headers and production hardening on the app the lockfile is supposed to serve. |
+| [OWASP — Vulnerable dependency management](https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html) | Framing for layered checks — pair with npm/GitHub advisories for campaign specifics. |

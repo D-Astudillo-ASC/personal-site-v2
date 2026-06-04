@@ -11,6 +11,8 @@ export const metadata = {
 
 # Building a collaborative editor with CRDTs
 
+Two cursors in the same buffer is where “just broadcast the string” stops working. I rebuilt a Monaco-based editor around **Yjs** so concurrent keystrokes converge without a server-side merge referee.
+
 ## TL;DR
 
 I built a **multi-user code editor** (Monaco + React) where concurrent edits must converge without a central "winner." The stack:
@@ -231,7 +233,32 @@ Correct merge logic still feels broken if join takes ten seconds—snapshot cade
 
 ---
 
+## Reader field guide
+
+**When CRDT relay + log beats OT or last-write-wins:** Two or more people edit the same buffer at once; reconnects must merge without a central ordering authority; you can accept append-only growth with periodic snapshots.
+
+**Yjs / sync failure modes to plan for**
+
+- **Snapshot object missing or corrupt** — fall back to full replay; never ship partial snapshot bytes.
+- **Broadcast before Postgres commit** — reconnecting clients miss ops; persist, then fan-out.
+- **Duplicate `seq` under concurrent writers** — allocate sequence inside `FOR UPDATE`; otherwise tail order is nondeterministic.
+- **Empty in-memory `Y.Doc` after restart** — rebuild from snapshot + tail on first access, not from a blank doc.
+- **Skipping state-vector diff on reconnect** — client replays entire history; use `encodeStateAsUpdate(doc, remoteStateVector)` for incremental catch-up.
+- **Treating awareness as durable** — cursors disappear on refresh by design; do not write awareness rows to Postgres.
+- **Mixing string overwrites with binary Yjs frames** — keep transport opaque binary end-to-end.
+
+**Operational checklist**
+
+- [ ] IdP verified on both HTTP and WebSocket handshake
+- [ ] Snapshot thresholds tuned for your largest expected document
+- [ ] Object storage scoped to snapshot prefix; verify read after write before optional tail prune
+- [ ] WebSocket host keeps at least one warm instance if scale-to-zero kills live sessions
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
@@ -239,4 +266,13 @@ Correct merge logic still feels broken if join takes ten seconds—snapshot cade
 | [Building a browser music visualizer with Goose](/blog/building-a-browser-music-visualizer-with-goose) | Browser real-time loops (`requestAnimationFrame`) without shared state |
 | [Lessons from building a mobile events social platform](/blog/lessons-from-building-a-mobile-events-social-platform) | Firebase real-time — last-write-wins unless you invest in CRDTs |
 
-**External:** [Yjs documentation](https://docs.yjs.dev/) · [y-monaco](https://github.com/yjs/y-monaco) · [Socket.IO rooms](https://socket.io/docs/v4/rooms/) · Shapiro et al., [*A comprehensive study of CRDTs*](https://hal.science/hal-01555508) — why "apply in any order, converge always" is a design goal
+### References (curated)
+
+Yjs is the implementation; the CRDT survey paper is the “why merge order stops mattering” argument I give skeptical backend folks.
+
+| Reference | Notes |
+| --- | --- |
+| [Yjs documentation](https://docs.yjs.dev/) | Updates, snapshots, persistence hooks—read before you design your own op log. |
+| [y-monaco](https://github.com/yjs/y-monaco) | Binding Monaco’s model to a `Y.Text` without fighting the editor’s internal undo stack. |
+| [Socket.IO rooms](https://socket.io/docs/v4/rooms/) | Document-scoped fan-out—binary Yjs frames, not JSON chat payloads. |
+| [A comprehensive study of CRDTs](https://hal.science/hal-01555508) (Shapiro et al.) | Formal grounding for “apply in any order, converge always.” |

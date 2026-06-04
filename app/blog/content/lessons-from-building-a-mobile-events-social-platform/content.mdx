@@ -315,7 +315,41 @@ Firebase bought speed until schema drift became the bill—typed wire formats an
 
 ---
 
-## Related reading (other systems)
+## Reader field guide
+
+Use this when you are sketching an **events-first** mobile product on Firebase—not copying the frozen repo line for line.
+
+**Architecture checklist**
+
+- [ ] One navigation root (Expo Router owns `NavigationContainer`; providers track state only)
+- [ ] Canonical wire schema on the server (Zod); view models derive at read time
+- [ ] Split stores by latency: Firestore for durable chat/events, RTDB for typing/presence
+- [ ] Callable functions for paid APIs (Places) and privileged fan-out (FCM)
+- [ ] App Check + rules tested for **denied** paths in the emulator before enforce
+- [ ] AI as optional BFF spikes ([experiment A: Gemini + SSE](/blog/building-a-gemini-ai-backend-with-sse), [experiment B: GPU pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse))—not a launch dependency
+
+| Decision | Lean toward | When to reconsider |
+| --- | --- | --- |
+| API gateway in front of Cloud Functions | Skip at MVP | You need WAF, multi-region routing, or non-Firebase backends |
+| Single Firestore for everything | Split RTDB for ephemeral signals | You can afford Firestore write volume and accept higher latency |
+| WebRTC in v1 | Ship text + events first | Calling is budgeted as a second product (CallKit, NAT, background audio) |
+| Custom ML matching | Rule-based filters first | You have labeled outcomes and a fairness review process |
+
+**Companion depth:** [Firebase security](/blog/securing-firebase-for-a-social-mobile-app) · [TestFlight](/blog/shipping-an-expo-app-through-testflight)
+
+---
+
+## Related reading
+
+### On this site
+
+| Post | Why |
+| --- | --- |
+| [Securing Firebase for a social mobile app](/blog/securing-firebase-for-a-social-mobile-app) | P0 rules and App Check before you invite testers |
+| [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight) | Signed builds and Apple gates after security is fixed |
+| [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Optional AI spine—experiment A vs [GPU pod](/blog/hosting-a-quantized-llm-on-gpu-websocket-vs-sse) |
+
+### Contrasts (other systems)
 
 | Post | Contrast |
 | --- | --- |
@@ -323,4 +357,13 @@ Firebase bought speed until schema drift became the bill—typed wire formats an
 | [Building a collaborative editor with CRDTs](/blog/building-a-crdt-collaborative-editor) | Real-time with **CRDT** consistency, not Firebase fan-out |
 | [Bridging AMQPS and JMS for real-time events](/blog/bridging-amqps-and-jms-for-real-time-events) | Broker-backed enterprise events vs mobile push |
 
-**External:** [Expo Router](https://docs.expo.dev/router/introduction/) · [Firebase Firestore](https://firebase.google.com/docs/firestore) · [Firebase Realtime Database](https://firebase.google.com/docs/database)
+### References (curated)
+
+Expo Router owns navigation; Firebase’s split between Firestore and RTDB is the doc pair I re-read when latency classes blur together.
+
+| Reference | Notes |
+| --- | --- |
+| [Expo Router](https://docs.expo.dev/router/introduction/) | File-based routes—providers should not nest a second `NavigationContainer`. |
+| [Firebase Firestore](https://firebase.google.com/docs/firestore) | Durable chat, events, profiles—tune indexes for list queries you actually ship. |
+| [Firebase Realtime Database](https://firebase.google.com/docs/database) | Typing/presence paths where millisecond fan-out beats Firestore write costs. |
+| [Cloud Functions callable](https://firebase.google.com/docs/functions/callable) | Server-owned secrets (Places, FCM fan-out) with App Check at the boundary. |

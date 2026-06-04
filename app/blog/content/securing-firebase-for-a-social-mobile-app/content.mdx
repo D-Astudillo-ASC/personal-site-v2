@@ -142,7 +142,34 @@ Until an unauthenticated client gets `permission-denied` in the emulator, your r
 
 ---
 
+## Reader field guide
+
+Run this **before** your first TestFlight build or any public Storage URL.
+
+**P0 checklist**
+
+- [ ] Storage: no `allow read: if true` on user media; delete catch-all `/{allPaths=**}` rules
+- [ ] Firestore: profiles split or scoped—strangers should not read email, phone, or precise location
+- [ ] Conversations: `request.auth.uid in resource.data.participants` on reads, not merely `request.auth != null`
+- [ ] RTDB: same participant checks on typing/presence paths
+- [ ] Paid APIs (Places, etc.) only on callable functions with server-side keys
+- [ ] App Check registered on clients **before** console enforcement on Firestore, Functions, Storage
+- [ ] Emulator matrix: unauthenticated Storage GET, cross-user private profile read, non-participant conversation read → all `permission-denied`
+
+| Surface | Common prototype mistake | Production-shaped fix |
+| --- | --- | --- |
+| Cloud Storage | Public read on `users/{uid}/**` | Owner read/write; public assets via explicit path or signed URL |
+| Firestore `users` | Any authenticated user reads any doc | `users_public` vs `users_private`, or callable profile with relationship checks |
+| RTDB | Hardened Firestore, open typing tree | Mirror participant ACLs on ephemeral paths |
+| Client API keys | Places key in the bundle | Callable proxy + App Check |
+
+**Defer until ACLs work:** field-level encryption, custom JWT minting, WAF in front of Functions.
+
+---
+
 ## Related reading
+
+### On this site
 
 | Post | Why |
 | --- | --- |
@@ -150,4 +177,13 @@ Until an unauthenticated client gets `permission-denied` in the emulator, your r
 | [Shipping an Expo app through TestFlight](/blog/shipping-an-expo-app-through-testflight) | Distribution gates that assume security is already fixed |
 | [Building a Gemini AI backend with SSE](/blog/building-a-gemini-ai-backend-with-sse) | Callable functions and App Check before AI touches prod |
 
-**External:** [Firebase Security Rules](https://firebase.google.com/docs/rules) · [App Check](https://firebase.google.com/docs/app-check) · [Firestore security rules structure](https://firebase.google.com/docs/firestore/security/get-started)
+### References (curated)
+
+Rules syntax is only half the job—the emulator matrix in Google’s getting-started guide is how you prove `permission-denied` actually fires.
+
+| Reference | Notes |
+| --- | --- |
+| [Firebase Security Rules](https://firebase.google.com/docs/rules) | Shared language for Firestore, Storage, and RTDB—keep predicates aligned with Zod on callables. |
+| [App Check](https://firebase.google.com/docs/app-check) | Register clients **before** flipping enforcement; otherwise you lock out TestFlight builds. |
+| [Firestore security rules structure](https://firebase.google.com/docs/firestore/security/get-started) | Emulator-driven tests for cross-user reads—not “looks fine in the console.” |
+| [Storage security rules](https://firebase.google.com/docs/storage/security) | Where public-read prototypes usually leak profile media. |

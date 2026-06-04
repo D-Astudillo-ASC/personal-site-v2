@@ -6,7 +6,7 @@ import BlogIndexClient from "@/components/blog/BlogIndexClient";
 import BlogIndexClientFallback from "@/components/blog/BlogIndexClientFallback";
 import BlogReadingGuide from "@/components/blog/BlogReadingGuide";
 import BlogStartHere from "@/components/blog/BlogStartHere";
-import { START_HERE_SLUG_SET } from "@/constants/blog";
+import { EARLIER_WORK_SLUG_SET, START_HERE_SLUG_SET } from "@/constants/blog";
 import { getAllPosts, getStartHerePosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
@@ -34,7 +34,11 @@ export default async function BlogIndex() {
     getAllPosts(),
     getStartHerePosts(),
   ]);
-  const listPosts = posts.filter((post) => !START_HERE_SLUG_SET.has(post.slug));
+  const listPosts = posts.filter(
+    (post) =>
+      !START_HERE_SLUG_SET.has(post.slug) &&
+      !EARLIER_WORK_SLUG_SET.has(post.slug),
+  );
 
   return (
     <PageShell maxWidth="2xl">
